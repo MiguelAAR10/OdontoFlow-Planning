@@ -1,42 +1,52 @@
 ---
-title: OdontoFlow — Plan (milestones)
+title: OdontoFlow — Plan (canonical milestones)
 status: active
 last_verified: 2026-08-16
 authority: Repo 0 (planning) — milestone-level only; backend detail lives in backend docs/roadmap.md
 ---
 
-# Plan — Milestones
+# Plan — Canonical Milestones
 
-## M1 — Vertical 1: Lead → Appointment  — DONE
-Commercial lead, catalog, organization/practitioner capability, deterministic
-availability, transactional booking (GiST conflict safety), cancel/reschedule,
-HTTP E2E. Backend closed; frontend Agenda wired to real API.
+| Milestone | Status |
+|---|---|
+| **M0 — Repository Recovery** | **CLOSED** (2026-08-16) |
+| **M1 — Platform Foundation** | **CLOSED** |
+| **M2 — FastAPI Core Migration** | **CLOSED** |
+| **M3 — Frontend Core Integration** | **PARTIAL** |
+| **M4 — Pilot Fit** | **NOW** |
+| **M5 — First Measured Value** | **NEXT** |
+| **M6 — Agentic Operations** | **LATER** |
 
-## M2 — Platform Foundation PF1–PF4  — DONE
-Tenancy, authorization, provenance, idempotent commands (migrations 0001–0004).
+## M0 — Repository Recovery — CLOSED
+Canonical workspace `AI-EdgeRunners/odontoflow/` with planning/backend/frontend;
+MediStock legacy READ ONLY outside the workspace; recovery bundles preserved in
+`_preservation/`; Repo 0 established as git repo with remote `OdontoFlow-Planning`.
 
-## M3 — Clinical Core (PF5)  — DONE
-Patient, Visit, ServiceExecution (migration 0005). Frontend Pacientes on real API.
+## M1 — Platform Foundation — CLOSED
+PF1 tenancy · PF2 authorization · PF3 provenance · PF4 idempotent commands
+(migrations 0001–0004).
 
-## M4 — Economic & Ops Bridge (PF6)  — DONE
-Product, ServiceConsumption, Charge, Payment (migration 0006).
+## M2 — FastAPI Core Migration — CLOSED
+Vertical 1 (Lead → Appointment) E2E; Agenda read endpoints; PF5 clinical,
+PF6 economics, PF7 inventory ledger + PF closure (migrations 0005–0007,
+364 tests PASS).
 
-## M5 — Inventory Ledger + PF Closure (PF7)  — DONE
-Append-only InventoryMovement, derived balances, consumption→SALIDA, migration 0007,
-permission gating on all mutating services, BLOCKER-2 resolved.
+## M3 — Frontend Core Integration — PARTIAL
+Agenda **REAL** · Patients **REAL** · Cash **PROTOTYPE** · Inventory **PROTOTYPE** ·
+Chat **PROTOTYPE** · Agent **PROTOTYPE** (frontend HEAD `6135025`, remote
+`leonardopanduro-rgb/ODONTO-SMART-FRONT`).
 
-## M6 — Platform Foundation closure + Finance follow-ups  — NEXT
-architecture.md §9 stragglers; sale stock-out for `reventa`; payment reversal /
-method catalog / invoice engine.
+## M4 — Pilot Fit — NOW
+Next activity: integrate CashPage and InventoryPage with existing FastAPI
+contracts (`/charges`, `/charges/{id}/payments`, `/products/*`).
 
-## M7 — Multi-location stock & transfers  — NEXT (additive)
-`location_id` + TRANSFER movements.
+## M5 — First Measured Value — NEXT
+Platform Foundation closure stragglers; sale stock-out for `reventa`; finance
+follow-ups (payment reversal, method catalog, invoice engine).
 
-## M8 — External adapters (Calendar, WhatsApp, billing)  — LATER
-Adapters around the domain, never domain authorities.
-
-## M9 — Operational optimization / agent execution  — LATER
-Agents as Principals over the same deterministic tools; not designed yet.
+## M6 — Agentic Operations — LATER
+External adapters (calendar/WhatsApp/billing) and agents as Principals over the
+same deterministic tools; not designed yet.
 
 > Backend roadmap detail, commit history, and gap analysis are owned by the
 > backend repo: `docs/roadmap.md`, `docs/backend-evolution.md`, `docs/architecture.md`.

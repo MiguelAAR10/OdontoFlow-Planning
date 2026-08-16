@@ -12,9 +12,9 @@ Workspace root: `~/projects/portfolio/AI-EdgeRunners/odontoflow/`
 
 | Repo | Local path | Remote | Role | HEAD (verified) | Source of truth | Write policy |
 |---|---|---|---|---|---|---|
-| planning | `odontoflow-planning/` | none (not versioned) | project control plane, navigation, status | — | status/navigation | planning docs, audit artifacts |
-| backend | `../odontoflow-backend/` | `git@github.com:MiguelAAR10/OdontoFlow.git` | FastAPI + PostgreSQL domain authority | `9bb7361` | domain model, migrations, API contract, tests | product work; normal push to origin/main (currently ahead 5, clean fast-forward) |
-| frontend | `../odontoflow-frontend/` | `https://github.com/leonardopanduro-rgb/ODONTO-SMART-FRONT.git` | React SPA (Leonardo) | `6135025` | UI behavior per backend contract | product work; **push restricted** — remote owned by leonardopanduro-rgb, push only on explicit authorization |
+| planning | `odontoflow-planning/` | `git@github.com:MiguelAAR10/OdontoFlow-Planning.git` | project control plane, navigation, status | `c6e71a1` | status/navigation | planning docs, audit artifacts (`.audit/` git-ignored) |
+| backend | `../odontoflow-backend/` | `git@github.com:MiguelAAR10/OdontoFlow.git` | FastAPI + PostgreSQL domain authority | `c85ccd8` (synced) | domain model, migrations, API contract, tests | product work; normal push (fast-forward only, no force) |
+| frontend | `../odontoflow-frontend/` | `https://github.com/leonardopanduro-rgb/ODONTO-SMART-FRONT.git` | React SPA (Leonardo) | `2908cd1` (ahead 3, unpushed) | UI behavior per backend contract | product work; **push restricted** — remote owned by leonardopanduro-rgb, no credentials; commits preserved locally + bundle |
 
 Legado (fuera del workspace, respetado — READ ONLY):
 
@@ -30,6 +30,7 @@ Rules:
 
 - No nested Git repositories: each repo above is a standalone root with its own `.git`.
 - Never squash or rewrite history; preserve remotes and complete commit graphs.
+- `.audit/` in planning is git-ignored (raw recovery artifacts never committed).
 - Bundles of all local-only commits live in
   `~/projects/portfolio/_preservation/odontoflow-recovery-2026-08-16/`
   (see `CAVELOG.md`).

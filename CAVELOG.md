@@ -20,6 +20,11 @@ authority: Repo 0 (planning)
 | 2026-08-16 | Verification results recorded | fsck clean both repos; HEADs/remotes unchanged post-move; backend 364 passed; frontend typecheck clean; all planning links resolve; legacy path resolves read-only. | verification step output | all |
 | 2026-08-16 | Nest workspace under `AI-EdgeRunners/odontoflow/` | User created the folder and requested all odonto product repos live inside it; medistock stays OUTSIDE as read-only legacy. | user decision; `ls` verification | planning, backend, frontend |
 | 2026-08-16 | Update path refs for nested workspace | After nesting, medistock refs in live docs became `../../medistock`; planning docs updated to `../odontoflow-*`. Append-only handoffs/CHANGELOG untouched. | `git grep` re-scan | backend docs |
+| 2026-08-16 | Close Repo 0: init planning as git repo | Planning becomes versioned control plane; track only spine docs + `.gitignore`; `.audit/` ignored (raw recovery artifacts). Commit `c6e71a1` "chore: establish OdontoFlow project control plane". | `git init -b main`; verified not inside a worktree | planning |
+| 2026-08-16 | Create dedicated remote `OdontoFlow-Planning` under MiguelAAR10 | `gh` authenticated as MiguelAAR10 with `repo` scope; private repo created and pushed normally. | `gh repo create --private --push` output; `ls-remote` match | planning |
+| 2026-08-16 | Freeze roadmap to canonical M0–M6 | M0 Recovery CLOSED · M1 Platform Foundation CLOSED · M2 FastAPI Core CLOSED · M3 Frontend Integration PARTIAL · M4 Pilot Fit NOW · M5 First Measured Value NEXT · M6 Agentic Operations LATER. No new Platform Foundation phase as next activity. | user directive; PLAN.md | planning |
+| 2026-08-16 | Backend doc commit + normal push | Diff verified documentation/path-only (4 `.md` files); committed `c85ccd8` "docs: repair canonical workspace references"; recompute: ahead 6, behind 0, merge-base == remote HEAD → clean fast-forward; pushed `8dd83eb..c85ccd8`. No force. | `git diff --name-only`; merge-base computation; push output | backend |
+| 2026-08-16 | Frontend doc commit, no push (ownership) | Diff verified README/path-only; committed `2908cd1` "docs: repair canonical backend references"; recompute: ahead 3, behind 0, clean fast-forward; `git push --dry-run` fails (no credentials for https github.com, remote owned by leonardopanduro-rgb). Ownership not bypassed; commit preserved locally + bundle. | dry-run failure output; remote owner check | frontend |
 
 ## Recovery artifact
 
@@ -29,3 +34,7 @@ Preservation root: `~/projects/portfolio/_preservation/odontoflow-recovery-2026-
 - `odontoflow-frontend-6135025.bundle` — sha256 `1cad3caf…`
 - `odonto-smart-marketing-0d59878.bundle` — sha256 `e73bf2a3…`
 - `SHA256SUMS.txt`, `MANIFEST.md` (remotes, branches, divergence analysis)
+
+> Bundles capture the pre-freeze state (backend `9bb7361`, frontend `6135025`).
+> After the close-out, backend is pushed to `c85ccd8`; frontend advanced locally
+> to `2908cd1` (3 commits ahead of remote, still not pushed — Leonardo's repo).

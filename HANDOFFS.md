@@ -49,3 +49,9 @@ from filenames.
 
 Note: the two earliest 08-13 task-2/task-3 handoffs reference the historical
 repo path `AI-EdgeRunners/OdontoFlow`; they are append-only records, not defects.
+
+## Repository close-out (2026-08-16)
+
+| Date | Handoff | Topic |
+|---|---|---|
+| 08-16 | (this index) | Repo 0 closed: planning versioned (`OdontoFlow-Planning` remote), workspace frozen, M4 Pilot Fit = NOW. Backend pushed `c85ccd8`; frontend `2908cd1` pending push (Leonardo's remote). See STATUS.md + CAVELOG.md. |
