@@ -1,0 +1,6 @@
+# raw recovery/forensic artifacts — never committed
+.audit/
+
+# editor/OS noise
+.DS_Store
+*.swp
