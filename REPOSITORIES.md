@@ -13,8 +13,8 @@ Workspace root: `~/projects/portfolio/AI-EdgeRunners/odontoflow/`
 | Repo | Local path | Remote | Role | HEAD (verified) | Source of truth | Write policy |
 |---|---|---|---|---|---|---|
 | planning | `odontoflow-planning/` | `git@github.com:MiguelAAR10/OdontoFlow-Planning.git` | project control plane, navigation, status | `c6e71a1` | status/navigation | planning docs, audit artifacts (`.audit/` git-ignored) |
-| backend | `../odontoflow-backend/` | `git@github.com:MiguelAAR10/OdontoFlow.git` | FastAPI + PostgreSQL domain authority | `c85ccd8` (synced) | domain model, migrations, API contract, tests | product work; normal push (fast-forward only, no force) |
-| frontend | `../odontoflow-frontend/` | `https://github.com/leonardopanduro-rgb/ODONTO-SMART-FRONT.git` | React SPA (Leonardo) | `2908cd1` (ahead 3, unpushed) | UI behavior per backend contract | product work; **push restricted** — remote owned by leonardopanduro-rgb, no credentials; commits preserved locally + bundle |
+| backend | `../odontoflow-backend/` | `git@github.com:MiguelAAR10/OdontoFlow.git` | FastAPI + PostgreSQL domain authority | `28d1e22` (synced) | domain model, migrations, API contract, tests | product work; normal push (fast-forward only, no force) |
+| frontend | `../odontoflow-frontend/` | `git@github.com:MiguelAAR10/odontoflow-frontend.git` (canonical) · upstream/reference `https://github.com/leonardopanduro-rgb/ODONTO-SMART-FRONT.git` (`leonardo`) | React SPA | `20f38f1` (origin/main) | UI behavior per backend contract | product work; normal push (fast-forward only, no force); Leonardo's repo preserved as upstream/reference |
 
 Legado (fuera del workspace, respetado — READ ONLY):
 

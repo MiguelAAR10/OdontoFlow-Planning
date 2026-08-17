@@ -1,0 +1,202 @@
+=== REPO EVIDENCE — captured 2026-08-13T01:09:17Z ===
+
+--- pwd ---
+/home/miguel/projects/portfolio/AI-EdgeRunners/medistock
+
+--- branch ---
+main
+
+--- HEAD ---
+ef2fffb7a348aa621f7a5b387e09a1553351000f
+
+--- git status --short --branch ---
+## main...origin/main
+
+--- git log --oneline -20 ---
+ef2fffb feat(infra): complete Sprint 1.1 — reproducible Docker stack
+a09fd70 docs+infra: comprehensive README with Mermaid ER diagrams + docker-compose + .env.example
+e8a9d61 merge: integrate AI/OLAP features from integration/backend-with-ai branch
+31a5e60 fix(frontend): renumber Streamlit pages to avoid prefix conflicts
+e226487 merge: integrate feature/backend-flask-setup into main
+6f6fb2c docs(process): add TCAD protocol and architecture notes
+db90e27 feat(frontend): add Streamlit app with analytics and agent chat
+e625158 feat(backend): add OLAP warehouse, curation flow and agent cycle
+1d9d7f2 feat(api): implement BaseAPIClient with centralized HTTP handling
+b8d78ee delete(frontend): Delete and Structure clinica_frontend for more efficient
+0b9b183 feat(validators): add input validation module
+d401f18 refactor(app): update imports for new structure
+0f046e1 refactor(config): update configuration paths
+b6bc131 refactor(structure): reorganize module hierarchy
+6f0f5b7 refactor(frontend): Start again the pacientes_ui.py
+0ee3362 feat(frontend): Add new functions in the APICliente
+aa06d9e feat(frontend): implement patient management UI and core app structure
+b8e2635 docs: update project log with api_client changes
+227e84c feat(frontend): Add get_productos and get_movimientos_stock methods
+e2ea847 docs: initialize project log in GEMINI.md
+
+--- tracked files ---
+.dockerignore
+.env.example
+.gitignore
+GEMINI.md
+LICENSE
+README.md
+docker-compose.yml
+docs/TCAD.md
+notebooks/clinica_prime.ipynb
+notebooks/etl_v1.ipynb
+notebooks/etl_v2.ipynb
+ops/cron/clinica_prime.cron
+ops/docker/.streamlit/config.toml
+ops/docker/backend.Dockerfile
+ops/docker/frontend.Dockerfile
+requirements.txt
+src/catalogo.py
+src/clinica_backend/app/__init__.py
+src/clinica_backend/app/agents/__init__.py
+src/clinica_backend/app/agents/graph.py
+src/clinica_backend/app/agents/memory.py
+src/clinica_backend/app/agents/nodes.py
+src/clinica_backend/app/agents/orchestrator.py
+src/clinica_backend/app/agents/state.py
+src/clinica_backend/app/config.py
+src/clinica_backend/app/extensions.py
+src/clinica_backend/app/models/__init__.py
+src/clinica_backend/app/models/base.py
+src/clinica_backend/app/models/consulta.py
+src/clinica_backend/app/models/consulta_servicio.py
+src/clinica_backend/app/models/consumo_producto.py
+src/clinica_backend/app/models/descuento.py
+src/clinica_backend/app/models/distrito.py
+src/clinica_backend/app/models/factura.py
+src/clinica_backend/app/models/inventario.py
+src/clinica_backend/app/models/marca.py
+src/clinica_backend/app/models/medio_pago.py
+src/clinica_backend/app/models/paciente.py
+src/clinica_backend/app/models/pago.py
+src/clinica_backend/app/models/producto.py
+src/clinica_backend/app/models/servicio.py
+src/clinica_backend/app/models/servicio_catalogo.py
+src/clinica_backend/app/routes/agentes.py
+src/clinica_backend/app/routes/analytics.py
+src/clinica_backend/app/routes/catalogo.py
+src/clinica_backend/app/routes/consultas.py
+src/clinica_backend/app/routes/curation.py
+src/clinica_backend/app/routes/descuentos.py
+src/clinica_backend/app/routes/distritos.py
+src/clinica_backend/app/routes/facturas.py
+src/clinica_backend/app/routes/health.py
+src/clinica_backend/app/routes/inventario.py
+src/clinica_backend/app/routes/marcas.py
+src/clinica_backend/app/routes/medios_pago.py
+src/clinica_backend/app/routes/olap.py
+src/clinica_backend/app/routes/pacientes.py
+src/clinica_backend/app/routes/pagos.py
+src/clinica_backend/app/routes/productos.py
+src/clinica_backend/app/routes/servicios.py
+src/clinica_backend/app/schemas/catalogo_schema.py
+src/clinica_backend/app/schemas/consulta_schema.py
+src/clinica_backend/app/schemas/inventario_schema.py
+src/clinica_backend/app/schemas/paciente_schema.py
+src/clinica_backend/app/services/analytics_service.py
+src/clinica_backend/app/services/catalogo_service.py
+src/clinica_backend/app/services/consulta_service.py
+src/clinica_backend/app/services/data_curation_service.py
+src/clinica_backend/app/services/factura_service.py
+src/clinica_backend/app/services/inventario_service.py
+src/clinica_backend/app/services/olap_service.py
+src/clinica_backend/app/services/paciente_service.py
+src/clinica_backend/app/services/pago_service.py
+src/clinica_backend/app/utils/response.py
+src/clinica_backend/app/utils/validator.py
+src/clinica_backend/run.py
+src/clinica_frontend/.gitignore
+src/clinica_frontend/app.py
+src/clinica_frontend/config.py
+src/clinica_frontend/modules/__init__.py
+src/clinica_frontend/modules/api/__init__.py
+src/clinica_frontend/modules/api/base_client.py
+src/clinica_frontend/modules/api/inventario_api.py
+src/clinica_frontend/modules/api/pacientes_api.py
+src/clinica_frontend/modules/auth.py
+src/clinica_frontend/modules/utils/__init__.py
+src/clinica_frontend/modules/utils/cache_manager.py
+src/clinica_frontend/modules/utils/error_handler.py
+src/clinica_frontend/modules/utils/formatters.py
+src/clinica_frontend/modules/utils/validators.py
+src/clinica_frontend/modules/validators.py
+src/clinica_frontend/modules/validators/__init__.py
+src/clinica_frontend/modules/validators/paciente_validator.py
+src/clinica_frontend/pages/01_Dashboard.py
+src/clinica_frontend/pages/02_Pacientes.py
+src/clinica_frontend/pages/03_Consultas.py
+src/clinica_frontend/pages/04_Inventario.py
+src/clinica_frontend/pages/05_Facturacion.py
+src/clinica_frontend/pages/06_Analytics_IA.py
+src/clinica_frontend/pages/07_Agentes_IA.py
+src/clinica_frontend/requirements.txt
+src/clinica_frontend/services/api_client.py
+src/clinica_frontend/services/ml_client.py
+src/hidden.py
+src/jobs/run_olap_cycle.py
+src/jobs/setup_olap.py
+src/limpieza_utils.py
+src/orquestador.py
+src/sql/migrations/001_stock_ledger_trigger.sql
+src/sql/migrations/002_stock_ledger_sync.sql
+src/sql/migrations/003_sp_register_entrada.sql
+src/sql/migrations/004_backfill_historical_data.sql
+src/sql/olap/001_create_olap_schema.sql
+src/sql/olap/002_refresh_olap.sql
+src/sql/schema/01_create_schema.sql
+src/sql/schema/02a_insert_dimensions.sql
+src/sql/schema/02b_insert_dimensions.sql
+src/sql/schema/02c_insert_dimensions.sql
+src/sql/schema/02d_insert_dimensions.sql
+src/sql/schema/03_insert_pacientes.sql
+src/sql/schema/04_insert_consultas.sql
+src/sql/schema/05_insert_consultas_servicios.sql
+src/sql/schema/06_insert_consumo_productos.sql
+src/sql/schema/07_insert_facturas.sql
+src/sql/schema/08_harden_oltp_v1.sql
+
+--- untracked test-ish files (outside .git) ---
+
+--- python3 ---
+Python 3.12.3
+
+--- pytest ---
+pytest 9.0.3
+
+--- pytest collect ---
+
+no tests collected in 0.03s
+
+--- requirements.txt ---
+# requirements.txt
+Flask==3.0.0
+python-dotenv==1.0.0
+Flask-SQLAlchemy==3.1.1
+psycopg2-binary==2.9.9
+Flask-Migrate==4.0.5 # <- Nueva herramienta para migraciones de DB
+SQLAlchemy==2.0.23
+marshmallow==3.20.1 # <- Nueva herramienta de validación
+Flask-Marshmallow==0.15.0 # <- Su integración con Flask
+marshmallow-sqlalchemy==0.29.0 # <- Su integración con SQLAlchemy
+flask-cors==4.0.0 # <- Permite que un frontend hable con nuestro backend
+streamlit==1.39.0
+requests==2.32.3
+pandas==2.2.3
+plotly==5.24.1
+langgraph==0.2.32
+langchain==0.3.4
+langchain-openai==0.2.3
+
+--- docker compose config validation ---
+compose config OK
+
+--- compose services ---
+postgres
+backend
+frontend
+olap-refresh
