@@ -84,6 +84,9 @@ This project is built by humans **and** coding agents side by side. To keep it c
 6. **Consistency docs for agents.** Each repo carries its own operating contract (`AGENTS.md`): backend
    directives in `odontoflow-backend/AGENTS.md`, frontend rules in `odontoflow-frontend/AGENTS.md`. Read
    them before touching code — they encode the same rules as this page.
+7. **Isolated per-repo environments.** Backend = Python 3.12 venv + `pyproject.toml`; frontend = Node 24 +
+   `package.json`/`package-lock.json`. Variables documentadas en cada `.env.example`. Reference completa:
+   `../ENVIRONMENT.md` (raíz del workspace, junto al mapa maestro).
 
 ### A typical delivery loop
 
