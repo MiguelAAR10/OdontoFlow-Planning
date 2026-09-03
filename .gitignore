@@ -1,11 +1,12 @@
-# raw recovery/forensic artifacts — never committed
-.audit/
+# raw recovery/forensic artifacts — never committed.
+# NOTE: the pattern is `.audit/*`, NOT `.audit/`. Ignoring the directory itself
+# stops git descending into it, and the negation below would never be reached.
+.audit/*
 
 # EXCEPTION: contributor provenance is durable evidence about someone else's
 # authorship, not raw forensic noise. Losing it would silently erase credit,
 # so it is versioned on purpose.
 !.audit/contributions/
-!.audit/contributions/**
 
 # editor/OS noise
 .DS_Store

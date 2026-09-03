@@ -1,0 +1,67 @@
+### Flujo CONSULTA end-to-end por HTTP (canal de texto, sin audio)
+  medico> acabo de salir de una consulta y quiero hacer el resumen
+  bot   > Perfecto, resumen de consulta.
+
+1 de 5 · ¿De qué paciente es la consulta? Dime el nombre o su D
+  medico> Juan Perez
+  bot   > 2 de 5 · ¿Qué tratamientos le hiciste?
+  medico> dos resinas y una limpieza
+  bot   > 3 de 5 · ¿Qué insumos gastaste?
+  medico> dos anestesias y cuatro agujas
+  bot   > 4 de 5 · ¿Cuánto se cobró y cómo pagó?
+  medico> ciento veinte soles, pago con yape
+  bot   > 5 de 5 · ¿Alguna indicación u observación para la historia?
+  medico> ninguna
+  bot   > Listo, esto es lo que entendí. Revísalo y confirma.
+
+  terminado: True
+  ADJUNTO DE NEGOCIO:
+  {
+    "tipo": "consulta",
+    "paciente_ref": "Juan Perez",
+    "servicios": [
+      {
+        "codigo": "RESINA-SIMPLE",
+        "nombre": "Curación con resina",
+        "cantidad": 2
+      },
+      {
+        "codigo": "PROFILAXIS",
+        "nombre": "Profilaxis / limpieza",
+        "cantidad": 1
+      }
+    ],
+    "consumo": [
+      {
+        "codigo": "ANESTESIA",
+        "nombre": "Anestesia (carpule)",
+        "cantidad_consumida": 2
+      },
+      {
+        "codigo": "AGUJA",
+        "nombre": "Aguja dental",
+        "cantidad_consumida": 4
+      }
+    ],
+    "total_bruto": 120,
+    "metodos_pago": [
+      "yape"
+    ],
+    "observaciones": "ninguna"
+  }
+
+### Flujo INVENTARIO end-to-end por HTTP (autocorreccion + faltantes + 'igual')
+  medico> quiero auditar el inventario de insumos
+  bot   > Dale. Ve dictando mientras revisas la estantería, sin apuro y como te salga. Puedes mandar varios audios. Cuan
+  medico> quedan doce pastas, tres cepillos y cinco enjuagues
+  bot   > Anoté 3 insumos. Van 3 de 12. Sigue cuando quieras, o escribe «listo».
+  medico> tres, no, cuatro resinas. y ocho eyectores
+  bot   > Anoté 2 insumos. Van 5 de 12. Sigue cuando quieras, o escribe «listo».
+  medico> listo
+  bot   > Registré 5 de 12 insumos. Te faltaron: Hilo dental, Kit de blanqueamiento, Anestesia (carpule), Guantes (caja)
+  medico> igual
+  bot   > Hecho. Los que faltaban quedaron con el valor de la última vez.
+
+  terminado: True | contados: 12 de 12
+  RESINA (autocorreccion 'tres, no, cuatro') = 4
+  PASTA-DENTAL = 12 | CEPILLO = 3 | EYECTOR = 8

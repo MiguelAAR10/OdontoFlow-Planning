@@ -1,0 +1,32 @@
+### auditar.py — intento en Linux/WSL (servidor donor arriba en :8000, modelo tiny)
+### python: Python 3.12.3
+
+Servidor: http://127.0.0.1:8000 · 12 insumos en catálogo
+
+══════════════════════════════════════════════════════════════════════
+FLUJO 1 · Auditoría de inventario
+══════════════════════════════════════════════════════════════════════
+  [32m✓[0m El saludo ofrece los dos flujos
+  [32m✓[0m Elige inventario con lenguaje natural
+
+  Dictado libre (3 audios, como recorriendo la estantería):
+Traceback (most recent call last):
+  File "/home/miguel/projects/portfolio/AI-EdgeRunners/odontoflow/contrib-odonto-voz/auditar.py", line 207, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/home/miguel/projects/portfolio/AI-EdgeRunners/odontoflow/contrib-odonto-voz/auditar.py", line 186, in main
+    auditar_inventario(c, tmp)
+  File "/home/miguel/projects/portfolio/AI-EdgeRunners/odontoflow/contrib-odonto-voz/auditar.py", line 99, in auditar_inventario
+    d = c.audio(decir("Quedan doce pastas, tres cepillos y cinco enjuagues.",
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/miguel/projects/portfolio/AI-EdgeRunners/odontoflow/contrib-odonto-voz/auditar.py", line 42, in decir
+    subprocess.run(["say", "-v", "Paulina", "-o", str(aiff), texto], check=True,
+  File "/usr/lib/python3.12/subprocess.py", line 548, in run
+    with Popen(*popenargs, **kwargs) as process:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 1026, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "/usr/lib/python3.12/subprocess.py", line 1955, in _execute_child
+    raise child_exception_type(errno_num, err_msg, err_filename)
+FileNotFoundError: [Errno 2] No such file or directory: 'say'
+[exit code 1]
