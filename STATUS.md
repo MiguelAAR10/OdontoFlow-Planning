@@ -25,7 +25,7 @@ M5.2 **BLOCKED on real clinic data** (`DOMINANT_LEAKAGE = UNKNOWN`).
 - **FRONTEND_REMOTE (canonical):** `git@github.com:MiguelAAR10/odontoflow-frontend.git` — origin/main = `9595abd`
 - **FRONTEND_REMOTE (upstream/reference):** `https://github.com/leonardopanduro-rgb/ODONTO-SMART-FRONT.git` — preserved as `leonardo`, at `8769f12`, history untouched, never force-pushed
 - **FRONTEND_TESTS:** 83 unit PASS · Pilot E2E 12/12 PASS · Agenda/Patients regression 6/6 PASS (real backend) · typecheck clean · build PASS (last verified 2026-08-17)
-- **PLANNING_HEAD:** `374aa3e` (`main`) — synced with origin (before this snapshot's commit)
+- **PLANNING_HEAD:** `1c63f02` (`main`) — synced with origin (before this snapshot's commit)
 - **Legacy (medistock):** `ef2fffb` (`main`, synced) — READ ONLY, outside workspace
 
 All three active repos: working tree **clean**, local HEAD **== origin/main**,
@@ -42,6 +42,33 @@ Bring the database up with `docker start odontoflow-db-1` (data volume
 `odontoflow_odontoflow_pgdata`). Note: running `docker compose up` from
 `odontoflow-backend/` derives a *different* compose project name and creates an
 **empty** volume — always start the named container instead.
+
+## Contributor sources (NOT canonical business authority)
+
+- **`contrib-odonto-voz/`** — standalone voice service by **Alejandro Marcelo**,
+  imported **intact** at `eb9a4ee` (5 commits, full history, own `origin`).
+  **READ ONLY**, never pushed, not a submodule, not built by any pipeline.
+  Its own tests: **54 PASS / 0.69 s** (re-verified 2026-09-02). Its
+  `catalogo.json` is **SYNTHETIC**; its alias vocabulary is genuine product
+  knowledge worth preserving.
+- **`alejandro/feat/asistente-voz`** = `c0f418d` — donor frontend PR
+  [ODONTO-SMART-FRONT#1](https://github.com/leonardopanduro-rgb/ODONTO-SMART-FRONT/pull/1),
+  fetched into `odontoflow-frontend` and **left intact**. **Not merged, not
+  cherry-picked, not rebased.** Canonical `main` unchanged at `9595abd`.
+- Authorship and exact SHAs: [CONTRIBUTIONS.md](CONTRIBUTIONS.md). Synthesis and
+  integration order: [VOICE_CONTRIBUTION_INTEGRATION_MAP.md](VOICE_CONTRIBUTION_INTEGRATION_MAP.md).
+  Evidence: `.audit/contributions/voice/`. Bundles + checksums:
+  `_preservation/odontoflow-contributors-2026-09-02/`.
+- **Three of the four requests in the donor's `PETICIONES-A-MIGUEL.md` are
+  already solved** by M4.2 (`ADJUSTMENT` type · `reason` mandatory by CHECK ·
+  `location_id` + atomic transfers · actor via PF3 audit). They were written
+  against the **legacy MediStock schema**, not this backend. Only
+  `cantidad_esperada` is genuinely absent — and it is computable from the
+  derived balance, so it is deliberately **not** being added speculatively.
+- **Open modelling question, not a gap:** the donor emits one `total_bruto` per
+  visit while `Charge` is 1:1 with a `ServiceExecution`. The allocation rule is
+  a **clinic decision**, not a code decision. Nothing writes money until it is
+  answered.
 
 ## External activity since the last snapshot
 
@@ -131,7 +158,17 @@ Unblocking requires a 90-day clinic export (≥ 300 appointments, ≥ 200 charge
 pseudonymous patient ids — full specification in
 [M5_REVENUE_LEAKAGE_BASELINE.md §6](M5_REVENUE_LEAKAGE_BASELINE.md)).
 
+**Contributor intake blockers: none** — both donor sources imported intact,
+preserved with verified checksums, fully mapped, zero product code changed. Two
+open questions are for the clinic, not for engineering: the real tariff/supply
+catalog, and how one visit's total maps to per-treatment charges.
+
 Infrastructure blockers: none. Repos clean and synced; backend suite green.
+
+Known platform limitation (recorded, not a blocker): the donor's E2E harness
+`auditar.py` is **macOS-only** (shells out to `say`), so the voice
+audio/transcription path is **UNVERIFIED on Linux/WSL** and the donor's latency
+figures remain the author's Apple Silicon measurements, not ours.
 
 ## Next activity
 

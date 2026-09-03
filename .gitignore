@@ -1,6 +1,12 @@
 # raw recovery/forensic artifacts — never committed
 .audit/
 
+# EXCEPTION: contributor provenance is durable evidence about someone else's
+# authorship, not raw forensic noise. Losing it would silently erase credit,
+# so it is versioned on purpose.
+!.audit/contributions/
+!.audit/contributions/**
+
 # editor/OS noise
 .DS_Store
 *.swp
