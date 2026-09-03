@@ -21,11 +21,14 @@ M5.2 **BLOCKED on real clinic data** (`DOMINANT_LEAKAGE = UNKNOWN`).
 - **BACKEND_REMOTE:** `git@github.com:MiguelAAR10/OdontoFlow.git` — origin/main = `23527c2`
 - **BACKEND_TESTS:** 384 PASS (real PostgreSQL, port 5434; full run re-verified 2026-09-02, 171s, exit 0)
 - **MIGRATION:** 0008 (alembic 0001–0008 — location-aware inventory + transfers)
-- **FRONTEND_HEAD:** `9595abd` (`main`) — synced with canonical origin
-- **FRONTEND_REMOTE (canonical):** `git@github.com:MiguelAAR10/odontoflow-frontend.git` — origin/main = `9595abd`
+- **FRONTEND_HEAD:** `a967b24` (`main`) — synced with canonical origin (voice UI port)
+- **FRONTEND_REMOTE (canonical):** `git@github.com:MiguelAAR10/odontoflow-frontend.git` — origin/main = `a967b24`
 - **FRONTEND_REMOTE (upstream/reference):** `https://github.com/leonardopanduro-rgb/ODONTO-SMART-FRONT.git` — preserved as `leonardo`, at `8769f12`, history untouched, never force-pushed
-- **FRONTEND_TESTS:** 83 unit PASS · Pilot E2E 12/12 PASS · Agenda/Patients regression 6/6 PASS (real backend) · typecheck clean · build PASS (last verified 2026-08-17)
-- **PLANNING_HEAD:** `1c63f02` (`main`) — synced with origin (before this snapshot's commit)
+- **FRONTEND_TESTS:** **91 unit PASS** (83 + 8 voice gate) · **Pilot E2E 12/12 PASS** (re-run 2026-09-02 on a fresh `odontoflow_e2e`) · typecheck clean · build PASS
+- **VOICE_HEAD:** `4149a3e` (`main`) — donor `eb9a4ee` + 1 canonical commit, synced with origin
+- **VOICE_REMOTE:** `git@github.com:MiguelAAR10/odontoflow-voice.git` (canonical, **private**) · contributor upstream `AlejandroMarceloCh/odonto-voz` preserved as `alejandro`
+- **VOICE_TESTS:** **54 PASS** (0.89 s, Python 3.12.3) — the donor's own suite, unmodified
+- **PLANNING_HEAD:** `c33d65b` (`main`) — synced with origin (before this snapshot's commit)
 - **Legacy (medistock):** `ef2fffb` (`main`, synced) — READ ONLY, outside workspace
 
 All three active repos: working tree **clean**, local HEAD **== origin/main**,
@@ -43,32 +46,46 @@ Bring the database up with `docker start odontoflow-db-1` (data volume
 `odontoflow-backend/` derives a *different* compose project name and creates an
 **empty** volume — always start the named container instead.
 
-## Contributor sources (NOT canonical business authority)
+## Voice Integration V1 — DONE (2026-09-02)
 
-- **`contrib-odonto-voz/`** — standalone voice service by **Alejandro Marcelo**,
-  imported **intact** at `eb9a4ee` (5 commits, full history, own `origin`).
-  **READ ONLY**, never pushed, not a submodule, not built by any pipeline.
-  Its own tests: **54 PASS / 0.69 s** (re-verified 2026-09-02). Its
-  `catalogo.json` is **SYNTHETIC**; its alias vocabulary is genuine product
-  knowledge worth preserving.
-- **`alejandro/feat/asistente-voz`** = `c0f418d` — donor frontend PR
-  [ODONTO-SMART-FRONT#1](https://github.com/leonardopanduro-rgb/ODONTO-SMART-FRONT/pull/1),
-  fetched into `odontoflow-frontend` and **left intact**. **Not merged, not
-  cherry-picked, not rebased.** Canonical `main` unchanged at `9595abd`.
-- Authorship and exact SHAs: [CONTRIBUTIONS.md](CONTRIBUTIONS.md). Synthesis and
-  integration order: [VOICE_CONTRIBUTION_INTEGRATION_MAP.md](VOICE_CONTRIBUTION_INTEGRATION_MAP.md).
-  Evidence: `.audit/contributions/voice/`. Bundles + checksums:
-  `_preservation/odontoflow-contributors-2026-09-02/`.
-- **Three of the four requests in the donor's `PETICIONES-A-MIGUEL.md` are
-  already solved** by M4.2 (`ADJUSTMENT` type · `reason` mandatory by CHECK ·
-  `location_id` + atomic transfers · actor via PF3 audit). They were written
-  against the **legacy MediStock schema**, not this backend. Only
-  `cantidad_esperada` is genuinely absent — and it is computable from the
-  derived balance, so it is deliberately **not** being added speculatively.
-- **Open modelling question, not a gap:** the donor emits one `total_bruto` per
-  visit while `Charge` is 1:1 with a `ServiceExecution`. The allocation rule is
-  a **clinic decision**, not a code decision. Nothing writes money until it is
-  answered.
+**`odontoflow-voice` is now a canonical repo** — the voice/language adapter.
+Promoted from the donor clone by `mv` so the `.git` and all **5 donor commits by
+Alejandro Marcelo** survive untouched (HEAD verified `eb9a4ee`, `fsck` clean,
+never squashed, never force-pushed). Upstream stays reachable as `alejandro`.
+
+**Frontend:** the donor's assistant view is **ported, not merged** (`a967b24`).
+`alejandro/feat/asistente-voz` still points at `c0f418d` and was never merged,
+cherry-picked or rebased. Commit carries `Co-authored-by: Alejandro Marcelo`.
+
+**Environment contract** — the gate is AND, not OR:
+
+| `VITE_ENABLE_VOICE` | `VITE_USE_MOCKS` | behaviour |
+|---|---|---|
+| `false` (default) | anything | `/asistente` route not registered; nav item hidden; **no HTTP ever** |
+| `true` | `true` (default) | page renders and explains itself; **no HTTP ever** |
+| `true` | `false` | live, against `VITE_VOICE_URL` (default `http://127.0.0.1:8000`) |
+
+Verified in a real browser, with the voice service **up and healthy**: mock mode
+and disabled mode each produced **zero requests to :8000**. Agenda/Patients/
+Cash/Inventory real-mode guarantees intact — pilot E2E **12/12** on a fresh DB.
+
+**V1 writes no business state.** The voice service produces **structured
+drafts** (labelled `Borrador` in the UI) and never creates `Visit`,
+`ServiceExecution`, `ServiceConsumption`, `Charge`, `Payment` or
+`InventoryMovement`. The backend remains the only business authority — and the
+backend was **not modified** in this activity.
+
+**Audio E2E: UNVERIFIED, not faked.** No TTS on this machine (`say` is
+macOS-only; no `espeak`/`espeak-ng`/`pico2wave`/`festival`/`flite`), and
+headless Chrome has no microphone. The donor's latency figures stay **their**
+Apple Silicon measurements until re-measured here.
+
+**Synthetic-catalog boundary held:** `catalogo.json` SKUs are **SYNTHETIC** and
+were not promoted to canonical clinic data; its **aliases** are preserved as
+**DOMAIN VOCABULARY**. Recorded in `odontoflow-voice/CANONICAL.md`.
+
+Handoffs: `odontoflow-frontend/.audit/voice-v1/voice-ui-port.md` ·
+`odontoflow-voice/CANONICAL.md`. Credit: [CONTRIBUTIONS.md](CONTRIBUTIONS.md).
 
 ## External activity since the last snapshot
 
@@ -158,10 +175,20 @@ Unblocking requires a 90-day clinic export (≥ 300 appointments, ≥ 200 charge
 pseudonymous patient ids — full specification in
 [M5_REVENUE_LEAKAGE_BASELINE.md §6](M5_REVENUE_LEAKAGE_BASELINE.md)).
 
-**Contributor intake blockers: none** — both donor sources imported intact,
-preserved with verified checksums, fully mapped, zero product code changed. Two
-open questions are for the clinic, not for engineering: the real tariff/supply
-catalog, and how one visit's total maps to per-treatment charges.
+**Voice V1 blockers: none.** Both donor sources are canonical or ported, with
+authorship intact. Two open questions remain **for the clinic**, not for
+engineering: the real tariff/supply catalog, and how one visit's total maps to
+per-treatment charges (`Charge` is 1:1 with a `ServiceExecution`, so a
+two-treatment visit needs two charges and the donor supplies one number).
+Nothing writes money until that is answered.
+
+**Found while testing, pre-existing, NOT fixed here:** the canonical backend has
+**no CORS middleware**, so a browser calling `:8010` from `:5173` is blocked
+(the same request via `curl` returns 200; `OPTIONS` returns 405). That is why
+the pilot E2E is a **node** harness, and it means the SPA has never been driven
+in a browser against the real backend. Out of scope for V1 — the backend was not
+touched. The voice service does declare CORS for `:5173`, which is why its
+browser E2E worked.
 
 Infrastructure blockers: none. Repos clean and synced; backend suite green.
 
@@ -172,16 +199,14 @@ figures remain the author's Apple Silicon measurements, not ours.
 
 ## Next activity
 
-**NEXT_ACTIVITY = obtain the clinic data sample**, then run experiment
-**M5.1-E1 — Revenue Leakage Baseline Extract** (read-only SQL query pack over a
-90-day real export in a scratch database; no code, no migration, no
-intervention). Specification: [M5_REVENUE_LEAKAGE_BASELINE.md §11](M5_REVENUE_LEAKAGE_BASELINE.md).
+**NEXT_ACTIVITY = V2 — Synthetic Clinic Configuration.** Connect the donor's
+preserved **alias vocabulary** to an editable Synthetic Clinic configuration, so
+the synthetic catalog stops being a hard-coded file and becomes configurable
+data — without ever promoting its SKUs to canonical clinic data.
 
-M5.1 established that the money surface is exactly measurable today
-(execution-without-charge, under-charge, aged outstanding) while **no-show is
-not measurable at all** — no no-show state, no appointment resolution state, so
-absence of a visit conflates no-show with an unrecorded visit. Instrumenting
-that (**I1**, audit-only, no migration) is M5.2 *only if* the real data shows
-the ambiguous set is material. Measure first, instrument second.
+Still true and unchanged by this activity: **M5's validation truth.** This
+contribution supplies **no real clinic data**, so `DOMINANT_LEAKAGE` remains
+`UNKNOWN` and the M5 baseline still needs the 90-day clinic export specified in
+[M5_REVENUE_LEAKAGE_BASELINE.md §6](M5_REVENUE_LEAKAGE_BASELINE.md).
 
 (Not another planning/architecture/Foundation/migration phase.)

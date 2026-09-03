@@ -1,7 +1,7 @@
 ---
 title: OdontoFlow — Handoffs Index
 status: active
-last_verified: 2026-08-16
+last_verified: 2026-09-02
 authority: Repo 0 (planning) — index only, contents owned by backend repo (append-only)
 ---
 
@@ -66,3 +66,19 @@ repo path `AI-EdgeRunners/OdontoFlow`; they are append-only records, not defects
 | 08-17 | inventory-ui | M4.3 InventoryPage real (`odontoflow-frontend/.audit/m4-pilot-fit/inventory-ui.md`) |
 | 08-17 | pilot-e2e | M4.4 Pilot E2E 12/12 + final review PASS (`odontoflow-frontend/.audit/m4-pilot-fit/pilot-e2e.md`) |
 | 08-17 | (this index) | M4 CLOSED, M5 NOW. Backend `28d1e22` pushed; frontend `20f38f1` pushed to `MiguelAAR10/odontoflow-frontend` (canonical); Leonardo's repo preserved as `leonardo` upstream/reference. See STATUS.md + CAVELOG.md. |
+
+## Contributor intake (2026-09-02)
+
+| Date | Handoff | Topic |
+|---|---|---|
+| 09-02 | odonto-voz-inventory | Read-only component inventory of the donor voice repo, 54 tests PASS baseline (`odontoflow-planning/.audit/contributions/voice/odonto-voz-inventory.md`) |
+| 09-02 | frontend-voice-port-map | Donor PR #1 classified against canonical `9595abd` (`odontoflow-planning/.audit/contributions/voice/frontend-voice-port-map.md`) |
+| 09-02 | (Repo 0) | Provenance and integration order: [CONTRIBUTIONS.md](CONTRIBUTIONS.md) · [VOICE_CONTRIBUTION_INTEGRATION_MAP.md](VOICE_CONTRIBUTION_INTEGRATION_MAP.md). Bundles + checksums in `_preservation/odontoflow-contributors-2026-09-02/`. |
+
+## Voice Integration V1 (2026-09-02)
+
+| Date | Handoff | Topic |
+|---|---|---|
+| 09-02 | voice-ui-port | V1 UI port onto canonical main: 91 unit tests, typecheck clean, build PASS, pilot E2E 12/12, real-browser run of both flows, audio UNVERIFIED (`odontoflow-frontend/.audit/voice-v1/voice-ui-port.md`) |
+| 09-02 | odontoflow-voice/CANONICAL.md | Canonical status, synthetic-catalog boundary, V1 no-business-writes rule, verified 54-test baseline |
+| 09-02 | (this index) | `odontoflow-voice` promoted with donor history intact (`eb9a4ee` + 1 new commit `4149a3e`); frontend `a967b24` pushed. NEXT = **V2 Synthetic Clinic Configuration**. See STATUS.md + CAVELOG.md. |

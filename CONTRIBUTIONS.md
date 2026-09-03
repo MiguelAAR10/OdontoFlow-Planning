@@ -52,11 +52,12 @@ sits on top of his work, not in place of it.
 | **Exact SHA** | `eb9a4ee0381972658fb8a9e717d4e056820d3d4e` (branch `main`) |
 | **Scale** | 5 commits · 1 branch · 0 tags · 19 files · 2 219 lines |
 | **Dates** | 2026-08-15 → 2026-08-16 |
-| **Local path** | `~/projects/portfolio/AI-EdgeRunners/odontoflow/contrib-odonto-voz` |
 | **Preservation** | `_preservation/odontoflow-contributors-2026-09-02/odonto-voz-eb9a4ee.bundle` (complete history, checksum verified) |
-| **Current status** | **IMPORTED INTACT · NOT INTEGRATED** |
-| **Integration status** | **NOT MERGED.** No file copied into any canonical repo. |
-| **Authority** | **CONTRIBUTOR SOURCE / NOT CANONICAL BUSINESS AUTHORITY** |
+| **Current status** | **PROMOTED to `odontoflow-voice` (2026-09-02) — donor history intact** |
+| **Canonical repo** | `git@github.com:MiguelAAR10/odontoflow-voice.git` (remote `origin`, private) · contributor upstream preserved as remote `alejandro` |
+| **Local path** | `~/projects/portfolio/AI-EdgeRunners/odontoflow/odontoflow-voice` (promoted by `mv`, `.git` preserved, HEAD verified unchanged, `fsck` clean) |
+| **Integration status** | **V1 DONE** — transport + UI only. Produces structured drafts; writes no business state. |
+| **Authority** | **canonical voice/language adapter** · **NOT a business authority** — never creates Visit / ServiceExecution / ServiceConsumption / Charge / Payment / InventoryMovement |
 
 ### Original components (all authored by Alejandro)
 
@@ -113,8 +114,8 @@ different codebase — see the integration map.
 | **Dates** | 2026-08-15 → 2026-08-16 |
 | **Local ref** | `alejandro/feat/asistente-voz` in `odontoflow-frontend` (fetched, intact) |
 | **Preservation** | `frontend-donor-c0f418d.bundle` · `frontend-pr1-asistente-voz.patch` · `frontend-pr1-metadata.json` (checksums verified) |
-| **Current status** | **FETCHED INTACT · NOT INTEGRATED** |
-| **Integration status** | **NOT MERGED, NOT CHERRY-PICKED, NOT REBASED.** Canonical `main` untouched at `9595abd`. |
+| **Current status** | **FETCHED INTACT · PORTED (V1)** — the donor ref itself is still untouched |
+| **Integration status** | **PORTED, not merged.** Applied intentionally onto canonical `main` as `a967b24`; `alejandro/feat/asistente-voz` still points at `c0f418d` and was never merged, cherry-picked or rebased. |
 | **Authority** | **CONTRIBUTOR SOURCE / NOT CANONICAL** |
 
 ### Original components
@@ -146,7 +147,8 @@ code has moved and been adapted.
 
 | Date | What was integrated | From (SHA) | Into | Form | Credit |
 |---|---|---|---|---|---|
-| — | *nothing yet* | — | — | — | — |
+| 2026-09-02 | The whole voice service (5 commits, 19 files, 2 219 lines) | `eb9a4ee` | `odontoflow-voice` (canonical) | **Promotion** — the donor clone itself, `.git` and all commits preserved; one new file added on top (`CANONICAL.md`, `4149a3e`) | **Alejandro Marcelo** authors every line of the service and all 5 commits |
+| 2026-09-02 | Voice assistant view: `AsistenteVozPage`, `Voice*` types (verbatim), `.voz-*` CSS (verbatim), the 5 client calls, route + nav entry | `c0f418d` | `odontoflow-frontend` `a967b24` | **Intentional port** onto a base 7 commits ahead. Adapted: flag/mock gate in `src/voice.ts`, navbar squeeze scoped to a modifier, summaries labelled `Borrador`. Commit carries `Co-authored-by: Alejandro Marcelo`. | **Alejandro Marcelo** designed and wrote the view; **Leonardo Panduro** authored the frontend base it sits on |
 
 **When a row is added, it must name the donor SHA.** "Inspired by" is not
 sufficient when the code is derived.

@@ -8,21 +8,25 @@ authority: Repo 0 (planning)
 # Repositories
 
 Workspace root: `~/projects/portfolio/AI-EdgeRunners/odontoflow/`
-(planning = this repo, backend y frontend son hermanos un nivel arriba: `../`)
+(planning = this repo; backend, frontend y voice son hermanos un nivel arriba: `../`)
 
 | Repo | Local path | Remote | Role | HEAD (verified) | Source of truth | Write policy |
 |---|---|---|---|---|---|---|
-| planning | `odontoflow-planning/` | `git@github.com:MiguelAAR10/OdontoFlow-Planning.git` | project control plane, navigation, status | `1c63f02` | status/navigation | planning docs; `.audit/` git-ignored **except `.audit/contributions/`** (contributor provenance is versioned on purpose) |
+| planning | `odontoflow-planning/` | `git@github.com:MiguelAAR10/OdontoFlow-Planning.git` | project control plane, navigation, status | `c33d65b` | status/navigation | planning docs; `.audit/` git-ignored **except `.audit/contributions/`** (contributor provenance is versioned on purpose) |
 | backend | `../odontoflow-backend/` | `git@github.com:MiguelAAR10/OdontoFlow.git` | FastAPI + PostgreSQL domain authority | `23527c2` (synced) | domain model, migrations, API contract, tests | product work; normal push (fast-forward only, no force) |
-| frontend | `../odontoflow-frontend/` | `git@github.com:MiguelAAR10/odontoflow-frontend.git` (canonical) · upstream/reference `https://github.com/leonardopanduro-rgb/ODONTO-SMART-FRONT.git` (`leonardo`) | React SPA | `9595abd` (origin/main) | UI behavior per backend contract | product work; normal push (fast-forward only, no force); Leonardo's repo preserved as upstream/reference; **`alejandro` = contributor remote, fetch-only** |
+| frontend | `../odontoflow-frontend/` | `git@github.com:MiguelAAR10/odontoflow-frontend.git` (canonical) · upstream/reference `https://github.com/leonardopanduro-rgb/ODONTO-SMART-FRONT.git` (`leonardo`) | React SPA | `a967b24` (origin/main) | UI behavior per backend contract | product work; normal push (fast-forward only, no force); Leonardo's repo preserved as upstream/reference; **`alejandro` = contributor remote, fetch-only** |
 
-Contributor sources (inside the workspace, NOT canonical, NOT product repos):
+| voice | `../odontoflow-voice/` | `git@github.com:MiguelAAR10/odontoflow-voice.git` (canonical, private) · contributor upstream `https://github.com/AlejandroMarceloCh/odonto-voz.git` (`alejandro`) | **canonical voice/language adapter** — sibling service, own process + port 8000 | `4149a3e` (donor `eb9a4ee` + 1) | speech→structured **drafts** only; **NOT a business authority** | product work; normal push (no force, **never squash or rewrite the 5 donor commits**); `alejandro` is fetch-only |
 
-| Repo | Local path | Remote | Role | HEAD (verified) | Source of truth | Write policy |
-|---|---|---|---|---|---|---|
-| contrib-odonto-voz | `../contrib-odonto-voz/` | `https://github.com/AlejandroMarceloCh/odonto-voz.git` (origin, contributor-owned) | **CONTRIBUTOR SOURCE / NOT CANONICAL BUSINESS AUTHORITY** — standalone voice service by Alejandro Marcelo | `eb9a4ee` | **nothing** — its `catalogo.json` is synthetic; its in-memory counts are never stock truth | **READ ONLY.** Never push. Never rewrite its history. Not a submodule, not built or deployed by any canonical pipeline. |
+**`odontoflow-voice` provenance (do not lose):** every line and all 5 commits of
+history below `4149a3e` are authored by **Alejandro Marcelo**. Promoted from the
+donor clone by `mv` (`.git` preserved, HEAD verified, `fsck` clean) — never
+re-created by copying files. Its `backend/datos/catalogo.json` is
+**SYNTHETIC + DOMAIN VOCABULARY**: the SKUs must never become canonical clinic
+data, the aliases must be preserved. See `odontoflow-voice/CANONICAL.md`.
 
-The frontend also carries a fetched contributor ref, intact and unmerged:
+The frontend also carries a fetched contributor ref, intact and **still
+unmerged** even though its content has now been ported:
 `alejandro/feat/asistente-voz` = `c0f418d` (donor PR
 [ODONTO-SMART-FRONT#1](https://github.com/leonardopanduro-rgb/ODONTO-SMART-FRONT/pull/1)).
 
