@@ -84,7 +84,10 @@ Apple Silicon measurements until re-measured here.
 were not promoted to canonical clinic data; its **aliases** are preserved as
 **DOMAIN VOCABULARY**. Recorded in `odontoflow-voice/CANONICAL.md`.
 
-Handoffs: `odontoflow-frontend/.audit/voice-v1/voice-ui-port.md` ·
+**Single entry point for this activity (FOREMAN living brief):**
+[docs/handoffs/plans/2026-09-02-voice-integration-v1.md](docs/handoffs/plans/2026-09-02-voice-integration-v1.md)
+— decision-level, readable without opening code. Technical handoffs it links:
+`odontoflow-frontend/.audit/voice-v1/voice-ui-port.md` ·
 `odontoflow-voice/CANONICAL.md`. Credit: [CONTRIBUTIONS.md](CONTRIBUTIONS.md).
 
 ## External activity since the last snapshot

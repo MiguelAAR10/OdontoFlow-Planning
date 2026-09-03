@@ -81,4 +81,17 @@ repo path `AI-EdgeRunners/OdontoFlow`; they are append-only records, not defects
 |---|---|---|
 | 09-02 | voice-ui-port | V1 UI port onto canonical main: 91 unit tests, typecheck clean, build PASS, pilot E2E 12/12, real-browser run of both flows, audio UNVERIFIED (`odontoflow-frontend/.audit/voice-v1/voice-ui-port.md`) |
 | 09-02 | odontoflow-voice/CANONICAL.md | Canonical status, synthetic-catalog boundary, V1 no-business-writes rule, verified 54-test baseline |
+| 09-02 | **2026-09-02-voice-integration-v1** | **Canonical FOREMAN living brief for the activity** — the Architect's single entry point (`odontoflow-planning/docs/handoffs/plans/2026-09-02-voice-integration-v1.md`). Written retroactively; the technical handoffs above are linked from it, not replaced by it. |
 | 09-02 | (this index) | `odontoflow-voice` promoted with donor history intact (`eb9a4ee` + 1 new commit `4149a3e`); frontend `a967b24` pushed. NEXT = **V2 Synthetic Clinic Configuration**. See STATUS.md + CAVELOG.md. |
+
+## Living briefs (FOREMAN protocol)
+
+One canonical, self-contained document per non-trivial activity, readable
+without repository access. Location: `docs/handoffs/plans/`. Per-task technical
+evidence keeps its existing homes and is linked from the brief, never copied.
+
+| Activity | Primary document |
+|---|---|
+| M5.1 Revenue leakage measurability | [M5_REVENUE_LEAKAGE_BASELINE.md](M5_REVENUE_LEAKAGE_BASELINE.md) (already self-contained — reused, not duplicated) |
+| Contributor intake | [VOICE_CONTRIBUTION_INTEGRATION_MAP.md](VOICE_CONTRIBUTION_INTEGRATION_MAP.md) (already self-contained — reused, not duplicated) |
+| Voice Integration V1 | [docs/handoffs/plans/2026-09-02-voice-integration-v1.md](docs/handoffs/plans/2026-09-02-voice-integration-v1.md) |
