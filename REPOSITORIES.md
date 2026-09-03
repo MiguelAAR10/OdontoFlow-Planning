@@ -12,11 +12,23 @@ Workspace root: `~/projects/portfolio/AI-EdgeRunners/odontoflow/`
 
 | Repo | Local path | Remote | Role | HEAD (verified) | Source of truth | Write policy |
 |---|---|---|---|---|---|---|
-| planning | `odontoflow-planning/` | `git@github.com:MiguelAAR10/OdontoFlow-Planning.git` | project control plane, navigation, status | `c33d65b` | status/navigation | planning docs; `.audit/` git-ignored **except `.audit/contributions/`** (contributor provenance is versioned on purpose) |
+| planning | `odontoflow-planning/` | `git@github.com:MiguelAAR10/OdontoFlow-Planning.git` | project control plane, navigation, status | `c723e33` | status/navigation | planning docs; `.audit/` git-ignored **except `.audit/contributions/`** (contributor provenance is versioned on purpose) |
 | backend | `../odontoflow-backend/` | `git@github.com:MiguelAAR10/OdontoFlow.git` | FastAPI + PostgreSQL domain authority | `23527c2` (synced) | domain model, migrations, API contract, tests | product work; normal push (fast-forward only, no force) |
 | frontend | `../odontoflow-frontend/` | `git@github.com:MiguelAAR10/odontoflow-frontend.git` (canonical) · upstream/reference `https://github.com/leonardopanduro-rgb/ODONTO-SMART-FRONT.git` (`leonardo`) | React SPA | `a967b24` (origin/main) | UI behavior per backend contract | product work; normal push (fast-forward only, no force); Leonardo's repo preserved as upstream/reference; **`alejandro` = contributor remote, fetch-only** |
 
 | voice | `../odontoflow-voice/` | `git@github.com:MiguelAAR10/odontoflow-voice.git` (canonical, private) · contributor upstream `https://github.com/AlejandroMarceloCh/odonto-voz.git` (`alejandro`) | **canonical voice/language adapter** — sibling service, own process + port 8000 | `4149a3e` (donor `eb9a4ee` + 1) | speech→structured **drafts** only; **NOT a business authority** | product work; normal push (no force, **never squash or rewrite the 5 donor commits**); `alejandro` is fetch-only |
+
+Contributor sources (imported, NOT canonical, NOT product repos):
+
+| Repo | Local path | Remote | Role | HEAD (verified) | Source of truth | Write policy |
+|---|---|---|---|---|---|---|
+| contrib-alejandro-odontoflow | `../contrib-alejandro-odontoflow/` | `https://github.com/AlejandroMarceloCh/odontoflow.git` (origin, contributor-owned) | **CONTRIBUTOR SOURCE / NOT CANONICAL BUSINESS AUTHORITY** — clinic operations **simulator** (a different project from `odonto-voz`), by **Alejandro Marcelo (6 commits) + Leonardo Panduro (1)** | `b57f7bc` (branch **`master`**) | **nothing** — intended role is **synthetic ground truth**, never business truth; all its data is synthetic | **READ ONLY.** Never push, never rewrite. Not a submodule, not built by any canonical pipeline. **Promotion to `odontoflow-sim/` recommended (fan-in PASS) but NOT performed** — pending an Owner decision including visibility. |
+
+Its baseline is green on its own contract (98 tests, build, and the author's
+8-step walkthrough). Map and revised V2 order:
+[SYNTHETIC_CLINIC_CONTRIBUTION_MAP.md](SYNTHETIC_CLINIC_CONTRIBUTION_MAP.md).
+**Note the name:** the repo is called `odontoflow` but is a *simulator*, which is
+why `odontoflow-sim` is the right canonical name if promotion is approved.
 
 **`odontoflow-voice` provenance (do not lose):** every line and all 5 commits of
 history below `4149a3e` are authored by **Alejandro Marcelo**. Promoted from the
@@ -54,6 +66,11 @@ Rules:
   silently erase credit.
 - **Contributor repos are never pushed to and never rewritten.** They keep their
   own `origin` pointing at their author.
+- **Leonardo's visual baseline** (7 screenshots, originals from the git object
+  store, blob hashes matching GitHub) is preserved under the contributor
+  preservation root and credited in [VISUAL_BASELINE.md](VISUAL_BASELINE.md).
+  It is **design intent, not a UI specification**, and does not replace the
+  canonical UI.
 - Bundles of all local-only commits live in
   `~/projects/portfolio/_preservation/odontoflow-recovery-2026-08-16/`;
   contributor bundles, patches and checksums in

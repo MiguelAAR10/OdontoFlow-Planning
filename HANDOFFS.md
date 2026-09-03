@@ -95,3 +95,13 @@ evidence keeps its existing homes and is linked from the brief, never copied.
 | M5.1 Revenue leakage measurability | [M5_REVENUE_LEAKAGE_BASELINE.md](M5_REVENUE_LEAKAGE_BASELINE.md) (already self-contained — reused, not duplicated) |
 | Contributor intake | [VOICE_CONTRIBUTION_INTEGRATION_MAP.md](VOICE_CONTRIBUTION_INTEGRATION_MAP.md) (already self-contained — reused, not duplicated) |
 | Voice Integration V1 | [docs/handoffs/plans/2026-09-02-voice-integration-v1.md](docs/handoffs/plans/2026-09-02-voice-integration-v1.md) |
+| Contributor intake #2 · Synthetic Clinic | [docs/handoffs/plans/2026-09-02-synthetic-clinic-contributor-intake.md](docs/handoffs/plans/2026-09-02-synthetic-clinic-contributor-intake.md) — **opened at intake**, updated as decisions were made |
+
+## Contributor intake #2 — Synthetic Clinic (2026-09-02)
+
+| Date | Handoff | Topic |
+|---|---|---|
+| 09-02 | **2026-09-02-synthetic-clinic-contributor-intake** | **Canonical living brief** — opened at intake, not retroactively. Verdict PASS; promotion recommended, not performed. |
+| 09-02 | SYNTHETIC_CLINIC_CONTRIBUTION_MAP | Fan-in: what Alejandro already built, what we were about to rebuild, asset classification, ground-truth architecture, state compatibility, data inventory, documentation drift, and the revised 9-step V2 order ([map](SYNTHETIC_CLINIC_CONTRIBUTION_MAP.md)) |
+| 09-02 | VISUAL_BASELINE | Leonardo's 7 screenshots preserved with original blob hashes; design intent, not a UI spec ([baseline](VISUAL_BASELINE.md)) |
+| 09-02 | donor-baseline-raw | Raw donor baseline: 98 tests PASS, build PASS, `verificar` clean (`.audit/contributions/synthetic-clinic/`) |

@@ -24,8 +24,15 @@ Durable record of work contributed by people other than the maintainer.
 
 ### Alejandro Jesus Marcelo CH — `AlejandroMarceloCh`
 
-Author of the **voice assistant** work: a standalone voice service and the
-frontend view that consumes it.
+Author of **two distinct projects**, deliberately recorded separately below
+because they are different systems solving different problems:
+
+1. **The voice assistant** — a standalone voice service plus the frontend view that consumes it (Contributions 1 and 2).
+2. **The clinic operations simulator** — a pure, deterministic discrete-event simulation of clinic operations (Contribution 3).
+
+**Do not collapse them into one contribution.** They share an author and a
+domain, nothing else: different repositories, different stacks, different
+purposes, and different integration paths.
 
 Commits as `Alejandro Marcelo <alejandromarcelo@MacBook-Pro-de-Alejandro.local>`.
 
@@ -37,8 +44,17 @@ built on. Owner of the repository the voice PR was opened against.
 
 His repository is preserved as the `leonardo` remote in
 `odontoflow-frontend`, **history untouched and never force-pushed**. The
-canonical frontend is 7 commits ahead of his base; every one of those commits
+canonical frontend is 8 commits ahead of his base; every one of those commits
 sits on top of his work, not in place of it.
+
+He is also the author of:
+
+- **The visual baseline** — 7 screenshots committed in `8769f12`, the design
+  record of the frontend as he intended it. Preserved with original git blob
+  hashes and credited in [VISUAL_BASELINE.md](VISUAL_BASELINE.md).
+- **One commit inside Alejandro's operations simulator** (`333af34`,
+  "feat: ampliar demo operativa de OdontoFlow"). That repository is a **shared
+  codebase**, not solely Alejandro's — see Contribution 3.
 
 ---
 
@@ -137,6 +153,101 @@ gracefully** when the voice service is absent, and **documents its own
 trade-offs** in the PR body — including offering to change the navbar approach
 if the maintainer prefers another solution. That is how a contribution should
 arrive.
+
+---
+
+## Contribution 3 — `odontoflow` · clinic operations simulator
+
+**A different project from the voice assistant.** Recorded separately on purpose.
+
+| Field | Value |
+|---|---|
+| **Contributors** | **Alejandro Jesus Marcelo CH** (6 of 7 commits) · **Leonardo Panduro** (1 commit, `333af34`) |
+| **Source repository** | https://github.com/AlejandroMarceloCh/odontoflow |
+| **Source PR** | *none* — a standalone repository |
+| **Exact SHA** | `b57f7bc6b1eca84a132b61a11ca687bbd5b5e58e` (branch **`master`**) |
+| **Scale** | 7 commits · 1 branch · 0 tags · 55 files · ~6 200 lines of source |
+| **Dates** | 2026-08-07 → 2026-08-08 |
+| **Local path** | `~/projects/portfolio/AI-EdgeRunners/odontoflow/contrib-alejandro-odontoflow` |
+| **Preservation** | `_preservation/odontoflow-contributors-2026-09-02/alejandro-odontoflow-b57f7bc.bundle` (complete history) + `alejandro-odontoflow-commits.txt`; checksums verified **20/20 OK** |
+| **Current status** | **IMPORTED INTACT · NOT INTEGRATED · NOT PROMOTED** |
+| **Integration status** | **NOTHING MERGED OR PORTED.** No file copied into any canonical repo. Promotion to `odontoflow-sim/` **recommended** but not performed — an Owner decision. |
+| **Authority** | **CONTRIBUTOR SOURCE / NOT CANONICAL BUSINESS AUTHORITY.** Intended role: **synthetic ground-truth engine**, never a second source of business truth. |
+
+### What was built
+
+A working clinic operations simulator: a pure domain core with no I/O and no
+system clock, a virtual clock with a **reversible** timeline, a deterministic
+seed, and a React operations centre.
+
+| Component | Lines | What it is |
+|---|---|---|
+| `src/runtime/mundo.ts` | 693 | The replay engine: rebuilds the clinic from the seed and replays history to any instant |
+| `src/runtime/snapshot.ts` | 555 | Paint-ready projection of the whole clinic |
+| `src/domain/engine.ts` | 135 | **Pure, idempotent rules engine.** Reads no clock, has no effects |
+| `src/domain/seed.ts` | 288 | Deterministic seed: 28 patients, 4 doctors, 10 treatments, 60 appointments, 5 waitlist candidates, 3 laboratories, 6 lab jobs |
+| `src/domain/transitions.ts` | 42 | 9-state appointment machine; illegal transitions **raise** instead of corrupting data |
+| `src/domain/paciente-sim.ts` | 105 | Deterministic patient behaviour from a hashed id — no randomness, no dates |
+| `src/domain/risk.ts` | 60 | Explainable risk heuristic with a one-sentence reason |
+| `src/domain/lista-espera.ts` | 62 | Waitlist matching and slot recovery |
+| `src/domain/reprogramacion.ts` | 92 | Deterministic reschedule proposals |
+| `src/domain/channel.ts` | 68 | Message drafting, neutral Peruvian Spanish |
+| `src/components/`, `src/store/` | ~1 500 | Operations centre, agenda board, patients, doctors, laboratories, activity feed, editable rules |
+| `scripts/verificar.ts` | 121 | The author's own 8-step end-to-end walkthrough |
+| `tests/` | 11 files | Including `reloj-sentinel.test.ts` — 32 assertions that fail if **any** file reads real time |
+
+### Verified state (measured 2026-09-02, on the donor's own contract)
+
+- Node v24.12.0 / npm 11.6.2 · `npm install` clean
+- `npm run typecheck` — **clean**
+- `npm test` — **98 passed / 11 files / 1.31 s**
+- `npm run build` — **PASS** (57 modules)
+- `npm run verificar` — **"Recorrido completo sin fallos"**, all 8 steps
+
+**Nothing was repaired during the baseline**, per the brief.
+
+### Intellectual contribution worth naming
+
+**The clock sentinel.** A test that scans every source file to prove none reads
+real time. Its reasoning: if someone uses the system clock, advancing the
+virtual clock silently stops working and the simulation breaks with no error.
+That is the kind of test people write only after understanding what actually
+makes their system fragile.
+
+**Rebuild rather than undo.** Dragging the timeline backwards re-runs history
+from the seed instead of reversing operations. That single choice is what makes
+the simulator usable as a reproducible measurement baseline.
+
+Also worth naming: the **waitlist recovery loop** and the **operations-centre
+queue** — two product ideas OdontoFlow did not have and had not planned.
+
+### Documentation drift, recorded for honesty
+
+The README claims the whole interface carries a visible *"Datos ficticios de
+demostración"* label. **HEAD removes exactly those labels** (14 deletions across
+3 components). At HEAD the claim is **false**: the persistent marker is gone and
+only three scattered mentions survive. No judgement of intent — but any
+canonical Synthetic Lab must restore a visible, persistent boundary. Detail in
+[SYNTHETIC_CLINIC_CONTRIBUTION_MAP.md §7](SYNTHETIC_CLINIC_CONTRIBUTION_MAP.md).
+
+---
+
+## Contribution 4 — visual baseline · Leonardo Panduro
+
+| Field | Value |
+|---|---|
+| **Contributor** | **Leonardo Panduro** (`leonardopanduro-rgb`) |
+| **Source** | https://github.com/leonardopanduro-rgb/ODONTO-SMART-FRONT/tree/main/screenshots |
+| **Exact SHA** | `8769f12f5e3144fe5c2032d0f8445861dc304c76` ("Implement ODONTO SMART frontend", 2026-08-14) |
+| **Assets** | 7 screenshots: agenda (desktop + mobile), agente, caja, chat, inventario, pacientes |
+| **Preservation** | `_preservation/odontoflow-contributors-2026-09-02/leonardo-visual-baseline/` — originals extracted from the git object store, **git blob hashes match GitHub's exactly**, checksums verified |
+| **Current status** | **PRESERVED · design reference** |
+| **Integration status** | **Does not replace the canonical UI.** Design intent, not a UI specification. |
+| **Authority** | **UX_REFERENCE** — the truth about design intent; the code is the truth about current behaviour |
+
+Recorded in [VISUAL_BASELINE.md](VISUAL_BASELINE.md), including the two known
+gaps: no baseline for the voice assistant, and mobile intent captured for the
+agenda only.
 
 ---
 

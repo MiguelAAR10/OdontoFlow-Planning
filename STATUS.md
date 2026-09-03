@@ -28,7 +28,7 @@ M5.2 **BLOCKED on real clinic data** (`DOMINANT_LEAKAGE = UNKNOWN`).
 - **VOICE_HEAD:** `4149a3e` (`main`) — donor `eb9a4ee` + 1 canonical commit, synced with origin
 - **VOICE_REMOTE:** `git@github.com:MiguelAAR10/odontoflow-voice.git` (canonical, **private**) · contributor upstream `AlejandroMarceloCh/odonto-voz` preserved as `alejandro`
 - **VOICE_TESTS:** **54 PASS** (0.89 s, Python 3.12.3) — the donor's own suite, unmodified
-- **PLANNING_HEAD:** `c33d65b` (`main`) — synced with origin (before this snapshot's commit)
+- **PLANNING_HEAD:** `c723e33` (`main`) — synced with origin (before this snapshot's commit)
 - **Legacy (medistock):** `ef2fffb` (`main`, synced) — READ ONLY, outside workspace
 
 All three active repos: working tree **clean**, local HEAD **== origin/main**,
@@ -89,6 +89,44 @@ were not promoted to canonical clinic data; its **aliases** are preserved as
 — decision-level, readable without opening code. Technical handoffs it links:
 `odontoflow-frontend/.audit/voice-v1/voice-ui-port.md` ·
 `odontoflow-voice/CANONICAL.md`. Credit: [CONTRIBUTIONS.md](CONTRIBUTIONS.md).
+
+## Contributor intake #2 — Synthetic Clinic — CLOSED PASS (2026-09-02)
+
+**A second, previously unknown Alejandro repository turned out to be most of V2.**
+`AlejandroMarceloCh/odontoflow` @ `b57f7bc` (branch `master`, 7 commits, 55
+files) is **not** the voice module: it is a pure, deterministic **clinic
+operations simulator** — virtual clock, reversible timeline, 9-state appointment
+machine, waitlist with slot recovery, risk heuristic, operations centre.
+
+We were about to build that from scratch. **V2 is now an integration problem,
+not a construction problem.**
+
+- **Imported intact** as `contrib-alejandro-odontoflow/`; nothing merged, ported
+  or promoted. **Zero product code changed.**
+- **Baseline green on the donor's own contract**, nothing repaired: typecheck
+  clean · **98 tests PASS** (11 files) · build PASS · `npm run verificar`
+  *"Recorrido completo sin fallos"* (8 steps).
+- **Provenance correction:** the simulator is a **shared codebase** — 6 commits
+  Alejandro, **1 Leonardo** (`333af34`). Alejandro's two projects are recorded
+  **separately** (voice vs simulator), never collapsed.
+- **Leonardo's visual baseline** preserved: 7 screenshots, originals from the git
+  object store, blob hashes matching GitHub. Design intent, **not** a UI spec —
+  [VISUAL_BASELINE.md](VISUAL_BASELINE.md).
+- **Documentation drift confirmed, and it is a safety gap:** the README claims
+  the whole UI is labelled synthetic; HEAD **removed exactly those labels** (14
+  deletions, 3 components). At HEAD the claim is false and there is no visible
+  marker after pressing "start". The canonical Synthetic Lab **must** restore a
+  visible, persistent, non-dismissible boundary.
+- **State vocabulary mapped, not migrated.** Against the live schema: 2
+  CANONICAL_NOW · 2 DERIVED · 3 GROUND_TRUTH_ONLY · 2 REQUIRES_FUTURE_
+  INSTRUMENTATION (patient-assent `confirmed`, and `no_show` = M5.1's **I1**).
+  **No database state added.**
+- **Promotion to `odontoflow-sim/` recommended (fan-in PASS) but NOT performed** —
+  it needs an Owner decision, including visibility.
+
+Single entry point: [docs/handoffs/plans/2026-09-02-synthetic-clinic-contributor-intake.md](docs/handoffs/plans/2026-09-02-synthetic-clinic-contributor-intake.md)
+· Fan-in: [SYNTHETIC_CLINIC_CONTRIBUTION_MAP.md](SYNTHETIC_CLINIC_CONTRIBUTION_MAP.md)
+· Credit: [CONTRIBUTIONS.md](CONTRIBUTIONS.md)
 
 ## External activity since the last snapshot
 
@@ -178,6 +216,11 @@ Unblocking requires a 90-day clinic export (≥ 300 appointments, ≥ 200 charge
 pseudonymous patient ids — full specification in
 [M5_REVENUE_LEAKAGE_BASELINE.md §6](M5_REVENUE_LEAKAGE_BASELINE.md)).
 
+**Contributor intake #2 blockers: none technical.** Three decisions are the
+Owner's: (a) promote the simulator to `odontoflow-sim` and at what visibility;
+(b) reconcile the simulator's own design language with Leonardo's baseline —
+a design conversation, not a refactor; (c) confirm the revised V2 order.
+
 **Voice V1 blockers: none.** Both donor sources are canonical or ported, with
 authorship intact. Two open questions remain **for the clinic**, not for
 engineering: the real tariff/supply catalog, and how one visit's total maps to
@@ -202,14 +245,27 @@ figures remain the author's Apple Silicon measurements, not ours.
 
 ## Next activity
 
-**NEXT_ACTIVITY = V2 — Synthetic Clinic Configuration.** Connect the donor's
-preserved **alias vocabulary** to an editable Synthetic Clinic configuration, so
-the synthetic catalog stops being a hard-coded file and becomes configurable
-data — without ever promoting its SKUs to canonical clinic data.
+**NEXT_ACTIVITY = V2 — Synthetic Clinic, rescoped.** The original framing
+("connect the alias vocabulary to an editable configuration") is now too small:
+**the Synthetic Clinic already exists**, built and tested by Alejandro.
 
-Still true and unchanged by this activity: **M5's validation truth.** This
-contribution supplies **no real clinic data**, so `DOMINANT_LEAKAGE` remains
-`UNKNOWN` and the M5 baseline still needs the 90-day clinic export specified in
-[M5_REVENUE_LEAKAGE_BASELINE.md §6](M5_REVENUE_LEAKAGE_BASELINE.md).
+Revised order, none of it authorised yet — full detail in
+[SYNTHETIC_CLINIC_CONTRIBUTION_MAP.md §12](SYNTHETIC_CLINIC_CONTRIBUTION_MAP.md):
+
+0. Owner decisions: promotion + visibility, and the visual-language question.
+1. **Restore the persistent synthetic-data boundary** (the drift above).
+2. Turn the seed into a named **Scenario Configuration** — extending the donor's already-working rules screen, not starting from zero.
+3. Join the voice alias vocabulary to the scenario catalog (the original V2 sentence, now a small step).
+4. Define the **intent vocabulary** and give the simulator a **principal** — the gate for every write.
+5. Build the intent adapter in **rehearsal mode** (log intents, send nothing).
+6. Turn it on against a scratch database, never the pilot one.
+7. **Build the evaluator** — compare synthetic ground truth against canonical observed state.
+8. **Run the no-show experiment**: a scenario with a known silence rate, and measure whether canonical detects it — turning M5.1's backlog item **I1** from an argument into evidence.
+
+**M5 validation truth unchanged:** this contributes **no real clinic data**, so
+`DOMINANT_LEAKAGE` remains `UNKNOWN` and the baseline still needs the 90-day
+clinic export in [M5_REVENUE_LEAKAGE_BASELINE.md §6](M5_REVENUE_LEAKAGE_BASELINE.md).
+A simulator is not a clinic — but a calibrated one can prove whether our
+instrumentation *would* catch the problem.
 
 (Not another planning/architecture/Foundation/migration phase.)

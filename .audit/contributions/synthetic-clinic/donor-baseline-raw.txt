@@ -1,0 +1,92 @@
+### BASELINE DEL DONANTE — contrato propio, sin reparar (2026-09-02)
+node v24.12.0 / npm 11.6.2
+
+== npm run typecheck ==
+
+> odontoflow@0.2.0 typecheck
+> tsc --noEmit
+
+typecheck rc=0
+
+== npm test ==
+> vitest run
+
+
+ RUN  v3.2.7 /home/miguel/projects/portfolio/AI-EdgeRunners/odontoflow/contrib-alejandro-odontoflow
+
+ ✓ tests/engine.test.ts (13 tests) 16ms
+ ✓ tests/horario.test.ts (5 tests) 7ms
+ ✓ tests/lista-espera.test.ts (5 tests) 7ms
+ ✓ tests/seed.test.ts (5 tests) 10ms
+ ✓ tests/paciente-sim.test.ts (5 tests) 171ms
+ ✓ tests/cancelacion.test.ts (5 tests) 49ms
+ ✓ tests/mundo.test.ts (8 tests) 66ms
+ ✓ tests/actividad.test.ts (9 tests) 101ms
+ ✓ tests/transiciones.test.ts (6 tests) 6ms
+ ✓ tests/reloj-sentinel.test.ts (32 tests) 13ms
+ ✓ tests/render.test.tsx (5 tests) 104ms
+
+ Test Files  11 passed (11)
+      Tests  98 passed (98)
+   Start at  23:13:46
+   Duration  1.31s (transform 1.14s, setup 0ms, collect 2.57s, tests 552ms, environment 3ms, prepare 1.50s)
+
+
+== npm run build ==
+> odontoflow@0.2.0 build
+> tsc --noEmit && vite build
+
+vite v6.4.3 building for production...
+transforming...
+✓ 57 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                   1.04 kB │ gzip:  0.56 kB
+dist/assets/index-BqKDY_g4.css   27.75 kB │ gzip:  6.22 kB
+dist/assets/index-CkGMFq8e.js   286.98 kB │ gzip: 84.90 kB
+✓ built in 1.49s
+
+== npm run verificar ==
+
+> odontoflow@0.2.0 verificar
+> tsx scripts/verificar.ts
+
+
+1 · Punto de partida
+     45 citas vivas · S/ 13,080 agendados
+  ok    hay clínica cargada
+  ok    ninguna cita pide decisión todavía
+
+2 · Avanzar 24 horas
+     14 recordatorios · 5 confirmadas · S/ 1,310 rescatado
+  ok    el sistema envió recordatorios solo
+
+3 · Avanzar 6 horas más
+     6 acciones en cola · S/ 180 vencido
+  ok    el silencio y las reprogramaciones generan trabajo
+
+4 · Cancelar una cita y verla recuperarse
+  ok    hay una cita cancelable — Rosa Ccahuana
+  ok    Rosa Ccahuana quedó cancelada
+  ok    tras la oferta: estado=recovered
+     S/ 150 recuperado tras la aceptación simulada
+  ok    la cancelación terminó en cita recuperada
+
+5 · Retroceder en el tiempo
+  ok    el pasado vuelve a su estado original
+  ok    ir y volver reproduce el mismo mundo
+
+6 · No hay duplicados
+  ok    ningún recordatorio se envió dos veces
+
+7 · Centro de operaciones prioriza acciones
+  ok    la cola de operaciones tiene contenido
+     primeras clases: retraso_lab, retraso_lab, retraso_lab
+
+8 · Laboratorios con alerta de retraso
+  ok    hay trabajos de laboratorio cargados
+     4 trabajos en riesgo o por vencer
+
+Recorrido completo sin fallos.
+
+verificar rc=
