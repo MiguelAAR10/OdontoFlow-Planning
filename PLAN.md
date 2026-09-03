@@ -1,7 +1,7 @@
 ---
 title: OdontoFlow — Plan (canonical milestones)
 status: active
-last_verified: 2026-08-16
+last_verified: 2026-09-02
 authority: Repo 0 (planning) — milestone-level only; backend detail lives in backend docs/roadmap.md
 ---
 
@@ -56,6 +56,20 @@ upstream/reference).
 Observe → Detect economic leakage → Intervene → Measure outcome → Estimate
 economic effect → Measure delivery/human cost. (Not a planning/architecture/
 Foundation/migration phase.)
+
+- **M5.1 Revenue Leakage Measurability — CLOSED (2026-09-02)**: the funnel
+  Lead → Appointment → Visit → ServiceExecution → Charge → Payment classified
+  transition by transition from the live schema. Money surface **exactly
+  measurable** (execution-without-charge, under-charge, unpaid/partial/full,
+  outstanding); **no-show NOT_MEASURABLE** (no no-show state, no appointment
+  resolution state); lead status inert. No code written. Contract:
+  [M5_REVENUE_LEAKAGE_BASELINE.md](M5_REVENUE_LEAKAGE_BASELINE.md).
+- **M5.2 Baseline Extract — BLOCKED**: no real clinic data exists in the
+  workspace, so `DOMINANT_LEAKAGE = UNKNOWN`. Needs a 90-day clinic export
+  (≥ 300 appointments, ≥ 200 charges, pseudonymous ids). Then experiment
+  **M5.1-E1** (read-only SQL query pack) runs and selects the intervention
+  target — or selects instrumentation **I1** if the unmeasurable no-show set
+  dominates.
 
 ## M6 — Agentic Operations — LATER
 External adapters (calendar/WhatsApp/billing) and agents as Principals over the
