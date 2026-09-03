@@ -12,23 +12,27 @@ Workspace root: `~/projects/portfolio/AI-EdgeRunners/odontoflow/`
 
 | Repo | Local path | Remote | Role | HEAD (verified) | Source of truth | Write policy |
 |---|---|---|---|---|---|---|
-| planning | `odontoflow-planning/` | `git@github.com:MiguelAAR10/OdontoFlow-Planning.git` | project control plane, navigation, status | `c723e33` | status/navigation | planning docs; `.audit/` git-ignored **except `.audit/contributions/`** (contributor provenance is versioned on purpose) |
+| planning | `odontoflow-planning/` | `git@github.com:MiguelAAR10/OdontoFlow-Planning.git` | project control plane, navigation, status | `04acfc1` | status/navigation | planning docs; `.audit/` git-ignored **except `.audit/contributions/`** (contributor provenance is versioned on purpose) |
 | backend | `../odontoflow-backend/` | `git@github.com:MiguelAAR10/OdontoFlow.git` | FastAPI + PostgreSQL domain authority | `23527c2` (synced) | domain model, migrations, API contract, tests | product work; normal push (fast-forward only, no force) |
 | frontend | `../odontoflow-frontend/` | `git@github.com:MiguelAAR10/odontoflow-frontend.git` (canonical) · upstream/reference `https://github.com/leonardopanduro-rgb/ODONTO-SMART-FRONT.git` (`leonardo`) | React SPA | `a967b24` (origin/main) | UI behavior per backend contract | product work; normal push (fast-forward only, no force); Leonardo's repo preserved as upstream/reference; **`alejandro` = contributor remote, fetch-only** |
 
 | voice | `../odontoflow-voice/` | `git@github.com:MiguelAAR10/odontoflow-voice.git` (canonical, private) · contributor upstream `https://github.com/AlejandroMarceloCh/odonto-voz.git` (`alejandro`) | **canonical voice/language adapter** — sibling service, own process + port 8000 | `4149a3e` (donor `eb9a4ee` + 1) | speech→structured **drafts** only; **NOT a business authority** | product work; normal push (no force, **never squash or rewrite the 5 donor commits**); `alejandro` is fetch-only |
 
-Contributor sources (imported, NOT canonical, NOT product repos):
+| sim | `../odontoflow-sim/` | `git@github.com:MiguelAAR10/odontoflow-sim.git` (canonical, **private**) · contributor upstream `https://github.com/AlejandroMarceloCh/odontoflow.git` (`alejandro`) | **canonical synthetic clinic / ground-truth simulator** — sibling repo, Vite/React, zero backend, zero database | `da203a9` (donor `b57f7bc` + 1) | **synthetic ground truth only** · **NOT a business authority** | product work; normal push (no force, **never squash or rewrite the 7 donor commits**); `alejandro` is fetch-only |
 
-| Repo | Local path | Remote | Role | HEAD (verified) | Source of truth | Write policy |
-|---|---|---|---|---|---|---|
-| contrib-alejandro-odontoflow | `../contrib-alejandro-odontoflow/` | `https://github.com/AlejandroMarceloCh/odontoflow.git` (origin, contributor-owned) | **CONTRIBUTOR SOURCE / NOT CANONICAL BUSINESS AUTHORITY** — clinic operations **simulator** (a different project from `odonto-voz`), by **Alejandro Marcelo (6 commits) + Leonardo Panduro (1)** | `b57f7bc` (branch **`master`**) | **nothing** — intended role is **synthetic ground truth**, never business truth; all its data is synthetic | **READ ONLY.** Never push, never rewrite. Not a submodule, not built by any canonical pipeline. **Promotion to `odontoflow-sim/` recommended (fan-in PASS) but NOT performed** — pending an Owner decision including visibility. |
+**`odontoflow-sim` provenance (do not lose):** written by **Alejandro Marcelo
+(6 commits) and Leonardo Panduro (1, `333af34`)** — a **shared codebase**.
+Promoted 2026-09-03 from the contributor clone by `mv` (`.git` preserved, HEAD
+verified `b57f7bc`, `fsck` clean), never re-created by copying files. Renamed on
+purpose: the contributors' repo is called `odontoflow` but is a *simulator*.
 
-Its baseline is green on its own contract (98 tests, build, and the author's
-8-step walkthrough). Map and revised V2 order:
-[SYNTHETIC_CLINIC_CONTRIBUTION_MAP.md](SYNTHETIC_CLINIC_CONTRIBUTION_MAP.md).
-**Note the name:** the repo is called `odontoflow` but is a *simulator*, which is
-why `odontoflow-sim` is the right canonical name if promotion is approved.
+**All its data is SYNTHETIC** — 28 patients, 4 doctors, 10 treatments, 60
+appointments, 5 waitlist candidates, 3 laboratories, and behaviour probabilities
+that are a **declared assumption, not a measurement**. None of it may ever
+become canonical clinic data. The interface carries a permanent,
+non-dismissible band (**CLÍNICA SINTÉTICA · DATOS SIMULADOS · NO SON DATOS
+REALES**) mounted in the shell outside the view switch, guarded by sentinel
+tests. See `odontoflow-sim/CANONICAL.md`.
 
 **`odontoflow-voice` provenance (do not lose):** every line and all 5 commits of
 history below `4149a3e` are authored by **Alejandro Marcelo**. Promoted from the

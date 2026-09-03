@@ -1,0 +1,56 @@
+### V2.1 — DESPUÉS de la reparación de la frontera (2026-09-03)
+
+== typecheck ==
+
+> odontoflow@0.2.0 typecheck
+> tsc --noEmit
+
+
+== npm test (suite completa) ==
+ RUN  v3.2.7 /home/miguel/projects/portfolio/AI-EdgeRunners/odontoflow/odontoflow-sim
+
+ ✓ tests/reloj-sentinel.test.ts (33 tests) 12ms
+ ✓ tests/engine.test.ts (13 tests) 10ms
+ ✓ tests/seed.test.ts (5 tests) 6ms
+ ✓ tests/paciente-sim.test.ts (5 tests) 188ms
+ ✓ tests/cancelacion.test.ts (5 tests) 39ms
+ ✓ tests/mundo.test.ts (8 tests) 63ms
+ ✓ tests/actividad.test.ts (9 tests) 130ms
+ ✓ tests/lista-espera.test.ts (5 tests) 6ms
+ ✓ tests/horario.test.ts (5 tests) 7ms
+ ✓ tests/transiciones.test.ts (6 tests) 5ms
+ ✓ tests/banda-sintetica.test.tsx (10 tests) 100ms
+ ✓ tests/render.test.tsx (5 tests) 90ms
+
+ Test Files  12 passed (12)
+      Tests  109 passed (109)
+   Start at  23:53:35
+   Duration  1.26s (transform 1.17s, setup 0ms, collect 3.06s, tests 657ms, environment 3ms, prepare 1.67s)
+
+
+== npm run build ==
+✓ 58 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                   1.04 kB │ gzip:  0.56 kB
+dist/assets/index-kGCteDxf.css   27.87 kB │ gzip:  6.24 kB
+dist/assets/index-Nm7i8wZL.js   287.63 kB │ gzip: 85.22 kB
+✓ built in 1.62s
+
+== npm run verificar (determinismo intacto) ==
+  ok    el pasado vuelve a su estado original
+  ok    ir y volver reproduce el mismo mundo
+
+6 · No hay duplicados
+  ok    ningún recordatorio se envió dos veces
+
+7 · Centro de operaciones prioriza acciones
+  ok    la cola de operaciones tiene contenido
+     primeras clases: retraso_lab, retraso_lab, retraso_lab
+
+8 · Laboratorios con alerta de retraso
+  ok    hay trabajos de laboratorio cargados
+     4 trabajos en riesgo o por vencer
+
+Recorrido completo sin fallos.
+

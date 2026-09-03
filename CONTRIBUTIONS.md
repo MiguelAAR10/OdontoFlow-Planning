@@ -168,11 +168,12 @@ arrive.
 | **Exact SHA** | `b57f7bc6b1eca84a132b61a11ca687bbd5b5e58e` (branch **`master`**) |
 | **Scale** | 7 commits · 1 branch · 0 tags · 55 files · ~6 200 lines of source |
 | **Dates** | 2026-08-07 → 2026-08-08 |
-| **Local path** | `~/projects/portfolio/AI-EdgeRunners/odontoflow/contrib-alejandro-odontoflow` |
 | **Preservation** | `_preservation/odontoflow-contributors-2026-09-02/alejandro-odontoflow-b57f7bc.bundle` (complete history) + `alejandro-odontoflow-commits.txt`; checksums verified **20/20 OK** |
-| **Current status** | **IMPORTED INTACT · NOT INTEGRATED · NOT PROMOTED** |
-| **Integration status** | **NOTHING MERGED OR PORTED.** No file copied into any canonical repo. Promotion to `odontoflow-sim/` **recommended** but not performed — an Owner decision. |
-| **Authority** | **CONTRIBUTOR SOURCE / NOT CANONICAL BUSINESS AUTHORITY.** Intended role: **synthetic ground-truth engine**, never a second source of business truth. |
+| **Current status** | **PROMOTED to `odontoflow-sim` (2026-09-03) — donor history intact** |
+| **Canonical repo** | `git@github.com:MiguelAAR10/odontoflow-sim.git` (remote `origin`, **private**) · contributor upstream preserved as remote `alejandro` |
+| **Local path** | `~/projects/portfolio/AI-EdgeRunners/odontoflow/odontoflow-sim` (promoted by `mv`, `.git` preserved, HEAD verified `b57f7bc`, `fsck` clean) |
+| **Integration status** | **V2.1 DONE — promotion + safety boundary only.** No FastAPI, no intent adapter, no canonical states, no waitlist or lab tables, no voice vocabulary, no UI port, no agents, no WhatsApp. |
+| **Authority** | **canonical synthetic clinic / ground-truth simulator** · **NOT a business authority** — never creates Visit / ServiceExecution / ServiceConsumption / Charge / Payment / InventoryMovement |
 
 ### What was built
 
@@ -221,14 +222,21 @@ the simulator usable as a reproducible measurement baseline.
 Also worth naming: the **waitlist recovery loop** and the **operations-centre
 queue** — two product ideas OdontoFlow did not have and had not planned.
 
-### Documentation drift, recorded for honesty
+### Documentation drift — found in intake #2, **repaired in V2.1**
 
-The README claims the whole interface carries a visible *"Datos ficticios de
-demostración"* label. **HEAD removes exactly those labels** (14 deletions across
-3 components). At HEAD the claim is **false**: the persistent marker is gone and
-only three scattered mentions survive. No judgement of intent — but any
-canonical Synthetic Lab must restore a visible, persistent boundary. Detail in
-[SYNTHETIC_CLINIC_CONTRIBUTION_MAP.md §7](SYNTHETIC_CLINIC_CONTRIBUTION_MAP.md).
+The README claimed the whole interface carried a visible *"Datos ficticios de
+demostración"* label. Donor HEAD `b57f7bc` removed exactly those labels (14
+deletions across 3 components) and no test noticed, so the README asserted
+something false and a screenshot of the simulator became indistinguishable from
+a real clinic's.
+
+**Repaired in the first canonical commit (`da203a9`)**, not by editing the
+contributors' work but by restoring the guarantee their README already promised:
+a permanent, non-dismissible band mounted in the shell outside the view switch,
+with sentinel tests so it cannot silently disappear again. The README is
+corrected only where it was false; their voice and terminology are preserved.
+Detail in [SYNTHETIC_CLINIC_CONTRIBUTION_MAP.md §7](SYNTHETIC_CLINIC_CONTRIBUTION_MAP.md)
+and the [V2.1 brief](docs/handoffs/plans/2026-09-03-v2-1-simulator-promotion.md).
 
 ---
 
@@ -259,6 +267,7 @@ code has moved and been adapted.
 | Date | What was integrated | From (SHA) | Into | Form | Credit |
 |---|---|---|---|---|---|
 | 2026-09-02 | The whole voice service (5 commits, 19 files, 2 219 lines) | `eb9a4ee` | `odontoflow-voice` (canonical) | **Promotion** — the donor clone itself, `.git` and all commits preserved; one new file added on top (`CANONICAL.md`, `4149a3e`) | **Alejandro Marcelo** authors every line of the service and all 5 commits |
+| 2026-09-03 | The whole operations simulator (7 commits, 55 files, ~6 200 lines) | `b57f7bc` | `odontoflow-sim` (canonical, private) | **Promotion** — the contributor clone itself, `.git` and all commits preserved; one canonical commit on top (`da203a9`: `CANONICAL.md`, the synthetic boundary + its tests, one README paragraph) | **Alejandro Marcelo** (6 commits) and **Leonardo Panduro** (1, `333af34`) author every line; a shared codebase |
 | 2026-09-02 | Voice assistant view: `AsistenteVozPage`, `Voice*` types (verbatim), `.voz-*` CSS (verbatim), the 5 client calls, route + nav entry | `c0f418d` | `odontoflow-frontend` `a967b24` | **Intentional port** onto a base 7 commits ahead. Adapted: flag/mock gate in `src/voice.ts`, navbar squeeze scoped to a modifier, summaries labelled `Borrador`. Commit carries `Co-authored-by: Alejandro Marcelo`. | **Alejandro Marcelo** designed and wrote the view; **Leonardo Panduro** authored the frontend base it sits on |
 
 **When a row is added, it must name the donor SHA.** "Inspired by" is not

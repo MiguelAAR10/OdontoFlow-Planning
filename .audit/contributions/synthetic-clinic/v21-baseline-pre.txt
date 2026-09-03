@@ -1,0 +1,36 @@
+### V2.1 BASELINE — antes de cualquier modificación (2026-09-03)
+node v24.12.0 / npm 11.6.2
+
+== typecheck ==
+
+> odontoflow@0.2.0 typecheck
+> tsc --noEmit
+
+
+== npm test ==
+ ✓ tests/horario.test.ts (5 tests) 8ms
+ ✓ tests/render.test.tsx (5 tests) 103ms
+
+ Test Files  11 passed (11)
+      Tests  98 passed (98)
+   Start at  23:49:38
+   Duration  1.35s (transform 1.39s, setup 0ms, collect 2.90s, tests 671ms, environment 3ms, prepare 1.63s)
+
+
+== npm run build ==
+rendering chunks...
+computing gzip size...
+dist/index.html                   1.04 kB │ gzip:  0.56 kB
+dist/assets/index-BqKDY_g4.css   27.75 kB │ gzip:  6.22 kB
+dist/assets/index-CkGMFq8e.js   286.98 kB │ gzip: 84.90 kB
+✓ built in 1.78s
+
+== npm run verificar (cola) ==
+     primeras clases: retraso_lab, retraso_lab, retraso_lab
+
+8 · Laboratorios con alerta de retraso
+  ok    hay trabajos de laboratorio cargados
+     4 trabajos en riesgo o por vencer
+
+Recorrido completo sin fallos.
+

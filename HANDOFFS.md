@@ -96,6 +96,7 @@ evidence keeps its existing homes and is linked from the brief, never copied.
 | Contributor intake | [VOICE_CONTRIBUTION_INTEGRATION_MAP.md](VOICE_CONTRIBUTION_INTEGRATION_MAP.md) (already self-contained — reused, not duplicated) |
 | Voice Integration V1 | [docs/handoffs/plans/2026-09-02-voice-integration-v1.md](docs/handoffs/plans/2026-09-02-voice-integration-v1.md) |
 | Contributor intake #2 · Synthetic Clinic | [docs/handoffs/plans/2026-09-02-synthetic-clinic-contributor-intake.md](docs/handoffs/plans/2026-09-02-synthetic-clinic-contributor-intake.md) — **opened at intake**, updated as decisions were made |
+| V2.1 · Simulator promotion & synthetic boundary | [docs/handoffs/plans/2026-09-03-v2-1-simulator-promotion.md](docs/handoffs/plans/2026-09-03-v2-1-simulator-promotion.md) — **opened before any change** |
 
 ## Contributor intake #2 — Synthetic Clinic (2026-09-02)
 
@@ -105,3 +106,12 @@ evidence keeps its existing homes and is linked from the brief, never copied.
 | 09-02 | SYNTHETIC_CLINIC_CONTRIBUTION_MAP | Fan-in: what Alejandro already built, what we were about to rebuild, asset classification, ground-truth architecture, state compatibility, data inventory, documentation drift, and the revised 9-step V2 order ([map](SYNTHETIC_CLINIC_CONTRIBUTION_MAP.md)) |
 | 09-02 | VISUAL_BASELINE | Leonardo's 7 screenshots preserved with original blob hashes; design intent, not a UI spec ([baseline](VISUAL_BASELINE.md)) |
 | 09-02 | donor-baseline-raw | Raw donor baseline: 98 tests PASS, build PASS, `verificar` clean (`.audit/contributions/synthetic-clinic/`) |
+
+## V2.1 — Simulator promotion & synthetic boundary (2026-09-03)
+
+| Date | Handoff | Topic |
+|---|---|---|
+| 09-03 | **2026-09-03-v2-1-simulator-promotion** | **Canonical living brief** — opened before any change. Promotion + safety boundary only, no integration. |
+| 09-03 | odontoflow-sim/CANONICAL.md | Canonical status, shared authorship, SYNTHETIC-ONLY data classification, the structural synthetic boundary, and the no-business-writes rule |
+| 09-03 | v21-baseline-pre / v21-final-post | Raw evidence: baseline 98 tests before modification, 109 after (`.audit/contributions/synthetic-clinic/`) |
+| 09-03 | (this index) | `odontoflow-sim` promoted with donor history intact (`b57f7bc` + 1 canonical commit `da203a9`), pushed to a **private** `MiguelAAR10/odontoflow-sim`. NEXT = **V2.2 Named Scenario Configuration**. |
