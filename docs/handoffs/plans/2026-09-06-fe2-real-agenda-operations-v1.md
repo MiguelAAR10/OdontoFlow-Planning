@@ -8,7 +8,7 @@
 - Repository: `odontoflow-frontend`
 - Writer: GPT-5.6 Luna Max frontend writer
 - Base frontend HEAD: `0f0531f79ea52af5bfaa03bf7df6032365581869`
-- Result frontend HEAD: `991f4a214ec57ea065ee83cada81cea21289c475`
+- Result frontend HEAD: `0dbfa9e6705efb5b1e6553e3841ca204533cdf97`
 - Canonical backend HEAD: `254fe83ed756e8ad0100dac9ffde909fe8e8e0aa`
 - Auto-advance: false; FE3 was not started
 
