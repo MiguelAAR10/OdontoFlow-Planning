@@ -27,7 +27,7 @@ escalation: Terra High           # not needed
 never_use: Sol
 
 base_frontend_head: 0f0531f79ea52af5bfaa03bf7df6032365581869
-result_frontend_head: db70d2d34cba4668de28e02e420c1dc4305bde15
+result_frontend_head: 991f4a214ec57ea065ee83cada81cea21289c475
 canonical_backend_head: 254fe83ed756e8ad0100dac9ffde909fe8e8e0aa
 result_published: origin/main
 

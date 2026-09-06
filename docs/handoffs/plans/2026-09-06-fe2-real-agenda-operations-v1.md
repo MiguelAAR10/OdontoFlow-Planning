@@ -8,7 +8,7 @@
 - Repository: `odontoflow-frontend`
 - Writer: GPT-5.6 Luna Max frontend writer
 - Base frontend HEAD: `0f0531f79ea52af5bfaa03bf7df6032365581869`
-- Result frontend HEAD: `db70d2d34cba4668de28e02e420c1dc4305bde15`
+- Result frontend HEAD: `991f4a214ec57ea065ee83cada81cea21289c475`
 - Canonical backend HEAD: `254fe83ed756e8ad0100dac9ffde909fe8e8e0aa`
 - Auto-advance: false; FE3 was not started
 
@@ -64,7 +64,7 @@ invented UI values.
   timezone; cancelled cards remain visible and de-emphasized.
 - The drawer displays only supported lead, service, date/time, duration,
   location, practitioner, and state fields.
-- Active confirmed appointments expose `Reprogramar` and `Cancelar cita`.
+- Active non-cancelled appointments expose `Reprogramar` and `Cancelar cita`.
   There is no “cancel treatment” action.
 - Reschedule is appointment → `POST /slots/query` → same-practitioner slot
   selection → `POST /appointments/{id}/reschedule` → list/detail refresh.
