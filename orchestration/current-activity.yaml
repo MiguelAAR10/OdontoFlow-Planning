@@ -1,7 +1,7 @@
 # Single current activity for a fresh coordinator to pick up. One entry —
 # do not append a history here; closed activities move to CAVELOG.md and the
 # living brief they came from.
-last_verified: 2026-09-05
+last_verified: 2026-09-06
 authority: Repo 0 (planning)
 source:
   - docs/plans/2026-09-05-frontend-experience-v1.md
@@ -10,26 +10,29 @@ source:
 
 activity_id: FE0B-nextjs-parity-migration
 title: Next.js Parity Migration
-status: READY
-started_at: null
-completed_at: null
+status: PASS
+started_at: 2026-09-06
+completed_at: 2026-09-06
 planning_task_id: task_5b919935e97b
 planning_dispatch_id: ctx_be583922193a
 planning_worker_status: released_after_worker_done
+execution_task_id: task_648128ef391a
+execution_dispatch_id: ctx_a1f345b2cfc9
+execution_worker_status: worker_done_accepted_and_released
 
 repo: odontoflow-frontend
 coordinator: GPT-5.6 Luna Max
-writer: FE0B implementation owner (not assigned in FE0)
+writer: GPT-5.6 Luna Max (`gpt-5.6-luna`, max; dispatch ctx_a1f345b2cfc9)
 planner: Claude Opus 5           # amendment authority; writes no product code
 escalation: Terra High           # only after repeated failure or unresolved high-risk ambiguity
 never_use: Sol
-base_frontend_head: 2324884f7e916f44442a57c897cacb91add0ba1e
+base_frontend_head: f31a66c645bd01f09fbe3a27abd454337cab77cf
+result_frontend_head: e6b86481f9180fec496885b9d9ab25f1ebf462bb
 canonical_backend_head: 254fe83ed756e8ad0100dac9ffde909fe8e8e0aa
 
 skill_lanes:
   - frontend-foundation
-  - frontend-ui
-  - frontend-review
+  - webapp-testing (final browser verification)
 auth_skill_lane: frontend-auth   # desired/not-yet-loaded; implementation-gated
 skills:
   - next-best-practices
@@ -119,14 +122,17 @@ evidence:
     flow script still reports pre-existing stale selector assertions for two
     later interactions; no product code was changed to hide them.
   future_fe0b: ../odontoflow-frontend/.audit/fe0b-nextjs/
+  execution_handoff: docs/handoffs/plans/2026-09-06-fe0b-nextjs-parity-migration.md
+  target_handoff: ../odontoflow-frontend/.audit/fe0b-nextjs/FE0B-HANDOFF.md
+  target_result_head: e6b86481f9180fec496885b9d9ab25f1ebf462bb
+  target_commit_published: origin/main
+  execution_task: task_648128ef391a
+  execution_dispatch: ctx_a1f345b2cfc9
 
 blockers:
-  - >
-    FE0B is ready but not started. Its implementation must decide the staged
-    migration details in the amendment without broadening scope.
   - >
     W4/n8n remains externally blocked pending Leonardo access; this is isolated
     from FE0B and must not be reopened here.
 
-handoff_target: docs/handoffs/plans/2026-09-05-frontend-engineering-bootstrap.md
+handoff_target: docs/handoffs/plans/2026-09-06-fe0b-nextjs-parity-migration.md
 advance_automatically: false
