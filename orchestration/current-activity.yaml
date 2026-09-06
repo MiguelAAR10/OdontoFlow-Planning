@@ -1,5 +1,5 @@
-# Single current activity for a fresh coordinator. FE1A is closed; do not
-# advance automatically into FE1B or FE2.
+# Single current activity for a fresh coordinator. FE2 is closed; do not
+# advance automatically into FE3.
 last_verified: 2026-09-06
 authority: Repo 0 (planning)
 source:
@@ -8,26 +8,26 @@ source:
   - ../odontoflow-frontend/docs/brand/odonto-smart-contract.md
   - ../odontoflow-frontend/DESIGN.md
 
-activity_id: FE1A-odonto-smart-visual-foundation
-title: Odonto Smart visual foundation + operational shell
+activity_id: FE2-real-agenda-operations-v1
+title: Real Agenda Operations V1
 status: PASS
 started_at: 2026-09-06
 completed_at: 2026-09-06
-planning_task_id: task_fe1a_20260906
-planning_dispatch_id: ctx_fe1a_20260906
-execution_task_id: task_fe1a_20260906
-execution_dispatch_id: ctx_fe1a_20260906
+planning_task_id: task_fe2_20260906
+planning_dispatch_id: ctx_fe2_20260906
+execution_task_id: task_fe2_20260906
+execution_dispatch_id: ctx_fe2_20260906
 execution_worker_status: worker_done_accepted_and_released
 
 repo: odontoflow-frontend
 coordinator: GPT-5.6 Luna Max
-writer: GPT-5.6 Luna Max (`gpt-5.6-luna`, max; dispatch ctx_fe1a_20260906)
+writer: GPT-5.6 Luna Max (`gpt-5.6-luna`, max; dispatch ctx_fe2_20260906)
 planner: Claude Opus 5           # planning authority; writes no product code
 escalation: Terra High           # not needed
 never_use: Sol
 
-base_frontend_head: e6b86481f9180fec496885b9d9ab25f1ebf462bb
-result_frontend_head: 0f0531f79ea52af5bfaa03bf7df6032365581869
+base_frontend_head: 0f0531f79ea52af5bfaa03bf7df6032365581869
+result_frontend_head: db70d2d34cba4668de28e02e420c1dc4305bde15
 canonical_backend_head: 254fe83ed756e8ad0100dac9ffde909fe8e8e0aa
 result_published: origin/main
 
@@ -42,16 +42,15 @@ skills:
 
 scope:
   in:
-    - translate verified ODONTO-SMART source identity into operational ERP tokens and surfaces
-    - replace the horizontal nav with the approved sidebar + topbar + workspace shell
-    - use official copied transparent PNG logo assets and source-approved Fontshare faces
-    - add only the shared primitives required by current Agenda, Patients, Cash, Inventory, Agent, Chat and Voice views
-    - make desktop/tablet/mobile shell behavior explicit and preserve keyboard/focus behavior
-    - preserve current browser→typed client→FastAPI→PostgreSQL authority and visibly mark mock mode
+    - freeze the ERP claymorphism primary and restrained glassmorphism secondary material language
+    - verify the existing OpenAPI/generated-client scheduling contract before UI changes
+    - implement canonical real Agenda reads, supported filters, Day/Week structure, and states
+    - implement appointment detail, canonical slot-driven reschedule, and appointment-only cancellation
+    - preserve the FE1A shell, official logo, typography, semantic tokens, and responsive behavior
   out:
-    - Clerk/auth, FE1B, FE2, Agenda V2, Inventory V2, scheduling or business behavior changes
-    - backend, generated API contract, database, Supabase, GCP, W4/n8n or new business tables
-    - agent cockpit redesign or new modules
+    - Clerk/auth, FE1B, FE3, Inventory V2, Collections, Patients V2, Agent Cockpit, W4/n8n
+    - backend, OpenAPI generated contract regeneration, database, Supabase, GCP, or new business tables
+    - free-text availability, unsupported cancellation reasons, refunds, credits, fees, or deposit transfer
 
 protected_surfaces:
   - ../ODONTO-SMART (read-only brand source)
@@ -62,35 +61,44 @@ protected_surfaces:
 
 acceptance:
   observable_outcome: >
-    The same operational product is recognizably Odonto Smart across its shared
-    shell and primitives, with readable solid data surfaces and no workflow or
-    backend authority changes.
+    A human operator can view/filter canonical appointments, inspect one,
+    obtain valid backend slots, reschedule through the backend, cancel an
+    appointment deterministically, and see resulting state after refresh.
   required_checks:
     - DESIGN.md is canonical ERP visual contract and is not a copy of landing DESIGN.md
     - asset manifest retains source, destination, purpose and hash provenance
     - official logo renders; constructed fake logo and Leonardo profile are absent
     - Clash Display/Satoshi load through Fontshare; Inter is not visible default
     - cyan/magenta/deep are deliberate; semantic statuses remain separate
+    - contract map covers locations, services, practitioners, appointments, slots, create, reschedule, cancel
     - voice flag, global patient search, New Appointment and route navigation work
     - Agenda desktop 1440, tablet 1024, mobile 390, mobile drawer and Inventory desktop evidence exist
-    - zero unexpected page/console errors in final browser report
-    - typecheck, unit tests, production build and relevant visual/browser flows pass
+    - appointment drawer, canonical slot query, reschedule, cancellation confirmation and refreshed state pass
+    - zero unexpected page, console, and browser request errors
+    - typecheck, unit, build, integration, visual and real-browser flows pass
 
 verification:
-  typecheck: npm run typecheck
-  unit_tests: npm test — 91/91, 10 files
+  typecheck: npm run typecheck — PASS
+  unit_tests: npm test — 10 files, 91/91 PASS
   build: npm run build — PASS
-  visual: NEXT_PUBLIC_USE_MOCKS=true npm run test:visual — 7/7, zero page errors
-  browser: ../odontoflow-frontend/.audit/fe1a-browser-verification.json
-  screenshots: ../odontoflow-frontend/.audit/fe1a-visual/after/
-  before: ../odontoflow-frontend/.audit/fe1a-visual/before/mock/
-  handoff: docs/handoffs/plans/2026-09-06-fe1a-odonto-smart-visual-foundation.md
+  pilot_e2e: npm run test:e2e:pilot — 12/12 PASS
+  agenda_integration: vitest agenda integration — 3/3 PASS
+  visual: NEXT_PUBLIC_USE_MOCKS=true npm run test:visual — 7/7 PASS
+  browser: ../odontoflow-frontend/.audit/fe2-browser-real.json — 5/5 PASS, zero errors
+  screenshots: ../odontoflow-frontend/.audit/fe2-browser-real/
+  handoff: docs/handoffs/plans/2026-09-06-fe2-real-agenda-operations-v1.md
+
+contract_preflight:
+  openapi_sha256: 2b0929d7eef9f084b9387a9eacd832c1270a1b6c20232087c0a28cb1df0ae074
+  generated_contract_sha256: 7289f15c757d7141b0b36e9ec3921ed15c71e7df90eb3c8c0f3fcaa03990cb2f
+  generated_diff_lines: 5468
+  result: FE2 scheduling paths/schemas match; diff is newer agent/internal paths, schemas, and response headers; no sync required
 
 blockers: []
 visual_deviations:
-  - 1024px and 390px keep contained horizontal scrolling for full calendar/filter data regions where shrinking would harm usability
-  - official transparent PNG whitespace is preserved; CSS scales the unmodified artwork without crop/recolor/shadow
+  - 390px calendar is a contained horizontal data-region scroll to preserve readable six-day structure
+  - canonical overlapping/cancelled appointments remain visible rather than being hidden or resolved by frontend rules
 
-handoff_target: docs/handoffs/plans/2026-09-06-fe1a-odonto-smart-visual-foundation.md
+handoff_target: docs/handoffs/plans/2026-09-06-fe2-real-agenda-operations-v1.md
 advance_automatically: false
-next: Stop. Await an explicit FE1B or FE2 dispatch; do not start either automatically.
+next: Stop. Await an explicit FE3 dispatch; do not start FE3 automatically.
