@@ -1,0 +1,121 @@
+# Skill routing only — which lane loads which skill, and where its body
+# actually lives. Never copy a skill's body into this file or into a second
+# repo; install by symlink (see the odontoflow-backend/frontend notes) so
+# there is exactly one canonical copy per skill.
+last_verified: 2026-09-05
+authority: Repo 0 (planning)
+verified_via: >
+  filesystem discovery (.claude/skills, .agents/skills, skills-lock.json per
+  repo). `orca skills installed --json` could not be used from here: it
+  errors invalid_environment ("must run in an Orca terminal on the machine
+  that stores the skills") when called from this session — recorded as a
+  runtime limitation, not assumed away.
+
+lanes:
+  planning:
+    skills: [foreman-handoff, writing-for-agents]
+    installed_at: >
+      foreman-handoff: odontoflow-planning/.claude/skills (mirrored
+      .agents/skills; both tracked, hand-authored). writing-for-agents:
+      odontoflow-planning/.agents/skills (GitHub-sourced via the skills CLI,
+      provenance in skills-lock.json), symlinked into .claude/skills.
+    unavailable_here:
+      - context-engineering   # installed in odontoflow-backend only, not planning — not claimed here
+
+  backend:
+    skills:
+      - api-and-interface-design
+      - postgres-best-practices
+      - security-and-hardening
+      - test-driven-development
+      - verification-before-completion
+    installed_at: odontoflow-backend/.claude/skills (symlinks into .agents/skills; provenance in skills-lock.json)
+
+  sales-agent:
+    skills:
+      - langchain-fundamentals
+      - langgraph-persistence
+      - context-engineering
+      - api-and-interface-design
+      - security-and-hardening
+      - test-driven-development
+      - verification-before-completion
+      - odontoflow-engineering
+    installed_at: >
+      All backend-lane skills already installed in
+      odontoflow-backend/.claude/skills. odontoflow-engineering's only
+      canonical copy is skills/odontoflow-engineering/SKILL.md in this repo,
+      installed into odontoflow-backend by relative symlink (see
+      PROJECT_SKILL_SOURCE in the handoff) — not duplicated.
+    unavailable_here:
+      - codebase-design   # exists globally (~/.claude/skills/codebase-design), not project-installed in backend — requested "if installed"; it is not
+
+  n8n:
+    skills: [n8n-workflow-lifecycle-official, security-and-hardening, verification-before-completion]
+    installed_at: odontoflow-backend/.claude/skills
+
+  review:
+    skills: [code-review-and-quality, verification-before-completion]
+    installed_at: odontoflow-backend/.claude/skills
+
+  frontend:
+    skills:
+      - frontend-foundation
+      - frontend-ui
+      - frontend-auth
+      - frontend-review
+    installed_at: >
+      aggregate routing alias for the four frontend lanes below; skill bodies
+      live only in odontoflow-frontend/.agents/skills and are symlinked into
+      .claude/skills. Skill discovery does not cross repos.
+
+  frontend-foundation:
+    skills:
+      - next-best-practices
+      - vercel-react-best-practices
+      - odontoflow-engineering
+      - verification-before-completion
+    installed_at: odontoflow-frontend/.agents/skills (project-local)
+    provenance: >
+      next-best-practices from vercel-labs/openreview (the current matching
+      Vercel Labs source discovered at execution); vercel-react-best-practices
+      from vercel-labs/agent-skills; odontoflow-engineering from
+      odontoflow-planning/skills by symlink; verification-before-completion
+      from odontoflow-backend/.agents/skills by symlink. Remote provenance and
+      hashes for the first two installed groups are in the frontend
+      skills-lock.json.
+
+  frontend-ui:
+    skills:
+      - frontend-design
+      - web-design-guidelines
+    installed_at: odontoflow-frontend/.agents/skills (project-local)
+    provenance: >
+      frontend-design from anthropics/skills; web-design-guidelines from
+      vercel-labs/agent-skills. Both are available locally without adding a
+      broad UI pack or shadcn skill.
+
+  frontend-auth:
+    skills: []
+    installed_at: none — task-gated; no Clerk implementation in FE0
+    desired_not_yet_loaded:
+      - name: clerk
+        source: clerk/skills
+      - name: clerk-setup
+        source: clerk/skills
+      - name: clerk-nextjs-patterns
+        source: clerk/skills
+      - name: clerk-custom-ui
+        source: clerk/skills
+      - name: clerk-testing
+        source: clerk/skills
+
+  frontend-review:
+    skills:
+      - web-design-guidelines
+      - verification-before-completion
+    installed_at: odontoflow-frontend/.agents/skills (project-local)
+    provenance: >
+      review routing reuses the installed Vercel web-design-guidelines body and
+      the shared verification-before-completion body; no duplicate bodies are
+      created.
