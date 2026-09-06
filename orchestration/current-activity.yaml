@@ -1,138 +1,96 @@
-# Single current activity for a fresh coordinator to pick up. One entry —
-# do not append a history here; closed activities move to CAVELOG.md and the
-# living brief they came from.
+# Single current activity for a fresh coordinator. FE1A is closed; do not
+# advance automatically into FE1B or FE2.
 last_verified: 2026-09-06
 authority: Repo 0 (planning)
 source:
   - docs/plans/2026-09-05-frontend-experience-v1.md
   - docs/plans/2026-09-05-frontend-nextjs-amendment.md
-  - docs/handoffs/plans/2026-09-05-frontend-engineering-bootstrap.md
+  - ../odontoflow-frontend/docs/brand/odonto-smart-contract.md
+  - ../odontoflow-frontend/DESIGN.md
 
-activity_id: FE0B-nextjs-parity-migration
-title: Next.js Parity Migration
+activity_id: FE1A-odonto-smart-visual-foundation
+title: Odonto Smart visual foundation + operational shell
 status: PASS
 started_at: 2026-09-06
 completed_at: 2026-09-06
-planning_task_id: task_5b919935e97b
-planning_dispatch_id: ctx_be583922193a
-planning_worker_status: released_after_worker_done
-execution_task_id: task_648128ef391a
-execution_dispatch_id: ctx_a1f345b2cfc9
+planning_task_id: task_fe1a_20260906
+planning_dispatch_id: ctx_fe1a_20260906
+execution_task_id: task_fe1a_20260906
+execution_dispatch_id: ctx_fe1a_20260906
 execution_worker_status: worker_done_accepted_and_released
 
 repo: odontoflow-frontend
 coordinator: GPT-5.6 Luna Max
-writer: GPT-5.6 Luna Max (`gpt-5.6-luna`, max; dispatch ctx_a1f345b2cfc9)
-planner: Claude Opus 5           # amendment authority; writes no product code
-escalation: Terra High           # only after repeated failure or unresolved high-risk ambiguity
+writer: GPT-5.6 Luna Max (`gpt-5.6-luna`, max; dispatch ctx_fe1a_20260906)
+planner: Claude Opus 5           # planning authority; writes no product code
+escalation: Terra High           # not needed
 never_use: Sol
-base_frontend_head: f31a66c645bd01f09fbe3a27abd454337cab77cf
-result_frontend_head: e6b86481f9180fec496885b9d9ab25f1ebf462bb
-canonical_backend_head: 254fe83ed756e8ad0100dac9ffde909fe8e8e0aa
 
-skill_lanes:
-  - frontend-foundation
-  - webapp-testing (final browser verification)
-auth_skill_lane: frontend-auth   # desired/not-yet-loaded; implementation-gated
+base_frontend_head: e6b86481f9180fec496885b9d9ab25f1ebf462bb
+result_frontend_head: 0f0531f79ea52af5bfaa03bf7df6032365581869
+canonical_backend_head: 254fe83ed756e8ad0100dac9ffde909fe8e8e0aa
+result_published: origin/main
+
 skills:
+  - frontend-design
   - next-best-practices
   - vercel-react-best-practices
-  - frontend-design
   - web-design-guidelines
   - webapp-testing
   - odontoflow-engineering
   - verification-before-completion
-auth_skills_desired_not_yet_loaded:
-  - clerk
-  - clerk-setup
-  - clerk-nextjs-patterns
-  - clerk-custom-ui
-  - clerk-testing
 
 scope:
   in:
-    - migrate the existing Vite/React Router operational frontend to Next.js App Router
-    - preserve observable route and API-contract parity for Agenda, Patients, Cash, Inventory, Agent and Chat
-    - preserve the voice feature flag, existing mock/synthetic seam, typed OpenAPI client behavior, idempotency semantics and FastAPI authority
-    - introduce only the smallest Next.js env/module boundary required for parity
-    - keep the visual harness able to produce WSL Chromium evidence and capture before/after parity evidence
+    - translate verified ODONTO-SMART source identity into operational ERP tokens and surfaces
+    - replace the horizontal nav with the approved sidebar + topbar + workspace shell
+    - use official copied transparent PNG logo assets and source-approved Fontshare faces
+    - add only the shared primitives required by current Agenda, Patients, Cash, Inventory, Agent, Chat and Voice views
+    - make desktop/tablet/mobile shell behavior explicit and preserve keyboard/focus behavior
+    - preserve current browser→typed client→FastAPI→PostgreSQL authority and visibly mark mock mode
   out:
-    - redesign, restyle, component-library adoption or UX/content rewrite
-    - Clerk package, account, keys, configuration or auth UI
-    - Next.js BFF, Route Handler proxy, Server Actions or server-side ERP fetching in FE0B
-    - OpenAPI regeneration or business-contract changes
-    - direct browser Supabase access, Supabase Auth, business logic in Next.js, GCP or deployment work
-    - backend, simulator, voice-service, brand-source or W4/n8n changes
+    - Clerk/auth, FE1B, FE2, Agenda V2, Inventory V2, scheduling or business behavior changes
+    - backend, generated API contract, database, Supabase, GCP, W4/n8n or new business tables
+    - agent cockpit redesign or new modules
 
 protected_surfaces:
-  - Leonardo Panduro's visual baseline and contributor-owned page/component/CSS surfaces
-  - Alejandro Jesus Marcelo CH's voice adapter, view, navigation/CSS scope and tests
-  - src/contracts/api.ts (generated client frozen for FE0B)
   - ../ODONTO-SMART (read-only brand source)
-  - backend authority, OpenAPI source and current idempotency/error contracts
-  - W4/n8n, which remains externally blocked pending Leonardo access and is not touched
+  - backend authority and generated typed client contracts
+  - existing Agenda cancellation/reschedule and Inventory movement behavior
+  - existing voice contributor view/adapter and feature flag
+  - pre-existing frontend AGENTS.md worktree edit (left unstaged)
 
 acceptance:
   observable_outcome: >
-    The existing OdontoFlow operational frontend runs on Next.js App Router
-    with route and API-contract parity, without redesigning the application or
-    changing backend business behavior.
-  preserve:
-    - Agenda
-    - Patients
-    - Cash
-    - Inventory
-    - Agent
-    - Chat
-    - voice feature flag
-    - existing mock/synthetic seam
-    - OpenAPI typed client behavior
-    - idempotency semantics
-    - backend authority
+    The same operational product is recognizably Odonto Smart across its shared
+    shell and primitives, with readable solid data surfaces and no workflow or
+    backend authority changes.
   required_checks:
-    - all current routes and catch-all behavior are evidenced before and after
-    - mock mode remains honest and real mode consumes zero mock business data
-    - voice-off, voice-on/mock and voice-on/live behavior remain observable and tested
-    - generated src/contracts/api.ts is byte-preserved and no OpenAPI regeneration is mixed into FE0B
-    - mutation headers and ApiError/toApiError behavior remain intact
-    - no Clerk, Supabase browser client/Auth, BFF/Route Handler, Server Action or GCP artifact exists
-    - no contributor-owned behavior is rewritten and no redesign is introduced
-    - focused tests, typecheck, build, E2E and visual/browser evidence pass at implementation time
+    - DESIGN.md is canonical ERP visual contract and is not a copy of landing DESIGN.md
+    - asset manifest retains source, destination, purpose and hash provenance
+    - official logo renders; constructed fake logo and Leonardo profile are absent
+    - Clash Display/Satoshi load through Fontshare; Inter is not visible default
+    - cyan/magenta/deep are deliberate; semantic statuses remain separate
+    - voice flag, global patient search, New Appointment and route navigation work
+    - Agenda desktop 1440, tablet 1024, mobile 390, mobile drawer and Inventory desktop evidence exist
+    - zero unexpected page/console errors in final browser report
+    - typecheck, unit tests, production build and relevant visual/browser flows pass
 
-verification_shape:
-  - re-derive both frontend and backend HEADs before FE0B dispatch
-  - freeze the current frontend route/API/env/test/mock/voice map from the amendment
-  - keep Vite available through the staged migration until the Next path is green
-  - run focused unit/adapter tests before the full suite; run visual flows in WSL Chromium
-  - compare before/after route screenshots and inspect page/console errors
-  - verify generated-client hash, contributor audit/provenance and protected repo states
-  - update the FE0B handoff and CAVELOG with evidence; no automatic advancement
+verification:
+  typecheck: npm run typecheck
+  unit_tests: npm test — 91/91, 10 files
+  build: npm run build — PASS
+  visual: NEXT_PUBLIC_USE_MOCKS=true npm run test:visual — 7/7, zero page errors
+  browser: ../odontoflow-frontend/.audit/fe1a-browser-verification.json
+  screenshots: ../odontoflow-frontend/.audit/fe1a-visual/after/
+  before: ../odontoflow-frontend/.audit/fe1a-visual/before/mock/
+  handoff: docs/handoffs/plans/2026-09-06-fe1a-odonto-smart-visual-foundation.md
 
-evidence:
-  amendment: docs/plans/2026-09-05-frontend-nextjs-amendment.md
-  amendment_worker: >
-    Orca task task_5b919935e97b, dispatch ctx_be583922193a, Claude Opus 5;
-    worker_done received and planner released.
-  brand_contract: ../odontoflow-frontend/docs/brand/odonto-smart-contract.md
-  asset_provenance: ../odontoflow-frontend/public/brand/odonto-smart/BRAND_ASSETS.md
-  skill_lock: ../odontoflow-frontend/skills-lock.json
-  baseline: >
-    ../odontoflow-frontend/.audit/fe0-bootstrap/baseline/; captured with the
-    WSL Chromium fallback before any Next.js migration. The current legacy
-    flow script still reports pre-existing stale selector assertions for two
-    later interactions; no product code was changed to hide them.
-  future_fe0b: ../odontoflow-frontend/.audit/fe0b-nextjs/
-  execution_handoff: docs/handoffs/plans/2026-09-06-fe0b-nextjs-parity-migration.md
-  target_handoff: ../odontoflow-frontend/.audit/fe0b-nextjs/FE0B-HANDOFF.md
-  target_result_head: e6b86481f9180fec496885b9d9ab25f1ebf462bb
-  target_commit_published: origin/main
-  execution_task: task_648128ef391a
-  execution_dispatch: ctx_a1f345b2cfc9
+blockers: []
+visual_deviations:
+  - 1024px and 390px keep contained horizontal scrolling for full calendar/filter data regions where shrinking would harm usability
+  - official transparent PNG whitespace is preserved; CSS scales the unmodified artwork without crop/recolor/shadow
 
-blockers:
-  - >
-    W4/n8n remains externally blocked pending Leonardo access; this is isolated
-    from FE0B and must not be reopened here.
-
-handoff_target: docs/handoffs/plans/2026-09-06-fe0b-nextjs-parity-migration.md
+handoff_target: docs/handoffs/plans/2026-09-06-fe1a-odonto-smart-visual-foundation.md
 advance_automatically: false
+next: Stop. Await an explicit FE1B or FE2 dispatch; do not start either automatically.

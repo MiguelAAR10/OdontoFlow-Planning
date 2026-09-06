@@ -1,11 +1,11 @@
 ---
 title: OdontoFlow — Status (verified snapshot)
 status: active
-last_verified: 2026-09-02
+last_verified: 2026-09-06
 authority: Repo 0 (planning) — numbers re-verified from repos at verify time
 ---
 
-# Status — Verified Snapshot (2026-09-02)
+# Status — Verified Snapshot (2026-09-06)
 
 ## Milestone
 
@@ -15,27 +15,111 @@ authority: Repo 0 (planning) — numbers re-verified from repos at verify time
 [M5_REVENUE_LEAKAGE_BASELINE.md](M5_REVENUE_LEAKAGE_BASELINE.md)) ·
 M5.2 **BLOCKED on real clinic data** (`DOMINANT_LEAKAGE = UNKNOWN`).
 
+## Frontend FE1A — PASS
+
+FE1A is complete on the canonical frontend at
+`0f0531f79ea52af5bfaa03bf7df6032365581869`, pushed normally to
+`origin/main`. The existing operational product now uses the verified Odonto
+Smart visual foundation: semantic brand/status tokens, Fontshare Clash
+Display/Satoshi, official transparent PNG logo assets, the sidebar + topbar
+shell, responsive mobile drawer, and shared accessibility-focused primitives.
+
+The implementation preserved Agenda, Patients, Cash, Inventory, Agent, Chat,
+Voice gating, global patient search, New Appointment, the typed client/mock
+seam, FastAPI authority, Agenda cancel/reschedule behavior, and Inventory
+movement behavior. No Clerk, backend, API, business-table, Agenda V2,
+Inventory V2, W4/n8n, Supabase or GCP work was started.
+
+Fresh evidence: **91/91 frontend unit tests**, typecheck, production build,
+visual harness **7/7**, and native Python Playwright exact-size evidence all
+passed. The browser report confirms official logo/font/token checks,
+search→Patients, New Appointment, navigation, voice-off gating, and zero
+console/page errors. See the
+[FE1A handoff](docs/handoffs/plans/2026-09-06-fe1a-odonto-smart-visual-foundation.md),
+[ERP design contract](../odontoflow-frontend/DESIGN.md), and
+`../odontoflow-frontend/.audit/fe1a-browser-verification.json`.
+
+## Sales Agent V0 — W4 NEEDS_PLANNING
+
+W4 (synthetic n8n WF-01 edge) delivered the repository-backed export and
+deterministic HTTP/PostgreSQL harness at backend HEAD
+`254fe83ed756e8ad0100dac9ffde909fe8e8e0aa`, synced with `origin/main`. The
+artifact is inactive (`WF-01`, version `0.1.0`) and restricted to
+`provider=test`; the harness proves normalization, bounded conversation-scoped
+debounce, backend-authoritative provider-message dedupe, resumed Sales Agent
+threads, isolation, canonical availability/proposal/confirmation, exactly-one
+booking, outbound persistence, handoff blocking, and the seven-tool boundary.
+
+Focused W4/W3/messaging checks passed **40 / 1 warning**; the coordinator
+reran `tests/test_sales_agent_w4.py` at **8 passed / 1 warning**. The one final
+full real-PostgreSQL suite passed **502 / 0 failed / 20 warnings** in 654.23s.
+JSON/compile/diff checks and the `app/` LangChain/LangGraph import guard passed.
+All evidence is synthetic/test-only: no live model, clinic, provider, revenue,
+or pricing validation was claimed.
+
+The actual n8n lifecycle gate is **NEEDS_PLANNING** because this environment
+has no n8n binary/container or workflow MCP surface. Therefore there is no
+honest `validate_workflow`, `get_workflow_details`, `test_workflow`, publish,
+workflow ID, or runtime version evidence; the export remains inactive. The
+handoff records the process-local debounce restart/concurrency limitation and
+the next action: provision/register an isolated n8n test runtime, then run the
+official lifecycle with test credentials. W5/W6 remain held.
+See the [W4 handoff](../odontoflow-backend/docs/superpowers/handoffs/2026-09-05-sales-agent-v0-w4.md).
+
+## Sales Agent V0 — W3 PASS
+
+W3 (Sales Agent Runtime) is complete on the canonical backend. The approved
+runtime is isolated in the top-level optional `sales_agent/` package and uses
+LangChain `create_agent()`, a separate PostgreSQL `PostgresSaver` database,
+`thread_id = conversation_id`, exactly seven authenticated typed gateway tools,
+bounded structured turns, content-free telemetry, fake-model tests, and
+`POST /sales-agent/turn`. The canonical `app/` process has no LangChain or
+LangGraph imports, and no Alembic or business-table changes were made.
+
+The backend advanced from `5dda97375891fdc63d7ca96c46ae2c9c50542b69` to
+`159cbe23769f0161d2cf4084d0020e4c30e160ed`, synced with `origin/main`. The
+coordinator reran the focused W3 suite at **16 passed / 1 warning**; the one
+final full real-PostgreSQL suite was **494 passed / 0 failed / 20 warnings**.
+Verification is synthetic/test-only: no live model, clinic, provider, revenue,
+or pricing validation was claimed. W4's repository-backed edge follows below;
+its actual n8n lifecycle gate remains held.
+See the [W3 handoff](../odontoflow-backend/docs/superpowers/handoffs/2026-09-05-sales-agent-v0-w3.md)
+and the [W2 handoff](../odontoflow-backend/docs/superpowers/handoffs/2026-09-05-sales-agent-v0-w2.md).
+
+## Sales Agent V0 — W2 PASS (prior milestone)
+
+W2 (Conversation Listing + Close Transition) is complete on the canonical
+backend. Base `3291787e9184c673fecceec403fc33fa347d5d8c` advanced to
+`5dda97375891fdc63d7ca96c46ae2c9c50542b69`, which is synced with `origin/main`.
+The independent full real-PostgreSQL suite is **478 passed / 0 failed / 21
+warnings**; OpenAPI is reproducible with **40 paths**; Alembic remains at
+`0015` with no revision added. W3 followed this milestone and is recorded
+above. See the
+[W2 handoff](../odontoflow-backend/docs/superpowers/handoffs/2026-09-05-sales-agent-v0-w2.md).
+
 ## HEADs (verified by git, not by docs)
 
-- **BACKEND_HEAD:** `23527c2` (`main`) — synced with origin
-- **BACKEND_REMOTE:** `git@github.com:MiguelAAR10/OdontoFlow.git` — origin/main = `23527c2`
-- **BACKEND_TESTS:** 384 PASS (real PostgreSQL, port 5434; full run re-verified 2026-09-02, 171s, exit 0)
-- **MIGRATION:** 0008 (alembic 0001–0008 — location-aware inventory + transfers)
-- **FRONTEND_HEAD:** `a967b24` (`main`) — synced with canonical origin (voice UI port)
-- **FRONTEND_REMOTE (canonical):** `git@github.com:MiguelAAR10/odontoflow-frontend.git` — origin/main = `a967b24`
+- **BACKEND_HEAD:** `254fe83` (`main`) — synced with origin
+- **BACKEND_REMOTE:** `git@github.com:MiguelAAR10/OdontoFlow.git` — origin/main = `254fe83`
+- **BACKEND_TESTS:** 502 PASS (real PostgreSQL, port 5434; full run re-verified 2026-09-05, 654.23s, exit 0)
+- **MIGRATION:** 0015 (alembic 0001–0015; W2 added no revision)
+- **FRONTEND_HEAD:** `0f0531f` (`main`) — FE1A PASS, synced with canonical origin
+- **FRONTEND_REMOTE (canonical):** `git@github.com:MiguelAAR10/odontoflow-frontend.git` — origin/main = `0f0531f`
 - **FRONTEND_REMOTE (upstream/reference):** `https://github.com/leonardopanduro-rgb/ODONTO-SMART-FRONT.git` — preserved as `leonardo`, at `8769f12`, history untouched, never force-pushed
-- **FRONTEND_TESTS:** **91 unit PASS** (83 + 8 voice gate) · **Pilot E2E 12/12 PASS** (re-run 2026-09-02 on a fresh `odontoflow_e2e`) · typecheck clean · build PASS
+- **FRONTEND_TESTS:** **91 unit PASS** (10 files) · visual harness **7/7 PASS** · exact-size browser evidence PASS · typecheck clean · build PASS
 - **VOICE_HEAD:** `4149a3e` (`main`) — donor `eb9a4ee` + 1 canonical commit, synced with origin
 - **VOICE_REMOTE:** `git@github.com:MiguelAAR10/odontoflow-voice.git` (canonical, **private**) · contributor upstream `AlejandroMarceloCh/odonto-voz` preserved as `alejandro`
 - **VOICE_TESTS:** **54 PASS** (0.89 s, Python 3.12.3) — the donor's own suite, unmodified
 - **SIM_HEAD:** `da203a9` (`master`) — donor `b57f7bc` + 1 canonical commit, synced with origin
 - **SIM_REMOTE:** `git@github.com:MiguelAAR10/odontoflow-sim.git` (canonical, **private**) · contributor upstream `AlejandroMarceloCh/odontoflow` preserved as `alejandro`
 - **SIM_TESTS:** **109 PASS** (12 files) — 98 contributor baseline + 10 synthetic-boundary + 1 auto-generated by the clock sentinel; build PASS; `verificar` clean
-- **PLANNING_HEAD:** `04acfc1` (`main`) — synced with origin (before this snapshot's commit)
+- **PLANNING_HEAD:** control-plane evidence is updated in the shared worktree; pre-existing planning changes remain uncommitted
 - **Legacy (medistock):** `ef2fffb` (`main`, synced) — READ ONLY, outside workspace
 
-All three active repos: working tree **clean**, local HEAD **== origin/main**,
-`git fetch --all` brought **zero** new upstream commits.
+The W4 backend commits are clean and synced with `origin/main`; its worktree
+retains only the pre-existing uncommitted setup/documentation artifacts noted
+in the W4 handoff. Planning evidence is intentionally updated in the shared
+working tree rather than committing unrelated pre-existing planning changes.
 
 ## Canonical environment (verified 2026-09-02)
 
@@ -189,10 +273,10 @@ applied in the pass: mock-mode overpayment code aligned to the real backend
 
 ## Tests
 
-- **Backend:** 384 passed (verified full run 2026-08-16; no backend commit in M4.3/M4.4 — the E2E proved zero backend defects)
-- **Frontend:** 83 passed / 9 files (unit) · Pilot E2E 12/12 · Agenda+Patients real-backend regression 6/6 · typecheck clean · build PASS
+- **Backend:** 494 passed (verified full run 2026-09-05; W3 runtime complete; no migration added)
+- **Frontend:** 91 passed / 10 files (unit) · visual harness 7/7 · exact-size browser evidence PASS · typecheck clean · build PASS
 
-## OpenAPI paths (32, generated at backend HEAD — location-aware)
+## OpenAPI paths (40, generated at backend HEAD — location-aware + W2 messaging)
 
 `/health` · `/leads`(+`/{id}`) · `/appointments`(+`/{id}`, `/cancel`, `/reschedule`) ·
 `/availability-rules` · `/schedule-blocks` · `/slots/query` · `/capabilities` ·
@@ -200,10 +284,20 @@ applied in the pass: mock-mode overpayment code aligned to the real backend
 `/visits`(+`/{id}`) · `/visits/{visit_id}/executions` · `/executions/{execution_id}/charges` ·
 `/executions/{execution_id}/consumptions` · `/charges`(+`/{id}`, `/{charge_id}/payments`) ·
 `/products`(+`/{id}`, `/entries`, `/movements`, `/adjustments`, `/balance`, `/transfers`) —
-`location_id` required en entries/adjustments (body) y balance/movements (query)
+`location_id` required en entries/adjustments (body) y balance/movements (query) ·
+`/agent-tools/call` · `/internal/messages/inbound` ·
+`/internal/conversations/{conversation_id}/outbound` · `/internal/outbound/claim` ·
+`/internal/outbound/{outbound_id}/result` · `/internal/conversations/{conversation_id}/resume` ·
+`/internal/conversations` · `/internal/conversations/{conversation_id}/close`
 
 ## Latest handoffs
 
+- FE1A Odonto Smart visual foundation + operational shell:
+  `docs/handoffs/plans/2026-09-06-fe1a-odonto-smart-visual-foundation.md`
+- W4 synthetic WF-01 edge: `odontoflow-backend/docs/superpowers/handoffs/2026-09-05-sales-agent-v0-w4.md`
+
+- W3 Sales Agent runtime: `odontoflow-backend/docs/superpowers/handoffs/2026-09-05-sales-agent-v0-w3.md`
+- W2 conversation listing + close: `odontoflow-backend/docs/superpowers/handoffs/2026-09-05-sales-agent-v0-w2.md`
 - M4.4 evidence: `odontoflow-frontend/.audit/m4-pilot-fit/pilot-e2e.md` (Pilot E2E + final review)
 - M4.3 evidence: `odontoflow-frontend/.audit/m4-pilot-fit/inventory-ui.md` (InventoryPage real)
 - M4.1 evidence: `odontoflow-frontend/.audit/m4-pilot-fit/cash-real.md` (CashPage real)

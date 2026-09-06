@@ -97,6 +97,8 @@ evidence keeps its existing homes and is linked from the brief, never copied.
 | Voice Integration V1 | [docs/handoffs/plans/2026-09-02-voice-integration-v1.md](docs/handoffs/plans/2026-09-02-voice-integration-v1.md) |
 | Contributor intake #2 · Synthetic Clinic | [docs/handoffs/plans/2026-09-02-synthetic-clinic-contributor-intake.md](docs/handoffs/plans/2026-09-02-synthetic-clinic-contributor-intake.md) — **opened at intake**, updated as decisions were made |
 | V2.1 · Simulator promotion & synthetic boundary | [docs/handoffs/plans/2026-09-03-v2-1-simulator-promotion.md](docs/handoffs/plans/2026-09-03-v2-1-simulator-promotion.md) — **opened before any change** |
+| FE0B · Next.js parity migration | [docs/handoffs/plans/2026-09-06-fe0b-nextjs-parity-migration.md](docs/handoffs/plans/2026-09-06-fe0b-nextjs-parity-migration.md) — PASS, result `e6b8648` |
+| FE1A · Odonto Smart visual foundation + operational shell | [docs/handoffs/plans/2026-09-06-fe1a-odonto-smart-visual-foundation.md](docs/handoffs/plans/2026-09-06-fe1a-odonto-smart-visual-foundation.md) — PASS, result `0f0531f` |
 
 ## Contributor intake #2 — Synthetic Clinic (2026-09-02)
 
