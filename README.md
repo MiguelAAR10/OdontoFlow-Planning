@@ -32,6 +32,26 @@ Two principles make it valuable:
 
 The legacy `MediStock` Flask system is a **read-only reference**, outside the product.
 
+## Architecture
+
+Channels, n8n and the development sandbox carry messages to the authenticated
+FastAPI boundary. AIRY can call business state only through typed,
+tenant-authorized tools; PostgreSQL remains the canonical business system of
+record. n8n is transport/orchestration, not business logic, and LangGraph
+memory is separate from core data. See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
+for the full boundary map.
+
+```mermaid
+flowchart LR
+    C["Channels / n8n / sandbox"] --> I["Authenticated FastAPI inbound"]
+    I --> A["AIRY Sales Agent"]
+    A --> T["Typed tenant-authorized tools"]
+    T --> D["Deterministic domain services"]
+    D --> P[("PostgreSQL business truth")]
+    A -.-> M[("Separate LangGraph memory")]
+    D --> O["Provider-bound outbound"]
+```
+
 ## Repositories
 
 Workspace root: `~/projects/portfolio/AI-EdgeRunners/odontoflow/`
