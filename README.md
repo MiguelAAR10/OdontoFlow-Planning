@@ -1,11 +1,11 @@
 ---
 title: OdontoFlow — Project Control Plane
 status: active
-last_verified: 2026-08-17
+last_verified: 2026-09-17
 authority: Repo 0 (planning) — navigation and status authority
 ---
 
-# OdontoFlow
+# OdontoFlow / AIRYTHM
 
 A **deterministic, multi-tenant clinic operations platform** for dental clinics — the operational ERP
 where humans, agents and integrations operate the **same** domain layer under the **same** rules.
@@ -39,11 +39,19 @@ Workspace root: `~/projects/portfolio/AI-EdgeRunners/odontoflow/`
 | Repo | Role | Remote |
 |---|---|---|
 | `odontoflow-planning/` (this repo) | Project control plane: status, roadmap, repos map, handoffs, changelog | `MiguelAAR10/OdontoFlow-Planning` |
-| `odontoflow-backend/` | FastAPI + PostgreSQL **domain authority** (384 tests, migration 0008) | `MiguelAAR10/OdontoFlow` |
-| `odontoflow-frontend/` | React SPA adapting to the real backend contract (Agenda/Patients/Cash/Inventory REAL) | `MiguelAAR10/odontoflow-frontend` (Leonardo's original repo preserved as upstream/reference) |
+| `odontoflow-backend/` | FastAPI + PostgreSQL **domain authority** + AIRY (Sales Agent) runtime — see `STATUS.md` for current-verified head/migration/test numbers | `MiguelAAR10/OdontoFlow` |
+| `odontoflow-frontend/` | React SPA adapting to the real backend contract (Agenda/Patients/Cash/Inventory REAL) | `MiguelAAR10/odontoflow-frontend` — canonical `origin`; local `main` tracks a now-dead `leonardo` upstream, push to `origin` explicitly |
 
-Start here: [`STATUS.md`](STATUS.md) (verified snapshot) · [`REPOSITORIES.md`](REPOSITORIES.md) ·
+Start here: [`STATUS.md`](STATUS.md) (verified snapshot) · [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
+(canonical architecture + diagram) · [`REPOSITORIES.md`](REPOSITORIES.md) ·
 [`HANDOFFS.md`](HANDOFFS.md) · [`CAVELOG.md`](CAVELOG.md).
+
+**Publication status (2026-09-17):** backend is fast-forward-safe to publish
+(11 commits ahead of `origin/main`); the frontend has one unauthorized local
+commit blocking publication; planning's own `origin/main` is several weeks
+behind this working tree. None of the three were published by the
+documentation refresh below. Full detail:
+[`docs/handoffs/plans/2026-09-17-project-publish-01.md`](docs/handoffs/plans/2026-09-17-project-publish-01.md).
 
 ## Roadmap
 
@@ -64,6 +72,9 @@ Inventory UI → Transfer). Final DeepSeek review: PASS.
 
 **M5 First Measured Value (now):** Observe → detect economic leakage → intervene → measure outcome →
 estimate economic effect → measure delivery/human cost. Not another planning/architecture/migration phase.
+Active workstream: closing **Reception / Scheduling v1** (see
+[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)) — **NOT DONE**; the next
+implementation activity is owner-decision-required (`STATUS.md → Next activity`).
 
 ## How we work (collaboration model)
 
@@ -103,7 +114,7 @@ brief (scope, contract, no-go's)
 ## How to onboard a new collaborator (or a new agent)
 
 1. Read this README, then [`STATUS.md`](STATUS.md) for the verified current state.
-2. Read the repo you'll touch: `odontoflow-backend/README.md` + `docs/` (architecture, api-reference,
-   rules-and-permissions, flows) or `odontoflow-frontend/README.md` + `docs/frontend-architecture.md`.
+2. Read the repo you'll touch: `../odontoflow-backend/README.md` + its `docs/` (architecture, API,
+   rules-and-permissions, flows) or `../odontoflow-frontend/README.md` + its frontend docs.
 3. Read the `AGENTS.md` of that repo before writing any code.
 4. Pick the smallest task that matches the current milestone (see `STATUS.md → Next activity`).

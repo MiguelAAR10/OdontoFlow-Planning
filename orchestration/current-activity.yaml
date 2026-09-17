@@ -1,104 +1,96 @@
-# Single current activity for a fresh coordinator. FE2 is closed; do not
-# advance automatically into FE3.
-last_verified: 2026-09-06
+# Single current activity for a fresh coordinator. Replaces the stale
+# MVP-01-deployable-authenticated-agent-chain pointer (last_verified
+# 2026-09-16), which never reflected the 2026-09-15..17 AIRYTHM reality-audit
+# chain (CHAN-01, CHAN-02, RECEPTION-CORE-CLOSEOUT-01). This activity is a
+# documentation-only publication/onboarding refresh; it authorizes no
+# implementation work.
+last_verified: 2026-09-17
 authority: Repo 0 (planning)
 source:
-  - docs/plans/2026-09-05-frontend-experience-v1.md
-  - docs/plans/2026-09-05-frontend-nextjs-amendment.md
-  - ../odontoflow-frontend/docs/brand/odonto-smart-contract.md
-  - ../odontoflow-frontend/DESIGN.md
+  - ../odontoflow-backend/docs/superpowers/evidence/2026-09-17-project-publish-01-backend.yaml
+  - ../odontoflow-frontend/.audit/project-publish-01-frontend.yaml
+  - docs/handoffs/discovery/2026-09-17-project-publish-01-planning.yaml
+  - docs/handoffs/plans/2026-09-17-reception-core-closeout-01.yaml
 
-activity_id: FE2-real-agenda-operations-v1
-title: Real Agenda Operations V1
-status: PASS
-started_at: 2026-09-06
-completed_at: 2026-09-06
-planning_task_id: task_fe2_20260906
-planning_dispatch_id: ctx_fe2_20260906
-execution_task_id: task_fe2_20260906
-execution_dispatch_id: ctx_fe2_20260906
-execution_worker_status: worker_done_accepted_and_released
+activity_id: PROJECT-PUBLISH-01
+title: "PROJECT-PUBLISH-01 — documentation-only onboarding refresh"
+status: DONE — documentation refreshed; publication itself NOT performed
+started_at: "2026-09-17"
+paused_at: null
 
-repo: odontoflow-frontend
-coordinator: GPT-5.6 Luna Max
-writer: GPT-5.6 Luna Max (`gpt-5.6-luna`, max; dispatch ctx_fe2_20260906)
-planner: Claude Opus 5           # planning authority; writes no product code
-escalation: Terra High           # not needed
-never_use: Sol
-
-base_frontend_head: 0f0531f79ea52af5bfaa03bf7df6032365581869
-result_frontend_head: 0dbfa9e6705efb5b1e6553e3841ca204533cdf97
-canonical_backend_head: 254fe83ed756e8ad0100dac9ffde909fe8e8e0aa
-result_published: origin/main
-
-skills:
-  - frontend-design
-  - next-best-practices
-  - vercel-react-best-practices
-  - web-design-guidelines
-  - webapp-testing
-  - odontoflow-engineering
-  - verification-before-completion
+repo: odontoflow-planning
+mode: documentation_only
 
 scope:
   in:
-    - freeze the ERP claymorphism primary and restrained glassmorphism secondary material language
-    - verify the existing OpenAPI/generated-client scheduling contract before UI changes
-    - implement canonical real Agenda reads, supported filters, Day/Week structure, and states
-    - implement appointment detail, canonical slot-driven reschedule, and appointment-only cancellation
-    - preserve the FE1A shell, official logo, typography, semantic tokens, and responsive behavior
+    - refresh README/DEVELOPMENT/STATUS/CAVELOG/HANDOFFS/REPOSITORIES and this
+      file with verified facts from the three read-only audit packets
+    - add docs/ARCHITECTURE.md and the self-contained planning handoff
+      docs/handoffs/plans/2026-09-17-project-publish-01.md
+    - correct stale migration/test/agent-existence claims in
+      odontoflow-backend/README.md and odontoflow-backend/DEVELOPMENT.md
   out:
-    - Clerk/auth, FE1B, FE3, Inventory V2, Collections, Patients V2, Agent Cockpit, W4/n8n
-    - backend, OpenAPI generated contract regeneration, database, Supabase, GCP, or new business tables
-    - free-text availability, unsupported cancellation reasons, refunds, credits, fees, or deposit transfer
+    - any product code, migration, test, AGENTS.md, .gitignore, environment,
+      or secret-bearing file
+    - any frontend file (frontend publication is explicitly blocked; see the
+      handoff)
+    - committing, pushing, or staging the audit packets themselves
+    - authorizing CORE-01, CHAN-03, or any other implementation activity
 
 protected_surfaces:
-  - ../ODONTO-SMART (read-only brand source)
-  - backend authority and generated typed client contracts
-  - existing Agenda cancellation/reschedule and Inventory movement behavior
-  - existing voice contributor view/adapter and feature flag
-  - pre-existing frontend AGENTS.md worktree edit (left unstaged)
+  - odontoflow-frontend/** (canonical origin healthy, but the local FE3A
+    commit a788df5 is unauthorized and the worktree is dirty — do not touch)
+  - ../odontoflow-backend/alembic/versions/**, app/errors.py, app/db.py,
+    app/scheduling/availability.py
+  - canonical databases: odontoflow, odontoflow_test, odontoflow_e2e
+  - the audit packets listed under `source` above (read, never rewritten)
 
 acceptance:
   observable_outcome: >
-    A human operator can view/filter canonical appointments, inspect one,
-    obtain valid backend slots, reschedule through the backend, cancel an
-    appointment deterministically, and see resulting state after refresh.
+    A fresh reader of odontoflow-planning (plus the two linked backend docs)
+    can find accurate repository heads, a correct architecture explanation
+    with one Mermaid diagram, a working first-day setup, and a single
+    self-contained handoff that states what works, what does not, and that
+    the next implementation activity is owner-decision-required.
   required_checks:
-    - DESIGN.md is canonical ERP visual contract and is not a copy of landing DESIGN.md
-    - asset manifest retains source, destination, purpose and hash provenance
-    - official logo renders; constructed fake logo and Leonardo profile are absent
-    - Clash Display/Satoshi load through Fontshare; Inter is not visible default
-    - cyan/magenta/deep are deliberate; semantic statuses remain separate
-    - contract map covers locations, services, practitioners, appointments, slots, create, reschedule, cancel
-    - voice flag, global patient search, New Appointment and route navigation work
-    - Agenda desktop 1440, tablet 1024, mobile 390, mobile drawer and Inventory desktop evidence exist
-    - appointment drawer, canonical slot query, reschedule, cancellation confirmation and refreshed state pass
-    - zero unexpected page, console, and browser request errors
-    - typecheck, unit, build, integration, visual and real-browser flows pass
+    - docs/ARCHITECTURE.md exists with the Reception/Scheduling v1 flow and
+      one Mermaid diagram
+    - docs/handoffs/plans/2026-09-17-project-publish-01.md is self-contained
+    - this file no longer points at MVP-01 or implies any activity is
+      authorized to start
 
 verification:
-  typecheck: npm run typecheck — PASS
-  unit_tests: npm test — 10 files, 91/91 PASS
-  build: npm run build — PASS
-  pilot_e2e: npm run test:e2e:pilot — 12/12 PASS
-  agenda_integration: vitest agenda integration — 3/3 PASS
-  visual: NEXT_PUBLIC_USE_MOCKS=true npm run test:visual — 7/7 PASS
-  browser: ../odontoflow-frontend/.audit/fe2-browser-real.json — 5/5 PASS, zero errors
-  screenshots: ../odontoflow-frontend/.audit/fe2-browser-real/
-  handoff: docs/handoffs/plans/2026-09-06-fe2-real-agenda-operations-v1.md
+  focused_tests: N/A — documentation only, no code changed
+  typecheck: N/A
+  diff_check: PENDING — coordinator review before any commit
+  browser: N/A
+  handoff: docs/handoffs/plans/2026-09-17-project-publish-01.md
 
-contract_preflight:
-  openapi_sha256: 2b0929d7eef9f084b9387a9eacd832c1270a1b6c20232087c0a28cb1df0ae074
-  generated_contract_sha256: 7289f15c757d7141b0b36e9ec3921ed15c71e7df90eb3c8c0f3fcaa03990cb2f
-  generated_diff_lines: 5468
-  result: FE2 scheduling paths/schemas match; diff is newer agent/internal paths, schemas, and response headers; no sync required
+history:
+  - activity_id: MVP-01-deployable-authenticated-agent-chain
+    status: NOT_STARTED — superseded as the "current" pointer by this entry;
+      not cancelled, not resumed. Its scope (agent image build, WF-01 against
+      a live n8n, outbound dispatcher worker, provider key) remains real
+      unfinished work, now reachable only via the dependency-ordering notes
+      in RECEPTION-CORE-CLOSEOUT-01's plan, not as a standing "next" pointer.
+    handoff: docs/handoffs/plans/2026-09-15-airy-reality-01-lead-to-appointment.md
+  - activity_id: RECEPTION-CORE-CLOSEOUT-01
+    status: PLANNED, NOT_DONE_planning_only — component remains open; no
+      implementation dispatched by that activity or this one
+    handoff: docs/handoffs/plans/2026-09-17-reception-core-closeout-01.md
+  - activity_id: FE3A-S1-checkout-salvage
+    status: paused at explicit owner stop (2026-09-06); its one local commit
+      (a788df5) remains blocked for publication — see the PROJECT-PUBLISH-01
+      handoff's "Frontend and planning publication state" section
+    handoff: docs/handoffs/plans/2026-09-06-fe3a-s1-checkout-salvage.md
 
-blockers: []
-visual_deviations:
-  - 390px calendar is a contained horizontal data-region scroll to preserve readable six-day structure
-  - canonical overlapping/cancelled appointments remain visible rather than being hidden or resolved by frontend rules
-
-handoff_target: docs/handoffs/plans/2026-09-06-fe2-real-agenda-operations-v1.md
+handoff_target: docs/handoffs/plans/2026-09-17-project-publish-01.md
 advance_automatically: false
-next: Stop. Await an explicit FE3 dispatch; do not start FE3 automatically.
+next: >
+  OWNER-DECISION-REQUIRED. No artifact in this repository selects the next
+  implementation activity. RECEPTION-CORE-CLOSEOUT-01's plan lists
+  dependency-free candidates (CORE-01, AGENT-02, AGENT-03, CHAN-03, CHAN-04)
+  as ready by ordering, not as approved. The coordinator/owner must explicitly
+  choose one, persist it here, and only then dispatch. This activity
+  authorizes none of them. Frontend publication of a788df5 is likewise an
+  explicit owner/integration-lead decision, not made here.

@@ -1,0 +1,211 @@
+activity: PROJECT-PUBLISH-01
+packet: R3-planning-control-plane
+date: 2026-09-17
+mode: read_only
+checkout: /home/miguel/projects/portfolio/AI-EdgeRunners/odontoflow/odontoflow-planning
+scope: >
+  Planning checkout inspected after the coordinator's fresh fetch. Sibling repos
+  were inspected read-only (git metadata only) to verify canonical remotes.
+  No history rewrite, no product edit, no push, no secret value read or printed.
+write_discipline: >
+  Exactly one file written by this scout: this packet. The planning working tree
+  was otherwise left untouched (pre-existing dirty/untracked state preserved).
+
+planning_repo_state:
+  head: 63274e1d59778d9f96ed9b69ab838a8c34db158b
+  origin_main: 63274e1d59778d9f96ed9b69ab838a8c34db158b
+  ahead: 0
+  behind: 0
+  head_commit: "docs: finalize FE2 evidence head (2026-09-06 11:53:10 -0500)"
+  dirty_tracked: [CAVELOG.md, STATUS.md, orchestration/current-activity.yaml]
+  untracked_paths: 43
+  tracked_handoff_files: 9
+  publish_gap: >
+    origin/main is FE2-era (2026-09-06). Every control-plane artifact created
+    2026-09-07 through 2026-09-17 exists only as uncommitted or untracked files in
+    this working tree: CAVELOG rows 09-07/09-15/09-16/09-17, refreshed STATUS,
+    the changed current-activity.yaml, AGENTS.md, CONTEXT.md,
+    orchestration/project.yaml, docs/handoffs/plans/* (24 files, incl. the whole
+    Reception closeout chain), docs/handoffs/discovery/* (4 files),
+    docs/plans/* (4 files), docs/requests/, docs/requirements/, docs/visuals/,
+    skills/, .codex/, .mcp.json, archify/. A fresh clone of the planning repo
+    sees none of it.
+
+current_focus:
+  milestone: "M5 — First Measured Value (M0–M4 CLOSED; M5 NOW; M6 LATER)"
+  milestone_constraint: >
+    M5.2 BLOCKED_EXTERNAL on real clinic data (DOMINANT_LEAKAGE = UNKNOWN).
+    STATUS.md / PLAN.md / M5_REVENUE_LEAKAGE_BASELINE.md.
+  active_workstream:
+    id: RECEPTION-CORE-CLOSEOUT-01
+    component: "Reception / Scheduling v1"
+    status: NOT_DONE_planning_only
+    component_definition: >
+      lead/patient -> conversation -> service -> location -> practitioner ->
+      deterministic availability -> proposal -> authorized confirmation -> appointment
+    authority_files:
+      - docs/handoffs/plans/2026-09-17-reception-core-closeout-01.yaml
+      - docs/handoffs/plans/2026-09-17-reception-core-closeout-01.md
+      - docs/handoffs/discovery/2026-09-17-reception-core-closeout-01-fresh-reality.yaml
+      - docs/handoffs/discovery/2026-09-17-reception-core-closeout-01-reception-core-status.yaml
+      - docs/handoffs/discovery/2026-09-17-reception-core-closeout-01-integration-status.yaml
+    plan_classification_counts: {must_close_v1: 13, defer_after_v1: 5, remove_from_scope: 2}
+    owner_decisions_pending:
+      - "bounded paid OpenRouter budget for AGENT-01 (otherwise v1 evidence stays fake-model/sandbox only)"
+      - "live channel/provider + credentials for CHAN-05"
+      - "local-runnable vs hosted acceptance (gates DEPLOY-05 only)"
+  latest_control_plane_decisions:
+    - "2026-09-17 CHAN-02 PASS — sandbox outbound runner verified at backend 14d918d; claimed=1 delivered=1 failed=0; immediate replay claimed=0"
+    - "2026-09-17 CHAN-01 CURRENT INGRESS VERIFIED — unauthenticated 401, one authenticated event persisted once, replay duplicate=true; historical 404 left unclassified"
+    - "2026-09-17 RECEPTION-CORE-CLOSEOUT-01 PLANNED — component remains NOT DONE; no implementation dispatched"
+  backend_working_reality:
+    local_head: 14d918dae1c1cf954f0994f9b39841ac2ffe2969
+    origin_main: b7f11cef9bac6bbe6eb2a0bd144a541b8032f4bc
+    ahead: 11
+    behind: 0
+    migration_head: 0019_sandbox_provider.py
+    note: >
+      Test counts were not re-run by this scout. The last full-suite numbers are
+      per-artifact and per-commit, not a HEAD re-verification.
+  control_plane_contradictions:
+    - "orchestration/current-activity.yaml (working tree, last_verified 2026-09-16) still points at MVP-01-deployable-authenticated-agent-chain NOT_STARTED and never mentions RECEPTION-CORE-CLOSEOUT-01, CHAN-01, or CHAN-02."
+    - "STATUS.md 'Next activity' still says V2.2 Named Scenario Configuration (simulator); superseded by the 2026-09-13 to 2026-09-17 backend reality chain."
+    - "STATUS.md 'HEADs (verified by git)' section is stale on every repo: backend ad72435 vs actual 14d918d; frontend 0f0531f vs actual a788df5; voice 4149a3e vs actual 70ee066; sim da203a9 vs actual 19275c8."
+    - "README.md last_verified 2026-08-17; repositories table still says backend '384 tests, migration 0008'."
+    - "HANDOFFS.md last_verified 2026-09-02 and ends at V2.1 (09-03); it does not index any 09-05 to 09-17 handoff or plan."
+
+next_approved_activity:
+  explicitly_named_after_chan_02: none
+  last_explicit_authorization: >
+    The 2026-09-17 living brief authorized only CHAN-01 and required returning its
+    evidence before any provider smoke or business feature work. CHAN-01 and
+    CHAN-02 are both recorded PASS/VERIFIED in CAVELOG (2026-09-17).
+  dependency_ready_unstarted_must_close_v1_from_opus_plan:
+    - "CORE-01 — canonical proposal list/read/confirm/decline, exactly-once, agent refused; no dependencies"
+    - "AGENT-02 — durable tenant-bound human handoff after authenticated failure; no dependencies"
+    - "AGENT-03 — agent cancel/reschedule fail closed; no dependencies"
+    - "CHAN-03 — n8n transport-only assertions; dependency CHAN-01 (done)"
+    - "CHAN-04 — provider-boundary standing test; dependency CHAN-02 (done)"
+  gated_not_ready:
+    - "CORE-02 (dep CORE-01), CORE-04 (deps CORE-01/02, AGENT-02/03)"
+    - "AGENT-01 (deps CHAN-01/CORE-01/AGENT-02 plus paid-budget owner decision)"
+    - "DEPLOY-01..03 (dep CORE-04 chain; DEPLOY-03 remote Alembic 0018 vs local 0019 unverified)"
+    - "CHAN-05/06, DEPLOY-04/05 — defer_after_v1 / owner-gated"
+  recommendation: >
+    No artifact selects the next activity. The coordinator/owner must explicitly
+    choose one and persist it in orchestration/current-activity.yaml (replacing the
+    stale MVP-01 pointer) before any dispatch. CORE-01 is the dependency-free
+    closeout item that unblocks CORE-02/CORE-04, but this is an ordering fact from
+    the Opus plan, not an approval.
+
+canonical_remotes:
+  verified_at: 2026-09-17
+  method: "git remote -v and rev-parse in each sibling checkout, read-only"
+  workspace_root: ~/projects/portfolio/AI-EdgeRunners/odontoflow
+  planning:
+    path: odontoflow-planning
+    origin: git@github.com:MiguelAAR10/OdontoFlow-Planning.git
+    branch: main
+    head: 63274e1d59778d9f96ed9b69ab838a8c34db158b
+    origin_main: 63274e1d59778d9f96ed9b69ab838a8c34db158b
+  backend:
+    path: ../odontoflow-backend
+    origin: git@github.com:MiguelAAR10/OdontoFlow.git
+    branch: main
+    head: 14d918dae1c1cf954f0994f9b39841ac2ffe2969
+    origin_main: b7f11cef9bac6bbe6eb2a0bd144a541b8032f4bc
+    note: "Canonical repo name is OdontoFlow, not OdontoFlow-Backend; 11 local-only commits unpublished."
+  frontend:
+    path: ../odontoflow-frontend
+    origin: git@github.com:MiguelAAR10/odontoflow-frontend.git
+    branch: main
+    head: a788df56d2d7f0ea5359da3227bb86fb457ca214
+    origin_main: 0dbfa9e6705efb5b1e6553e3841ca204533cdf97
+    upstream_tracking: leonardo/main
+    upstream_tracking_note: "Local main tracks leonardo/main, not origin/main; canonical is origin. Onboarding hazard."
+    contributor_remotes:
+      - "alejandro -> https://github.com/AlejandroMarceloCh/ODONTO-SMART-FRONT.git (fetch-only)"
+      - "leonardo -> https://github.com/leonardopanduro-rgb/ODONTO-SMART-FRONT.git (fetch-only)"
+  voice:
+    path: ../odontoflow-voice
+    origin: git@github.com:MiguelAAR10/odontoflow-voice.git
+    branch: main
+    head: 70ee066511baa0452246fc3b2107938c5db0126b
+    origin_main: 70ee066511baa0452246fc3b2107938c5db0126b
+    contributor_remotes:
+      - "alejandro -> https://github.com/AlejandroMarceloCh/odonto-voz.git (fetch-only)"
+  sim:
+    path: ../odontoflow-sim
+    origin: git@github.com:MiguelAAR10/odontoflow-sim.git
+    branch: master
+    head: 19275c81fabb59bc36573887e423dfe84462f0b5
+    origin_master: 19275c81fabb59bc36573887e423dfe84462f0b5
+    branch_note: "Branch is master; origin/main does not exist."
+    contributor_remotes:
+      - "alejandro -> https://github.com/AlejandroMarceloCh/odontoflow.git (fetch-only)"
+    working_tree: "V2.2 scenario work still uncommitted (frozen; not touched)"
+  legacy_medistock:
+    path: ../../medistock
+    policy: "READ ONLY, outside workspace; not re-verified by this scout"
+
+minimum_missing_documentation_for_new_teammate:
+  ranked_gaps:
+    - id: GAP-1
+      severity: blocking
+      gap: "Publish the planing control-plane state. A fresh clone of OdontoFlow-Planning is FE2-era; all 2026-09-07..17 decisions, plans, discovery packets, AGENTS.md, CONTEXT.md, orchestration/project.yaml and skills are uncommitted/untracked."
+      minimum_fix: "Commit and push the intended planning docs (excluding .audit per .gitignore), or state explicitly that planning is consumed only from this worktree."
+    - id: GAP-2
+      severity: blocking
+      gap: "No single consistent current-state pointer. Three artifacts disagree (current-activity.yaml = MVP-01; STATUS Next activity = V2.2; CAVELOG/plan = RECEPTION-CORE-CLOSEOUT-01)."
+      minimum_fix: "Update current-activity.yaml and STATUS.md 'Next activity' to the closeout workstream and the selected next activity; demote MVP-01/V2.2 explicitly."
+    - id: GAP-3
+      severity: high
+      gap: "No first-day runbook for the current focus. Nothing says how to bring up PostgreSQL (:5434, container odontoflow-db-1), how to run the sandbox inbound/outbound paths, or where the CHAN-01/02 evidence lives."
+      minimum_fix: "Add a short runbook (planning DEVELOPMENT.md or docs/handoffs/discovery) with env var NAMES only, test commands, and evidence paths."
+    - id: GAP-4
+      severity: high
+      gap: "Planning DEVELOPMENT.md workspace path is wrong: it says siblings live under ~/AI-EdgeRunners/odontoflow/; the actual root is ~/projects/portfolio/AI-EdgeRunners/odontoflow/."
+      minimum_fix: "Correct the path in DEVELOPMENT.md."
+    - id: GAP-5
+      severity: medium
+      gap: "Onboarding numbers are stale: backend DEVELOPMENT.md (384 tests, migration 0008, 32 routes, 'no sales agent') and README repo table; STATUS HEADs section stale on all repos."
+      minimum_fix: "Refresh the verified-state blocks to migration 0019 and current heads, or remove the numbers and point to STATUS.md."
+    - id: GAP-6
+      severity: medium
+      gap: "Workspace ENVIRONMENT.md is referenced as ../ENVIRONMENT.md but lives outside every repository, so it does not exist for a teammate who only clones."
+      minimum_fix: "Version the environment contract inside planning (and link it), or inline the essential variables and bring-up commands."
+    - id: GAP-7
+      severity: medium
+      gap: "Canonical-remote traps undocumented: frontend main tracks leonardo/main; contributor remotes are fetch-only; backend canonical remote is MiguelAAR10/OdontoFlow."
+      minimum_fix: "Add an upstream/tracking note to REPOSITORIES.md and the frontend onboarding docs."
+    - id: GAP-8
+      severity: low
+      gap: "HANDOFFS.md index ends at V2.1 (09-03) and does not index the 09-05..09-17 handoffs/plans."
+      minimum_fix: "Append the missing index rows or mark the index as superseded by docs/handoffs/plans/ directory listing."
+
+docs_that_should_be_updated:
+  - orchestration/current-activity.yaml
+  - STATUS.md
+  - CAVELOG.md
+  - README.md
+  - DEVELOPMENT.md
+  - HANDOFFS.md
+  - REPOSITORIES.md
+  - ../odontoflow-backend/DEVELOPMENT.md
+  - ../odontoflow-frontend/AGENTS.md
+
+evidence_used:
+  - git rev-parse / status / remote -v / log in planning and siblings (read-only)
+  - CAVELOG.md (working tree; header last_verified 2026-09-17)
+  - orchestration/current-activity.yaml and orchestration/project.yaml
+  - REPOSITORIES.md, README.md, STATUS.md, PLAN.md, HANDOFFS.md, CONTEXT.md, DEVELOPMENT.md, AGENTS.md
+  - docs/handoffs/plans/2026-09-17-reception-core-closeout-01.{md,yaml}
+  - docs/handoffs/discovery/2026-09-17-reception-core-closeout-01-*.yaml
+  - ../odontoflow-backend: .env.example variable names only, migration directory listing, existing 2026-09-17 handoff/evidence filenames
+  - ../odontoflow-backend/DEVELOPMENT.md
+
+verification_limits:
+  - "No tests were run; no database was touched; no product file was edited; no commit, fetch, or push was performed by this scout."
+  - "Sibling repositories were inspected read-only via git metadata; their working trees were not modified."
+  - "Secret values were never read or printed; only environment variable NAMES from .env.example were listed."
+  - "Frontend/voice/sim heads are recorded as observed at inspection time; they are not a claim about remote truth beyond the local remote refs."

@@ -1,11 +1,11 @@
 ---
 title: OdontoFlow — Status (verified snapshot)
 status: active
-last_verified: 2026-09-06
+last_verified: 2026-09-17
 authority: Repo 0 (planning) — numbers re-verified from repos at verify time
 ---
 
-# Status — Verified Snapshot (2026-09-06)
+# Status — Verified Snapshot (2026-09-17)
 
 ## Milestone
 
@@ -14,6 +14,201 @@ authority: Repo 0 (planning) — numbers re-verified from repos at verify time
 **M5 sub-state:** M5.1 Revenue Leakage Measurability **CLOSED** (evidence:
 [M5_REVENUE_LEAKAGE_BASELINE.md](M5_REVENUE_LEAKAGE_BASELINE.md)) ·
 M5.2 **BLOCKED on real clinic data** (`DOMINANT_LEAKAGE = UNKNOWN`).
+
+**Active workstream (2026-09-17):** `RECEPTION-CORE-CLOSEOUT-01` — closing
+Reception / Scheduling v1 (`lead/patient -> conversation -> service ->
+location -> practitioner -> deterministic availability -> proposal ->
+authorized confirmation -> appointment`). Status: **NOT_DONE, planning
+only**. `CHAN-01` (canonical inbound ingress verified) and `CHAN-02`
+(sandbox outbound runner re-verified) both **PASS**. See
+[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the flow and
+[`docs/handoffs/plans/2026-09-17-reception-core-closeout-01.md`](docs/handoffs/plans/2026-09-17-reception-core-closeout-01.md)
+for the DONE contract. No next implementation activity is authorized — see
+"Next activity" below and `orchestration/current-activity.yaml`.
+
+**PROJECT-PUBLISH-01 (2026-09-17):** documentation-only onboarding refresh.
+Corrected stale HEADs/next-activity pointers below, added
+`docs/ARCHITECTURE.md`, and wrote the self-contained
+[`docs/handoffs/plans/2026-09-17-project-publish-01.md`](docs/handoffs/plans/2026-09-17-project-publish-01.md).
+Publication itself (committing/pushing this working tree, or the backend's
+11 ahead-of-origin commits, or the frontend's blocked FE3A commit) is **not**
+performed by this activity — that is a coordinator/owner decision.
+
+## SANDBOX-REAL-MODEL-01 — INITIAL BLOCKER / PROVIDER BOUNDARY SUPERSEDED (2026-09-16)
+
+At the initial `22e2b51` handoff, the supported runtime was only the native
+OpenAI path and the required OpenAI/agent credentials were absent. Gemini was
+not a supported path. The later `OPENROUTER-RUNTIME-01` activity added an
+explicit OpenRouter configuration boundary and the authenticated agent
+credential was resolved for the local sandbox. The real-model smoke chain
+still does **not** establish a complete acceptance loop: the provider/model
+configuration exists, but the observed attempts did not close the full
+business flow and no additional paid smoke is authorized by this publication
+activity. See the [living brief](docs/handoffs/plans/2026-09-16-sandbox-real-model-01.md)
+and the subsequent real-model handoffs in this repository.
+
+## SANDBOX-INBOUND-01 — PASS (2026-09-16)
+
+The controlled development-only sandbox loop now composes explicit
+`provider=sandbox` input → authenticated canonical inbound persistence → the
+existing fake-model Sales Agent turn → sandbox outbound persistence → the
+authorized loopback consumer → one durable sandbox receipt. A replay of the
+same provider message creates no second inbound, agent turn, outbound, or
+receipt. The fake model's same-turn booking attempt is rejected by the existing
+fail-closed guard, leaving one pending proposal and zero appointments. Missing
+or invalid credentials, cross-tenant ingress, and `test`/`whatsapp` sender
+events fail closed. No schema, channel framework, consent mechanism, live
+provider, paid model, deployment, or production write was added.
+
+Backend commit: `22e2b51011a83fbf1e2c745aecda29b44265c71e`. Serial real-PostgreSQL validation:
+**550 passed / 21 warnings**, current collection 550 versus historical 527 and
+previous 545. Focused sandbox-inbound: **5 passed / 2 warnings**; focused
+booking/Sales Agent/reception/messaging/outbound pack: **59 passed / 2
+warnings**. See the [living brief](docs/handoffs/plans/2026-09-16-sandbox-inbound-01.md)
+and [backend handoff](../odontoflow-backend/docs/superpowers/handoffs/2026-09-16-sandbox-inbound-01.md).
+
+## SANDBOX-OUTBOUND-02 — PASS (2026-09-16)
+
+The CTO-approved first-class `sandbox` provider now supports a controlled
+development-only outbound path: persisted message → authenticated
+`deliveries.manage` claim scoped to `provider=sandbox` → exact-payload receipt
+at the authenticated loopback receiver → existing idempotent settlement.
+`provider=test` remains non-dispatchable and the sandbox consumer cannot claim
+or deliver `whatsapp` rows. The new receipt table is tenant-bound by
+PostgreSQL composite FK; duplicate receiver calls replay one receipt, receiver
+failure uses the existing transient retry path, and sandbox success settlement
+is rejected without a matching server-owned receipt. Missing credentials,
+remote/arbitrary receiver URLs, and provider fallback fail closed.
+
+Backend commit: `872ddd2915be186fdda8f5bb195b142c49bd6843`. Final serial real-PostgreSQL suite:
+**545 passed / 21 warnings**, current collection 545 versus historical 527 and
+intake 535. Focused sandbox: **10 passed / 2 warnings**; disposable migration
+cycle: **9 passed / 20 warnings**. No WhatsApp, inbound adapter, paid model,
+deployment, consent, automatic booking, or production data was touched. See
+the [living brief](docs/handoffs/plans/2026-09-16-sandbox-outbound-02.md) and
+[backend handoff](../odontoflow-backend/docs/superpowers/handoffs/2026-09-16-sandbox-outbound-02.md).
+
+## SANDBOX-OUTBOUND-01 — BLOCKED (2026-09-16)
+
+The existing authenticated outbound queue can claim and settle only rows
+whose channel provider is not `test`, while PostgreSQL permits only
+`whatsapp`/`test` provider values and no server-owned local receiver binding
+exists. A local consumer cannot safely distinguish a synthetic sandbox row
+from live WhatsApp traffic without a new provider/routing contract. No code,
+migration, consumer, receiver, or production write was added. Focused serial
+real-PostgreSQL checks: **19 passed / 2 warnings**. See the
+[SANDBOX-OUTBOUND-01 living brief](docs/handoffs/plans/2026-09-16-sandbox-outbound-01.md)
+and [backend handoff](../odontoflow-backend/docs/superpowers/handoffs/2026-09-16-sandbox-outbound-01.md).
+
+Required owner decision: approve a first-class local provider (with additive
+schema work), an explicit server-owned local-vs-live WhatsApp binding, or a
+real WhatsApp sandbox provider and credentials.
+
+## AIRYTHM-REALITY-01 — Lead → Appointment vertical reality audit (2026-09-15)
+
+Read-only audit (Opus planner + 4 Sonnet scouts + coordinator-run serialized
+tests) after the Web-memory recovery, at backend `main @ b7f11ce` and frontend
+`main @ a788df5`. **Verdict: NOT_CONNECTED** (the middle is real; both ends missing). The deterministic core, conversation
+persistence, Sales Agent runtime, 7-tool gateway, availability, two-phase
+proposal and canonical Appointment are real and proven against real
+PostgreSQL: full suite **527 passed / 0 skipped / 21 warnings in 535.32s**
+(focal 19 passed). Missing: real inbound channel (zero adapter code), real
+model provider (only attempt failed `429` billing), outbound dispatcher
+consumer (no process polls `/internal/outbound/claim`), and agent-turn auth.
+The follow-up AGENT-CONFIRM-GUARD-01 implementation now enforces explicit
+patient confirmation server-side in the booking path: a persisted later inbound
+message is required before an Appointment can be created.
+Control-plane correction: `deliveries.manage` + the `outbound-dispatcher`
+profile already exist — the missing piece is the consumer worker. Selected
+next activity: **AGENT-CONFIRM-GUARD-01** (code-enforce the booking
+confirmation gate); complete. Evidence and brief:
+[`docs/handoffs/plans/2026-09-15-airy-reality-01-lead-to-appointment.md`](docs/handoffs/plans/2026-09-15-airy-reality-01-lead-to-appointment.md),
+`.audit/airy-reality-01/`.
+
+## AGENT-CONFIRM-GUARD-01 — PASS (2026-09-16)
+
+The booking confirmation command requires authoritative persisted evidence of a
+later inbound `Message` in the same conversation as the proposal. A real
+PostgreSQL fake-model regression rejects same-turn propose→confirm, leaves one
+proposal pending, and creates zero appointments. The valid two-message flow,
+cross-conversation isolation, expiry, exactly-one idempotency, and audit
+behavior remain green. Focused suite: **38 passed, 2 warnings**. Full suite:
+**528 passed, 21 warnings** (current collection **528**, versus the historical
+**527 passed, 21 warnings** baseline). No schema, migration, protected path,
+channel, deployment, or production data changed. See the backend
+[technical handoff](../odontoflow-backend/docs/superpowers/handoffs/2026-09-16-agent-confirm-guard-01.md).
+
+## AGENT-CONFIRM-FAIL-CLOSED-03 — PASS (2026-09-16)
+
+The current MVP decision is enforced at the canonical booking command: a
+server-authenticated `agent` principal cannot consume a pending appointment
+proposal merely because a later inbound free-text message exists. The command
+returns `INVALID_INPUT`, leaves the proposal pending, creates zero
+appointments, and preserves the gateway audit path. Authenticated human
+confirmation remains valid; no new consent semantics were invented.
+
+Backend commit: `55f22cce3a8e50f2f18d7b2fce258cbe953ad33`. Focused
+booking/Sales Agent/reception checks: **7 passed / 2 warnings**. Full serial
+real-PostgreSQL suite: **529 passed / 21 warnings** in 505.22s. Current
+collection is 529, versus the historical 527-pass baseline. `compileall`,
+`git diff --check`, and protected-path checks passed. Ruff retains six
+pre-existing import/unused-import diagnostics with no new diagnostics from
+this task. See the [FAIL-CLOSED-03 living brief](docs/handoffs/plans/2026-09-16-agent-confirm-fail-closed-03.md)
+and [backend handoff](../odontoflow-backend/docs/superpowers/handoffs/2026-09-16-agent-confirm-fail-closed-03.md).
+
+## LOCAL-RUNTIME-SMOKE-01 — PASS (2026-09-16)
+
+The existing PLAT-01 PostgreSQL CORE container, FastAPI `/health` and `/docs`,
+and the in-process fake-model W4 runtime were verified locally with explicit
+local settings. The real-PostgreSQL smoke left proposals pending and created
+zero appointments, including after a later `No, thanks` message; outbound
+persistence passed and synthetic `provider=test` remained intentionally
+unclaimable. Focused serial checks: **4 passed / 2 warnings**. No product,
+schema, test, channel, n8n, dispatcher, or production-data change was made.
+See the [LOCAL-RUNTIME-SMOKE-01 living brief](docs/handoffs/plans/2026-09-16-local-runtime-smoke-01.md),
+[backend handoff](../odontoflow-backend/docs/superpowers/handoffs/2026-09-16-local-runtime-smoke-01.md),
+and backend commit `021fa5297f520313f4920d6916e069f09fb640dc`.
+
+## AGENT-TURN-AUTH-01 — PASS (2026-09-16)
+
+`POST /sales-agent/turn` now reuses the existing PostgreSQL-backed bearer
+authentication and tenant context. It accepts only the configured server-issued
+`agent` principal with `conversations.read`; missing, invalid, mismatched,
+cross-tenant, non-agent, and insufficient-permission callers are rejected
+before the runtime. WF-01 now forwards the existing agent credential to the
+turn endpoint, and local fake-model injection remains gated by a real issued
+credential. The prior temporal and fail-closed booking guards, tool-level IAM,
+audit, expiry, idempotency, and isolation remain intact. No migration, schema,
+channel, deployment, consent mechanism, or production data changed.
+
+Backend commit: `ad72435022054241fa27a784615b9ba8062ffecc`. Focused auth/Sales
+Agent/reception/IAM/security checks: **84 passed / 2 warnings**. Full serial
+real-PostgreSQL suite: **535 passed / 21 warnings** in 405.49s. Current
+collection is 535, versus the historical 527-pass baseline and the pre-task
+529-test collection. See the [AGENT-TURN-AUTH-01 living brief](docs/handoffs/plans/2026-09-16-agent-turn-auth-01.md)
+and [backend handoff](../odontoflow-backend/docs/superpowers/handoffs/2026-09-16-agent-turn-auth-01.md).
+
+## AGENT-CONFIRM-INTENT-02 — BLOCKED / NEEDS_PRODUCT_DECISION (2026-09-16)
+
+The temporal guard does not prove affirmative consent. A real-PostgreSQL
+adversarial fake-model run persisted `No, thanks` after a proposal and then
+called `confirm_appointment`; it observed `('confirmed', 1, 0, 0)` for outcome,
+appointments, pending proposals, and confirmation errors. The existing
+`Message` and booking proposal contracts have no authoritative consent
+classification or proposal-specific confirmation-message binding. No keyword
+rule, model assertion, or migration was added. The diagnostic test is
+intentionally uncommitted and red pending the Owner decision. See the
+[blocked handoff](../odontoflow-backend/docs/superpowers/handoffs/2026-09-16-agent-confirm-intent-02.md)
+and [living brief](docs/handoffs/plans/2026-09-16-agent-confirm-intent-02-negative-response-safety.md).
+
+## PLAT-01 Runtime Foundation — 2026-09-07
+
+Project-scoped read-only Supabase MCPs for the owner-supplied core and
+agent-memory refs, n8n MCP environment substitution, and the isolated
+`odontoflow-dev` gcloud configuration are prepared. This runtime-only update
+does not reopen the closed foundation milestone, change FE3A, or start PLAT-02.
+The compact contract and verification limits live in
+[the PLAT-01 handoff](docs/handoffs/plans/2026-09-07-plat-01-supabase-runtime-foundation.md).
 
 ## Frontend FE1A — PASS
 
@@ -97,24 +292,19 @@ warnings**; OpenAPI is reproducible with **40 paths**; Alembic remains at
 above. See the
 [W2 handoff](../odontoflow-backend/docs/superpowers/handoffs/2026-09-05-sales-agent-v0-w2.md).
 
-## HEADs (verified by git, not by docs)
+## HEADs (verified by git, not by docs — refreshed 2026-09-17 by PROJECT-PUBLISH-01)
 
-- **BACKEND_HEAD:** `254fe83` (`main`) — synced with origin
-- **BACKEND_REMOTE:** `git@github.com:MiguelAAR10/OdontoFlow.git` — origin/main = `254fe83`
-- **BACKEND_TESTS:** 502 PASS (real PostgreSQL, port 5434; full run re-verified 2026-09-05, 654.23s, exit 0)
-- **MIGRATION:** 0015 (alembic 0001–0015; W2 added no revision)
-- **FRONTEND_HEAD:** `0f0531f` (`main`) — FE1A PASS, synced with canonical origin
-- **FRONTEND_REMOTE (canonical):** `git@github.com:MiguelAAR10/odontoflow-frontend.git` — origin/main = `0f0531f`
-- **FRONTEND_REMOTE (upstream/reference):** `https://github.com/leonardopanduro-rgb/ODONTO-SMART-FRONT.git` — preserved as `leonardo`, at `8769f12`, history untouched, never force-pushed
-- **FRONTEND_TESTS:** **91 unit PASS** (10 files) · visual harness **7/7 PASS** · exact-size browser evidence PASS · typecheck clean · build PASS
-- **VOICE_HEAD:** `4149a3e` (`main`) — donor `eb9a4ee` + 1 canonical commit, synced with origin
-- **VOICE_REMOTE:** `git@github.com:MiguelAAR10/odontoflow-voice.git` (canonical, **private**) · contributor upstream `AlejandroMarceloCh/odonto-voz` preserved as `alejandro`
-- **VOICE_TESTS:** **54 PASS** (0.89 s, Python 3.12.3) — the donor's own suite, unmodified
-- **SIM_HEAD:** `da203a9` (`master`) — donor `b57f7bc` + 1 canonical commit, synced with origin
-- **SIM_REMOTE:** `git@github.com:MiguelAAR10/odontoflow-sim.git` (canonical, **private**) · contributor upstream `AlejandroMarceloCh/odontoflow` preserved as `alejandro`
-- **SIM_TESTS:** **109 PASS** (12 files) — 98 contributor baseline + 10 synthetic-boundary + 1 auto-generated by the clock sentinel; build PASS; `verificar` clean
-- **PLANNING_HEAD:** control-plane evidence is updated in the shared worktree; pre-existing planning changes remain uncommitted
-- **Legacy (medistock):** `ef2fffb` (`main`, synced) — READ ONLY, outside workspace
+- **BACKEND_HEAD:** `14d918dae1c1cf954f0994f9b39841ac2ffe2969` (`main`) — 11 commits ahead of origin, 0 behind; verified fast-forward-safe to publish (backend audit packet, 2026-09-17)
+- **BACKEND_REMOTE:** `git@github.com:MiguelAAR10/OdontoFlow.git` — `origin/main` = `b7f11cef9bac6bbe6eb2a0bd144a541b8032f4bc`
+- **BACKEND_TESTS:** not re-run by this documentation pass. Most recent verified full run: **570 passed / 21 warnings** (`REAL-MODEL-DIAGNOSTICS-01`, 2026-09-16). Historical numbers conflict (`CHANGELOG.md` 403 at migration `0008`; an untracked GAP doc says 492) — treat the most recent dated STATUS.md entry as current, not any hardcoded number in the backend README/DEVELOPMENT.
+- **MIGRATION:** `0019_sandbox_provider` (alembic `0001`–`0019`, linear chain, no branches)
+- **FRONTEND_HEAD:** `a788df56d2d7f0ea5359da3227bb86fb457ca214` (`main`) — 1 commit ahead of canonical `origin/main`; **that commit is unauthorized for publication** (FE3A-S1 salvage, no in-repo gate sign-off) — see [`REPOSITORIES.md`](REPOSITORIES.md) and the PROJECT-PUBLISH-01 handoff. Worktree is also dirty (19 modified + 12 untracked paths, remainder of the same FE3A work).
+- **FRONTEND_REMOTE (canonical):** `git@github.com:MiguelAAR10/odontoflow-frontend.git` — `origin/main` = `0dbfa9e6705efb5b1e6553e3841ca204533cdf97`. Local `main`'s tracked upstream is `leonardo/main`, which now 404s (repo gone) — **push to `origin` explicitly, never rely on the tracked upstream.**
+- **FRONTEND_REMOTE (upstream/reference, dead):** `https://github.com/leonardopanduro-rgb/ODONTO-SMART-FRONT.git` — unreachable as of 2026-09-17 (GitHub 404); local `leonardo/main` ref is stale.
+- **FRONTEND_TESTS:** not re-verified by this pass; see the frontend audit packet (`.audit/project-publish-01-frontend.yaml`) for the dirty-worktree file list.
+- **VOICE_HEAD / SIM_HEAD:** not re-verified by this pass (frozen, untouched siblings per `orchestration/current-activity.yaml`); last verified values (`4149a3e`, `da203a9`) are historical, see prior snapshot below.
+- **PLANNING_HEAD:** `63274e1d59778d9f96ed9b69ab838a8c34db158b`, equal to `origin/main` (planning itself is not ahead) — but everything from 2026-09-07 onward, including this refresh, exists only as uncommitted/untracked files in this working tree. A fresh clone of `OdontoFlow-Planning` sees none of it; publishing this state is a coordinator decision, not performed here.
+- **Legacy (medistock):** `ef2fffb` (`main`, synced) — READ ONLY, outside workspace, not re-verified this pass.
 
 The W4 backend commits are clean and synced with `origin/main`; its worktree
 retains only the pre-existing uncommitted setup/documentation artifacts noted
@@ -354,22 +544,29 @@ figures remain the author's Apple Silicon measurements, not ours.
 
 ## Next activity
 
-**NEXT_ACTIVITY = V2.2 — Named Scenario Configuration.**
+**NEXT_ACTIVITY = OWNER-DECISION-REQUIRED (as of 2026-09-17).**
 
-Turn the contributors' hard-coded seed into named, editable scenarios — starting
-from the surface that already works: their rules screen edits five parameters
-live with cross-field validation. The highest-value dial is the **behaviour
-probabilities** (~62 % confirm / 13 % reschedule / 25 % silence), because they
-are what would eventually let us ask *"if the clinic had a 20 % silence rate,
-would OdontoFlow detect it?"*
+No artifact in this repository selects the next *implementation* activity for
+the backend/agent workstream. The 2026-09-17 living brief authorized only
+`CHAN-01`; both it and the already-approved `CHAN-02` are now PASS (see the
+active-workstream note under "Milestone" above). The Opus closeout plan for
+`RECEPTION-CORE-CLOSEOUT-01` orders, but does not approve, the following
+dependency-free candidates: `CORE-01` (canonical proposal list/read/confirm/
+decline), `AGENT-02` (durable human handoff), `AGENT-03` (agent cancel/
+reschedule fail closed), `CHAN-03` (n8n transport-only assertions),
+`CHAN-04` (provider-boundary standing tests). The coordinator/owner must
+explicitly choose one and persist it in `orchestration/current-activity.yaml`
+before any dispatch. See
+[`docs/handoffs/plans/2026-09-17-project-publish-01.md`](docs/handoffs/plans/2026-09-17-project-publish-01.md)
+for the full picture, including the separately blocked frontend publication
+decision.
 
-Not in V2.2, and in this order afterwards: join the voice alias vocabulary →
-define the intent vocabulary and give the simulator a **principal** (the gate
-for every write) → the adapter in rehearsal mode → against a scratch database →
-the **evaluator** → the no-show experiment. Full detail in
-[SYNTHETIC_CLINIC_CONTRIBUTION_MAP.md §12](SYNTHETIC_CLINIC_CONTRIBUTION_MAP.md).
-
-**The synthetic-data boundary is a precondition, not a feature**: it is in place
-now, and V2.2 must not weaken it while making the scenario editable.
+The prior pointer here (`V2.2 — Named Scenario Configuration`, for
+`odontoflow-sim`) is **superseded as "next" but not cancelled** — the
+simulator's own working tree still holds that uncommitted V2.2 work,
+untouched and frozen per `orchestration/current-activity.yaml`. Resume it as
+its own decision, not as a default. Full detail in
+[SYNTHETIC_CLINIC_CONTRIBUTION_MAP.md §12](SYNTHETIC_CLINIC_CONTRIBUTION_MAP.md)
+if it is picked back up.
 
 (Not another planning/architecture/Foundation/migration phase.)

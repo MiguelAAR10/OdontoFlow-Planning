@@ -1,0 +1,74 @@
+# Machine-readable project topology only.
+# Prose authority (roles, remotes, contributor credit, write-policy detail):
+#   ../REPOSITORIES.md — do not restate that narrative here, only route to it.
+# Decisions and their reasons: ../CAVELOG.md
+last_verified: 2026-09-17
+authority: Repo 0 (planning)
+verified_via: orca repo list --json / orca project list --json (orca-ide 1.4.190)
+
+project: odontoflow
+control_plane: odontoflow-planning
+workspace_root: ~/projects/portfolio/AI-EdgeRunners/odontoflow
+
+repositories:
+  - id: planning
+    repo: odontoflow-planning
+    path: .
+    role: control-plane
+    orca_registered: true          # projectGroupId 05899906-... , confirmed via orca repo list
+
+  - id: backend
+    repo: odontoflow-backend
+    path: ../odontoflow-backend
+    role: domain-authority          # FastAPI + PostgreSQL; deterministic tools live here
+    orca_registered: true
+    lifecycle_state: active — next implementation activity requires owner decision (see current-activity.yaml)
+
+  - id: frontend
+    repo: odontoflow-frontend
+    path: ../odontoflow-frontend
+    role: erp-adapter                # presentation only; backend is the authority
+    orca_registered: true
+    lifecycle_state: active product repo; local FE3A commit blocked for publication pending integration-lead decision
+
+  - id: voice
+    repo: odontoflow-voice
+    path: ../odontoflow-voice
+    role: voice-adapter              # standalone service; drafts only, not business authority
+    orca_registered: false          # not present in `orca repo list` — verified, not assumed
+    lifecycle_state: frozen for this activity; do not modify merely for consistency
+
+  - id: sim
+    repo: odontoflow-sim
+    path: ../odontoflow-sim
+    role: synthetic-simulator
+    orca_registered: false          # not present in `orca repo list` — verified, not assumed
+    lifecycle_state: frozen — uncommitted V2.2 work in this tree; do not touch (task DO NOT)
+
+protected_surfaces:
+  odontoflow-backend:
+    - alembic/versions/**
+    - app/errors.py
+    - app/db.py
+    - app/scheduling/availability.py
+    - app/catalog/schemas.py
+    - existing ERP request/response schemas (unchanged since 0ddd3a3)
+    - the 4 leonardopanduro-rgb commits merged into sales-agent-v0 (never squash/rebase/amend/force-push)
+    - canonical databases: odontoflow, odontoflow_test, odontoflow_e2e
+  workspace:
+    - ../../medistock                     # legacy, read-only, outside the workspace
+    - ~/projects/portfolio/ODONTO-SMART   # brand/design source, read-only
+    - odontoflow-sim (entire repo, this activity) # uncommitted V2.2 WIP
+
+execution_defaults:
+  coordinator: GPT-5.6 Luna Max
+  writer: GPT-5.6 Luna Max
+  max_parallel_writers: 1
+  escalation: Terra High           # only after repeated failure or unresolved high-risk ambiguity
+  never_use: Sol
+  planner: Claude Opus 5            # planning authority; writes no product code
+  orchestration_tool: >
+    orca orchestration (task-create / worker-start / dispatch, worker_done /
+    escalation waits). Resolve the version-matched guide at run time —
+    `orca skills get orchestration` / `orca skills get orca-cli` — trust that
+    output over anything cached here.

@@ -1,7 +1,7 @@
 ---
 title: OdontoFlow — Handoffs Index
 status: active
-last_verified: 2026-09-02
+last_verified: 2026-09-17
 authority: Repo 0 (planning) — index only, contents owned by backend repo (append-only)
 ---
 
@@ -117,3 +117,30 @@ evidence keeps its existing homes and is linked from the brief, never copied.
 | 09-03 | odontoflow-sim/CANONICAL.md | Canonical status, shared authorship, SYNTHETIC-ONLY data classification, the structural synthetic boundary, and the no-business-writes rule |
 | 09-03 | v21-baseline-pre / v21-final-post | Raw evidence: baseline 98 tests before modification, 109 after (`.audit/contributions/synthetic-clinic/`) |
 | 09-03 | (this index) | `odontoflow-sim` promoted with donor history intact (`b57f7bc` + 1 canonical commit `da203a9`), pushed to a **private** `MiguelAAR10/odontoflow-sim`. NEXT = **V2.2 Named Scenario Configuration**. |
+
+## Index gap, 2026-09-05 → 2026-09-17 (recorded, not backfilled row-by-row)
+
+This index's row-by-row format was not maintained for FE0/FE0B/FE1A onward
+through the AIRYTHM reality-audit and sandbox/channel chain — roughly 25
+living briefs and technical handoffs. Rather than backfill dozens of rows,
+this gap is recorded explicitly and superseded by directory listings:
+
+- Living briefs (planning-owned, self-contained): `docs/handoffs/plans/*.md`
+  — see the "Living briefs" table below for the ones already indexed, and the
+  directory itself for everything from `2026-09-05` onward, including
+  `2026-09-15-airy-reality-01-lead-to-appointment.md`,
+  `2026-09-16-agent-*.md`, `2026-09-16-sandbox-*.md`,
+  `2026-09-16-real-model-diagnostics-01.md`,
+  `2026-09-17-reception-core-closeout-01.md`, and
+  `2026-09-17-project-publish-01.md` (this activity).
+- Backend technical handoffs (backend-owned, append-only):
+  `odontoflow-backend/docs/superpowers/handoffs/*.md`.
+- The authoritative decision-by-decision record for this whole window is
+  `CAVELOG.md` (newest row on top); the authoritative current-state snapshot
+  is `STATUS.md`.
+
+## Documentation refresh — PROJECT-PUBLISH-01 (2026-09-17)
+
+| Date | Handoff | Topic |
+|---|---|---|
+| 09-17 | **2026-09-17-project-publish-01** | **Canonical living brief** — documentation-only onboarding refresh: corrected stale HEADs/next-activity pointers, added `docs/ARCHITECTURE.md`, and recorded the frontend publication block. Publication itself not performed (`docs/handoffs/plans/2026-09-17-project-publish-01.md`). |

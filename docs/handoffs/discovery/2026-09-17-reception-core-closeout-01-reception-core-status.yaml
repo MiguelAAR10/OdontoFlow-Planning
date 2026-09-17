@@ -1,0 +1,150 @@
+activity: RECEPTION-CORE-CLOSEOUT-01
+scout: C1
+scope: Reception / Scheduling v1 core business capabilities
+observed_head: 14d918dae1c1cf954f0994f9b39841ac2ffe2969
+origin_main: b7f11cef9bac6bbe6eb2a0bd144a541b8032f4bc
+reconcile: "origin/main is an ancestor; local-only commits add agent/channel/runtime work and are not remote-main evidence."
+capabilities:
+  - name: patient_contact_identity
+    status: IMPLEMENTED
+    layer: CORE+CHANNEL+AGENT
+    evidence:
+      - "app/clinical/models.py Patient: organization-scoped, per-organization DNI uniqueness, phone"
+      - "app/messaging/models.py ContactIdentity: channel, lead/patient binding, E164 check"
+      - "app/clinical/router.py POST/GET /patients"
+      - "app/agent_tools/reception.py ensure_contact_profile:372"
+      - "tests/test_clinical_core.py patient tenant isolation and DNI uniqueness"
+      - "tests/test_reception_agent_phase5.py register_contact_profile_is_idempotent_and_contact_bound"
+    gap: "No core HTTP route binds ContactIdentity to Patient; binding currently lives in the agent reception tool."
+  - name: conversation_message_persistence
+    status: IMPLEMENTED
+    layer: CHANNEL
+    evidence:
+      - "app/messaging/models.py Conversation:145, Message:213, OutboundMessage:287, ReceptionHandoff:398"
+      - "app/messaging/service.py ingest_inbound_message:196"
+      - "POST /internal/messages/inbound, /internal/outbound/claim, /internal/outbound/{id}/result"
+      - "tests/test_messaging_phase2.py inbound idempotency, concurrency, and cross-organization phone isolation"
+    gap: "Outbound claim/settle worker is not running; sandbox provider/receipts are local-only additions."
+  - name: services
+    status: IMPLEMENTED
+    layer: CORE
+    evidence:
+      - "app/catalog/models.py Service: catalog duration and booking_mode"
+      - "app/catalog/router.py POST/GET /services"
+      - "tests/test_booking.py catalog-authoritative duration and caller override rejection"
+      - "tests/test_reception_agent_phase5.py safer-next-step service policy"
+    gap: null
+  - name: locations
+    status: IMPLEMENTED
+    layer: CORE
+    evidence:
+      - "app/organization/models.py Location: IANA timezone"
+      - "app/organization/router.py POST/GET /locations"
+      - "tests/test_api.py location creation and invalid timezone rejection"
+    gap: null
+  - name: practitioners
+    status: IMPLEMENTED
+    layer: CORE
+    evidence:
+      - "app/organization/models.py Practitioner, PractitionerMembership, PractitionerCapability"
+      - "app/organization/router.py practitioner, capability, and eligible-practitioner routes"
+      - "tests/test_tenant_integrity.py cross-organization practitioner employment and scheduling denial"
+    gap: null
+  - name: deterministic_availability
+    status: IMPLEMENTED
+    layer: CORE
+    evidence:
+      - "app/scheduling/availability.py generate_slots:89; stdlib-only, 15-minute grid, half-open intervals, location timezone"
+      - "app/scheduling/query.py find_available_slots and POST /slots/query"
+      - "POST /availability-rules and /schedule-blocks"
+      - "tests/test_availability.py DST, ordering, and back-to-back interval invariants"
+    gap: null
+  - name: appointment_proposals
+    status: PARTIAL
+    layer: CORE-persistence+AGENT-surface
+    evidence:
+      - "app/scheduling/models.py AppointmentProposal:180, RescheduleProposal:300, CancellationProposal:370"
+      - "migrations 0013_contact_booking_proposals and 0014_reception_agent_phase5"
+      - "app/agent_tools/booking.py:138,281 and app/agent_tools/reception.py proposal paths via POST /agent-tools/call"
+      - "tests/test_agent_booking_phase4.py proposal persistence and explicit confirmation"
+      - "tests/test_reception_agent_phase5.py cancellation/reschedule proposal flows"
+    gap: "No canonical REST proposal surface; agent booking confirmation is hard-disabled at app/agent_tools/booking.py:336-339 pending trusted acceptance; agent cancel/reschedule later-message confirmation is weaker."
+  - name: authorized_appointment_creation
+    status: IMPLEMENTED
+    layer: CORE
+    evidence:
+      - "app/scheduling/service.py book_appointment:403; claim receipt then location-scoped appointments.create permission"
+      - "app/scheduling/router.py POST /appointments returns 201"
+      - "tests/test_booking.py concurrent same-slot exactly-one invariant"
+      - "tests/test_lead_to_appointment_e2e.py full journey"
+      - "tests/test_authorization.py location-scoped assignment denial"
+    gap: "Development ERP anonymous compatibility can supply a system principal; production rejects that mode (app/context.py:217-235 and security-boundary test)."
+  - name: replay_idempotency
+    status: IMPLEMENTED
+    layer: CORE
+    evidence:
+      - "app/idempotency/models.py CommandReceipt unique by organization, operation, idempotency key"
+      - "app/idempotency/service.py run_idempotent_command claim-first replay/reject"
+      - "Idempotency-Key on appointment book/cancel/reschedule and Idempotent-Replay response header"
+      - "tests/test_idempotency.py concurrent exactly-once, fingerprint reuse, and agent-key rejection"
+    gap: "Idempotency is wired for appointments and selected clinical creates; other commands are not uniformly covered."
+  - name: tenant_isolation
+    status: IMPLEMENTED
+    layer: CORE
+    evidence:
+      - "Composite foreign keys into organization-scoped unique keys across scheduling, clinical, messaging, and idempotency"
+      - "app/tenancy.py scoped queries and scheduling/service.py scoped loading"
+      - "Practitioner-global GiST exclusion preserved in app/scheduling/models.py"
+      - "tests/test_tenant_integrity.py cross-organization conflict and no-leak evidence"
+    gap: null
+  - name: iam
+    status: IMPLEMENTED
+    layer: CORE
+    evidence:
+      - "app/iam/models.py Principal, Membership, Role, RolePermission, RoleAssignment"
+      - "app/iam/permissions.py closed permission catalog"
+      - "app/iam/service.py require_permission and app/iam/credentials.py authenticated context"
+      - "tests/test_authorization.py, tests/test_authentication.py, tests/test_security_boundary.py"
+    gap: "Business ERP routers retain the development anonymous compatibility seam; credential gating is strongest on agent_tools and messaging."
+  - name: audit
+    status: IMPLEMENTED
+    layer: CORE
+    evidence:
+      - "app/audit/models.py AuditEvent and app/audit/service.py record_event staged in caller transaction"
+      - "appointment created/cancelled/rescheduled audit actions in app/scheduling/service.py"
+      - "tests/test_booking.py, test_cancellation.py, test_rescheduling.py, test_execution_context.py"
+    gap: null
+  - name: cancellation_rescheduling
+    status: IMPLEMENTED
+    layer: CORE+AGENT_PARTIAL
+    evidence:
+      - "app/scheduling/service.py cancel_appointment:519 and reschedule_appointment:589; lock, permission, GiST, idempotency"
+      - "POST /appointments/{id}/cancel and /reschedule"
+      - "tests/test_cancellation.py and tests/test_rescheduling.py concurrency/revalidation coverage"
+    gap: "Agent-layer cancel/reschedule confirmations do not yet have the same hard fail-closed acceptance guard as booking."
+  - name: canonical_api_contracts
+    status: IMPLEMENTED
+    layer: CORE
+    evidence:
+      - "docs/api/openapi.yaml and openapi.json generated from app:app"
+      - "tests/test_api.py openapi typed-route coverage"
+      - "tests/test_schema_constraints.py and tests/test_migrations.py"
+    gap: "Generated contract regeneration has not been reverified against every local-only commit."
+core_summary:
+  implemented: 11
+  partial: 2
+  missing: 0
+  unverified: 0
+  material_core_gaps:
+    - "Canonical proposal API and trusted proposal acceptance contract"
+    - "Uniform authentication posture for human-facing ERP routes outside development compatibility"
+    - "Uniform idempotency beyond currently covered commands"
+agent_boundary_notes:
+  - "app/agent_tools is the only typed business-state surface for the agent."
+  - "sales_agent runtime/provider work is local-only and real-provider execution remains unverified."
+channel_notes:
+  - "messaging persistence exists, but no outbound dispatcher worker is running."
+  - "n8n and sandbox are integration surfaces, not scheduling authority."
+verification_limits:
+  - "No pytest run; this was read-only and the PostgreSQL test database is shared."
+  - "Production deployment of local-only agent/channel commits is unverified."

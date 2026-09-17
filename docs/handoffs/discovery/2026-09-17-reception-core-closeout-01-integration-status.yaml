@@ -1,0 +1,67 @@
+activity: RECEPTION-CORE-CLOSEOUT-01
+scout: C2
+scope: integration and runtime surfaces required by Reception / Scheduling v1
+observed_head: 14d918dae1c1cf954f0994f9b39841ac2ffe2969
+surfaces:
+  canonical_inbound:
+    status: PARTIAL
+    implementation: "Registered and auth-gated at app/messaging/router.py:40,94; included by app/__init__.py:57-74."
+    evidence: ["tests/test_messaging_phase2.py", "SANDBOX-REAL-MODEL-04 handoff"]
+    gap: "The -04 sender request returned 404; runtime reachability of the effective sender origin is not verified."
+  sandbox_sender:
+    status: PARTIAL
+    implementation: "integrations/sandbox/sender.py and tests/test_sandbox_inbound.py"
+    gap: "Development-only path has no committed runner that records its effective origin; it has not completed a real-model loop."
+  sandbox_receiver:
+    status: PARTIAL
+    implementation: "integrations/sandbox/consumer.py, sandbox receiver routes, tests/test_sandbox_outbound.py"
+    gap: "Loopback-only consumer exists but was not reached by a completed real-model conversation; no continuously running worker."
+  sales_agent:
+    status: PARTIAL
+    implementation: "sales_agent/api.py authenticated turn boundary and bounded runtime; tests/test_sales_agent_auth.py; AGENT-TURN-AUTH-01 handoff"
+    gap: "Real OpenRouter execution remains unverified; agent booking confirmation remains fail-closed pending trusted acceptance."
+  openrouter:
+    status: PARTIAL
+    implementation: "sales_agent/config.py and scripts/preflight_sales_agent.py configure provider/model/base URL; preflight was ready"
+    gap: "No successful real-model result is established by SANDBOX-REAL-MODEL-02/03/04; do not infer provider health."
+  n8n:
+    status: PARTIAL
+    implementation: "integrations/n8n/WF-01-sales-agent-v0.json and wf_01_sales_agent_v0.py; docs/integration/n8n-reception-lab.md"
+    gap: "Export/lab artifacts exist, but no live n8n runtime validation or owned deployment is evidenced."
+  postgres_remote:
+    status: PARTIAL
+    implementation: "REMOTE-01 handoff records remote PostgreSQL/Alembic configuration"
+    gap: "Current remote state is unverified; local migration head is 0019 while the recorded remote evidence was 0018."
+  supabase:
+    status: PARTIAL
+    implementation: "Repository evidence exists in .mcp.json and the PLAT-01 planning brief as a read-only MCP surface."
+    gap: "Authentication/connection is pending; an external PostgreSQL URL is not treated as proof of Supabase connectivity."
+  deployment:
+    status: PARTIAL
+    implementation: "REMOTE-01 records an existing Cloud Run backend revision; backend service evidence is historical."
+    gap: "Sales Agent service image/deployment is missing or incomplete: Dockerfile starts app.run and does not install the agent extra."
+  whatsapp:
+    status: MISSING
+    implementation: "No verified provider/credential/runtime evidence in the repository."
+    gap: "Channel choice and credentials remain an owner decision; this is an integration, not a core scheduling rule."
+ingress_404_vs_401:
+  status: UNRESOLVED
+  facts:
+    - "The -04 canonical sender POST /internal/messages/inbound returned 404."
+    - "A later direct unauthenticated probe returned 401."
+    - "401 is emitted by route-level authentication in app/iam/credentials.py:73-77 and app/context.py:121."
+    - "app/http_security.py does not perform authentication; a 404 indicates no matching route on the responding app/path."
+  conclusion: "The sender and probe did not share the same effective app/path/process state, or that state changed; the artifact lacks sender origin and 404-process identity."
+  missing_discriminators:
+    - "sender-side effective host/port/full URL"
+    - "identity and port of the process that logged the 404"
+    - "route tables from the candidate local ports while running"
+  next_boundary_activity: "Resolve origin/process/path discrepancy without invoking Sales Agent or OpenRouter."
+separation:
+  core_business: "Backend domain and deterministic tools are largely implemented; see reception-core-status.yaml."
+  agent: "Sales Agent auth/bounds/config exist, but real execution and trusted acceptance remain unverified/blocked."
+  channel_integration: "Inbound persistence, sandbox, and n8n artifacts exist as adapters; runtime completion is missing."
+  deployment: "Remote/backend records exist, but current deployment and agent service shape are not verified."
+verification_limits:
+  - "No provider request, pytest run, deployment, or database mutation was made by this planning activity."
+  - "Secrets were not printed or inspected."

@@ -1,7 +1,7 @@
 ---
 title: OdontoFlow — Repositories
 status: active
-last_verified: 2026-09-02
+last_verified: 2026-09-17
 authority: Repo 0 (planning)
 ---
 
@@ -12,9 +12,9 @@ Workspace root: `~/projects/portfolio/AI-EdgeRunners/odontoflow/`
 
 | Repo | Local path | Remote | Role | HEAD (verified) | Source of truth | Write policy |
 |---|---|---|---|---|---|---|
-| planning | `odontoflow-planning/` | `git@github.com:MiguelAAR10/OdontoFlow-Planning.git` | project control plane, navigation, status | `04acfc1` | status/navigation | planning docs; `.audit/` git-ignored **except `.audit/contributions/`** (contributor provenance is versioned on purpose) |
-| backend | `../odontoflow-backend/` | `git@github.com:MiguelAAR10/OdontoFlow.git` | FastAPI + PostgreSQL domain authority | `23527c2` (synced) | domain model, migrations, API contract, tests | product work; normal push (fast-forward only, no force) |
-| frontend | `../odontoflow-frontend/` | `git@github.com:MiguelAAR10/odontoflow-frontend.git` (canonical) · upstream/reference `https://github.com/leonardopanduro-rgb/ODONTO-SMART-FRONT.git` (`leonardo`) | React SPA | `a967b24` (origin/main) | UI behavior per backend contract | product work; normal push (fast-forward only, no force); Leonardo's repo preserved as upstream/reference; **`alejandro` = contributor remote, fetch-only** |
+| planning | `odontoflow-planning/` | `git@github.com:MiguelAAR10/OdontoFlow-Planning.git` | project control plane, navigation, status | local `63274e1d`, equal to `origin/main` (2026-09-17) — but this working tree holds uncommitted work back to 2026-09-07 that `origin/main` does not | status/navigation | planning docs; `.audit/` git-ignored **except `.audit/contributions/`** (contributor provenance is versioned on purpose) |
+| backend | `../odontoflow-backend/` | `git@github.com:MiguelAAR10/OdontoFlow.git` | FastAPI + PostgreSQL domain authority | local `14d918d`, **11 ahead / 0 behind** `origin/main` (`b7f11ce`) — verified fast-forward-safe (2026-09-17) | domain model, migrations, API contract, tests | product work; normal push (fast-forward only, no force) |
+| frontend | `../odontoflow-frontend/` | `git@github.com:MiguelAAR10/odontoflow-frontend.git` (canonical `origin`) · dead upstream `https://github.com/leonardopanduro-rgb/ODONTO-SMART-FRONT.git` (`leonardo`, 404 as of 2026-09-17) | React SPA | local `a788df5`, **1 ahead** of canonical `origin/main` (`0dbfa9e`) — **that commit is BLOCKED for publication**, see below | UI behavior per backend contract | product work; normal push to `origin` explicitly (fast-forward only, no force). **Onboarding hazard:** local `main` tracks `leonardo/main`, which no longer resolves — do not `git push` without specifying `origin`; **`alejandro` = contributor remote, fetch-only** |
 
 | voice | `../odontoflow-voice/` | `git@github.com:MiguelAAR10/odontoflow-voice.git` (canonical, **public** since 2026-09-03; `AlejandroMarceloCh` invited as write collaborator) · contributor upstream `https://github.com/AlejandroMarceloCh/odonto-voz.git` (`alejandro`) | **canonical voice/language adapter** — sibling service, own process + port 8000 | `4149a3e` (donor `eb9a4ee` + 1) | speech→structured **drafts** only; **NOT a business authority** | product work; normal push (no force, **never squash or rewrite the 5 donor commits**); `alejandro` is fetch-only |
 
@@ -45,6 +45,19 @@ The frontend also carries a fetched contributor ref, intact and **still
 unmerged** even though its content has now been ported:
 `alejandro/feat/asistente-voz` = `c0f418d` (donor PR
 [ODONTO-SMART-FRONT#1](https://github.com/leonardopanduro-rgb/ODONTO-SMART-FRONT/pull/1)).
+
+**Frontend publication block (2026-09-17, do not push without owner review):**
+the one local-only commit `a788df5` ("feat(fe3a): salvage checkout through
+charge") plausibly matches the FE3A-S1 salvage plan's recommended bounded
+slice and fixes its named payload blocker, but no in-repo artifact
+authorizes it — `.audit/fe3a-checkpoint.md` explicitly withheld commit
+permission pending an integration-lead gate, and the commit itself has no
+body or notes recording that gate was passed. It must remain blocked for
+publication until the coordinator/integration lead confirms it in writing;
+do not rewrite or discard it. The worktree also carries 19 modified tracked
+files and 12 untracked paths — the uncommitted remainder of the same mixed
+FE3A work. Full detail:
+[`docs/handoffs/plans/2026-09-17-project-publish-01.md`](docs/handoffs/plans/2026-09-17-project-publish-01.md).
 
 See [CONTRIBUTIONS.md](CONTRIBUTIONS.md) for authorship and exact SHAs, and
 [VOICE_CONTRIBUTION_INTEGRATION_MAP.md](VOICE_CONTRIBUTION_INTEGRATION_MAP.md)

@@ -1,0 +1,435 @@
+activity: RECEPTION-CORE-CLOSEOUT-01
+role: Claude Opus planner
+date: 2026-09-17
+mode: planning_only
+component: Reception / Scheduling v1
+component_definition: "Lead or patient -> conversation -> service -> location -> practitioner -> deterministic availability -> appointment proposal -> authorized confirmation -> appointment."
+principles:
+  - "PostgreSQL and deterministic domain services remain the authority."
+  - "Agents select typed tools; they do not compute slots, prices, durations, consent, or bookings."
+  - "n8n, OpenRouter, WhatsApp, and Supabase hosting are replaceable integration/deployment surfaces."
+  - "No new framework, queue, fallback router, consent semantics, or parallel business architecture is required by this plan."
+sources:
+  fresh_reality: docs/handoffs/discovery/2026-09-17-reception-core-closeout-01-fresh-reality.yaml
+  erp_scout: docs/handoffs/discovery/2026-09-17-reception-core-closeout-01-reception-core-status.yaml
+  integration_scout: docs/handoffs/discovery/2026-09-17-reception-core-closeout-01-integration-status.yaml
+  technical_handoffs:
+    - ../odontoflow-backend/docs/superpowers/handoffs/2026-09-16-agent-turn-auth-01.md
+    - ../odontoflow-backend/docs/superpowers/handoffs/2026-09-16-openrouter-runtime-01.md
+    - ../odontoflow-backend/docs/superpowers/handoffs/2026-09-16-real-model-diagnostics-01.md
+    - ../odontoflow-backend/docs/superpowers/handoffs/2026-09-16-sandbox-inbound-01.md
+    - ../odontoflow-backend/docs/superpowers/handoffs/2026-09-16-sandbox-outbound-01.md
+    - ../odontoflow-backend/docs/superpowers/handoffs/2026-09-16-sandbox-real-model-04.md
+  planning_living_briefs_used_for_same_activity_ids:
+    - docs/handoffs/plans/2026-09-16-agent-turn-auth-01.md
+    - docs/handoffs/plans/2026-09-16-real-model-diagnostics-01.md
+    - docs/handoffs/plans/2026-09-16-sandbox-inbound-01.md
+    - docs/handoffs/plans/2026-09-16-sandbox-outbound-01.md
+    - docs/handoffs/plans/2026-09-16-sandbox-real-model-04.md
+repository_reality:
+  backend_head: 14d918dae1c1cf954f0994f9b39841ac2ffe2969
+  backend_origin_main: b7f11cef9bac6bbe6eb2a0bd144a541b8032f4bc
+  backend_ahead: 11
+  central_finding: "The deterministic scheduling core is substantially present; the business flow is not DONE because proposal acceptance and the first/last integration boundaries are incomplete."
+  no_implementation_in_this_activity: true
+done_contract:
+  - id: DC-1
+    clause: authenticated_event_enters_once
+    statement: "A channel event reaches the domain through an authenticated canonical inbound command; replay of the same external event persists no second conversation, message, agent turn, outbound, or business action."
+    current: "Persistence/idempotency tests exist; the -04 sender-origin 404/401 discrepancy leaves runtime entry unproven."
+  - id: DC-2
+    clause: airy_reads_current_state_through_authorized_tools
+    statement: "AIRY reads services, locations, eligible practitioners, slots, contact profile, and appointments only through the tenant-bound authenticated typed-tool surface; it never reads the database or receives clinic state from n8n."
+    current: "Typed gateway and bounded runtime exist; real-model proof remains unverified."
+  - id: DC-3
+    clause: deterministic_availability
+    statement: "Server availability uses catalog duration, location timezone, rules, blocks, and appointments; identical inputs yield identical slots and model output cannot alter them."
+    current: "Implemented and covered by deterministic availability tests."
+  - id: DC-4
+    clause: exactly_once_proposal
+    statement: "A proposal command with the same idempotency key returns the same proposal and never creates a second pending proposal for the same conversation/service/practitioner/start."
+    current: "Persistence exists through agent tools; canonical proposal command/API remains a closeout activity."
+  - id: DC-5
+    clause: exactly_one_authorized_appointment
+    statement: "An authorized non-agent confirmation creates exactly one appointment; replay, expiry, cross-tenant, conflict, and concurrent confirmation are safe, while the agent principal remains refused."
+    current: "Direct appointment booking is deterministic/idempotent; proposal acceptance path is missing and agent confirmation is fail-closed."
+  - id: DC-6
+    clause: truthful_failure_state
+    statement: "Provider, runtime, transport, or ingress failure leaves sanitized diagnostic evidence and one recoverable human state, never a fabricated reply, false delivery, silent drop, retry, or duplicate mutation."
+    current: "Sanitized diagnostics exist; a durable pending handoff after post-auth failure remains to close."
+  - id: DC-7
+    clause: no_n8n_business_logic
+    statement: "n8n carries transport, credential forwarding, and canonical IDs only; removing it removes no availability, consent, proposal, or booking rule."
+    current: "Artifacts exist; automated boundary assertions and live ownership are not yet closed."
+  - id: DC-8
+    clause: replaceable_providers_without_scheduling_rewrite
+    statement: "Changing channel or model provider changes adapter/configuration only; scheduling/catalog/organization/idempotency/IAM code and tests remain provider-independent."
+    current: "Architecture is separated; standing provider-boundary tests remain to be added."
+  - id: DC-9
+    clause: intentionally_manual_fail_closed
+    statement: "Automatic agent booking, cancellation, and rescheduling remain refused at the authoritative command boundary; a visible authorized human path exists."
+    current: "Booking is fail-closed; cancel/reschedule agent parity remains to be closed."
+fan_in_matrix:
+  CORE_BUSINESS:
+    - capability: patient_contact_identity
+      status: IMPLEMENTED
+      business_importance: high
+      dependency: [organization, IAM]
+      evidence: "app/clinical and app/agent_tools/reception; ERP scout packet"
+      remaining_gap: "No dedicated core HTTP binding from ContactIdentity to Patient; the agent seam currently supplies the binding."
+    - capability: conversation_message_persistence
+      status: IMPLEMENTED
+      business_importance: high
+      dependency: [tenant_context, canonical_inbound]
+      evidence: "app/messaging/models.py, service.py, router.py; messaging tests"
+      remaining_gap: "Outbound delivery must be drained by the bounded sandbox runner before the flow is operationally complete."
+    - capability: service_catalog
+      status: IMPLEMENTED
+      business_importance: high
+      dependency: [organization]
+      evidence: "app/catalog; duration and booking-mode tests"
+      remaining_gap: "Setup-command idempotency is useful debt, not a v1 event-flow blocker."
+    - capability: locations_and_timezones
+      status: IMPLEMENTED
+      business_importance: high
+      dependency: [organization]
+      evidence: "app/organization; IANA timezone and route tests"
+      remaining_gap: "None for the critical read path; setup replay is deferred."
+    - capability: practitioners_and_eligibility
+      status: IMPLEMENTED
+      business_importance: high
+      dependency: [organization, IAM, capabilities]
+      evidence: "app/organization; cross-organization practitioner tests"
+      remaining_gap: "None identified in the deterministic scheduling path."
+    - capability: deterministic_availability
+      status: IMPLEMENTED
+      business_importance: critical
+      dependency: [service_catalog, locations, practitioners, schedule_rules]
+      evidence: "app/scheduling/availability.py; 15-minute half-open location-TZ tests"
+      remaining_gap: "Include the invariant suite in the final canonical end-to-end regression."
+    - capability: appointment_proposal_lifecycle
+      status: PARTIAL
+      business_importance: critical
+      dependency: [deterministic_availability, typed_gateway, idempotency]
+      evidence: "Proposal persistence through app/agent_tools/booking.py; no canonical proposal REST surface"
+      remaining_gap: "Add authorized list/read/confirm/decline, exactly-once proposal binding, expiry/conflict/concurrency tests, and keep agent confirmation refused."
+    - capability: authorized_appointment_creation
+      status: IMPLEMENTED
+      business_importance: critical
+      dependency: [IAM, tenant_integrity, idempotency, PostgreSQL_constraints]
+      evidence: "book_appointment service, POST /appointments, concurrency tests"
+      remaining_gap: "Remove reliance on ERP anonymous compatibility for the complete flow."
+    - capability: cancellation_rescheduling
+      status: PARTIAL
+      business_importance: high
+      dependency: [IAM, idempotency, audit]
+      evidence: "Core cancel/reschedule services and routes; ERP scout found weaker agent guards"
+      remaining_gap: "Make agent cancel/reschedule fail closed at the same authoritative boundary as booking."
+    - capability: replay_idempotency
+      status: IMPLEMENTED
+      business_importance: critical
+      dependency: [PostgreSQL_command_receipts]
+      evidence: "CommandReceipt and booking/cancel/reschedule tests"
+      remaining_gap: "The final acceptance regression must prove no duplicate inbound, proposal, appointment, outbound, or receipt."
+    - capability: tenant_isolation
+      status: IMPLEMENTED
+      business_importance: critical
+      dependency: [composite_FKs, scoped_queries, IAM]
+      evidence: "Composite tenant keys, global practitioner exclusion, cross-org tests"
+      remaining_gap: "Ingress and agent-runtime evidence must exercise the same tenant boundary."
+    - capability: IAM_and_audit
+      status: PARTIAL
+      business_importance: critical
+      dependency: [ExecutionContext, credentials, permissions]
+      evidence: "app/iam, app/context.py, atomic audit tests; ERP compatibility seam remains"
+      remaining_gap: "Credential-gate every Reception/Scheduling route and preserve audit evidence in the final API regression."
+  AGENT:
+    - capability: sales_agent_runtime_and_typed_tools
+      status: PARTIAL
+      business_importance: high
+      dependency: [IAM, typed_gateway, provider_adapter]
+      evidence: "sales_agent runtime, app/agent_tools, OpenRouter configuration and bounded controls"
+      remaining_gap: "Complete one bounded real-model evidence run or stop at a named boundary; provider execution is not a business-domain proof yet."
+    - capability: agent_booking_fail_closed
+      status: IMPLEMENTED
+      business_importance: critical
+      dependency: [proposal_lifecycle, authorized_confirmation]
+      evidence: "Agent-confirm guard and fail-closed handoffs; pending proposal/zero appointment evidence"
+      remaining_gap: "Keep the negative contract while adding the authorized human proposal path."
+    - capability: truthful_agent_failure_recovery
+      status: PARTIAL
+      business_importance: high
+      dependency: [sanitized_diagnostics, conversation_persistence]
+      evidence: "REAL-MODEL-DIAGNOSTICS-01 sanitized diagnostics"
+      remaining_gap: "Persist one tenant-bound human handoff per failed conversation without retries, duplicate effects, or secret-bearing data."
+  CHANNEL_INTEGRATION:
+    - capability: canonical_authenticated_inbound
+      status: PARTIAL
+      business_importance: critical
+      dependency: [messaging, credentials, tenant_context]
+      evidence: "app/messaging/router.py route registration; SANDBOX-REAL-MODEL-04 observed 404 then separate 401"
+      remaining_gap: "Capture effective URL/process/route evidence, explain the discrepancy, and prove authenticated first delivery plus replay dedupe."
+    - capability: sandbox_sender_receiver
+      status: IMPLEMENTED
+      business_importance: medium
+      dependency: [canonical_inbound, outbound_contract]
+      evidence: "integrations/sandbox/sender.py, consumer.py, loopback receiver tests"
+      remaining_gap: "Existing pieces need the bounded credential-gated outbound runner for operational completion."
+    - capability: sandbox_outbound_delivery
+      status: PARTIAL
+      business_importance: high
+      dependency: [outbound_claim_settle, sandbox_receiver]
+      evidence: "SANDBOX-OUTBOUND-02 claim/receipt/settlement contract"
+      remaining_gap: "Prove bounded claim, delivery, retry, dead-letter, and lease-reclaim behavior without false settlement."
+    - capability: n8n_transport_boundary
+      status: PARTIAL
+      business_importance: medium
+      dependency: [canonical_inbound, sandbox_outbound]
+      evidence: "integrations/n8n/WF-01-sales-agent-v0.json and runner artifact"
+      remaining_gap: "Add deletion/inspection assertions that no availability, consent, proposal, or booking logic lives in n8n."
+    - capability: provider_replaceability
+      status: PARTIAL
+      business_importance: high
+      dependency: [adapter_configuration, typed_tools]
+      evidence: "OpenRouter uses existing OpenAI-compatible adapter; provider-boundary test is absent"
+      remaining_gap: "Add a standing test proving scheduling/domain modules contain no vendor identity or provider imports."
+  DEPLOYMENT:
+    - capability: remote_database_reconciliation
+      status: PARTIAL
+      business_importance: high
+      dependency: [published_backend_head]
+      evidence: "REMOTE-01 recorded remote Alembic 0018 while local audited code is at 0019"
+      remaining_gap: "Verify actual remote head, apply only additive/reversible migration work, and record post-apply evidence."
+    - capability: sales_agent_service_deployment
+      status: PARTIAL
+      business_importance: medium
+      dependency: [published_backend_head, provider_configuration]
+      evidence: "Integration scout: existing image starts app.run and omits agent extra; no verified agent service"
+      remaining_gap: "Produce a reviewed image/service that starts sales_agent.api with runtime-only secrets and bounded controls."
+    - capability: publishable_reviewed_head
+      status: PARTIAL
+      business_importance: high
+      dependency: [all_MUST_CLOSE_V1]
+      evidence: "Backend main is 11 commits ahead of origin/main"
+      remaining_gap: "Run the final serial suite and publish the verified head without history rewrite or unrelated dirty paths."
+activities:
+  CORE_BUSINESS:
+    - id: CORE-01
+      classification: MUST_CLOSE_V1
+      business_outcome: "Staff can see the proposal produced by AIRY and turn exactly one into exactly one appointment, or decline it."
+      why_required: "Proposals persist only behind POST /agent-tools/call and agent confirmation is refused; the flow otherwise dead-ends before appointment."
+      dependencies: []
+      write_surface: [app/scheduling/router.py, app/scheduling/schemas.py, app/scheduling/service.py, app/agent_tools/booking.py, docs/api/openapi.yaml, docs/api/openapi.json, tests/test_appointment_proposals.py]
+      difficulty: medium
+      recommended_worker_class: backend_domain_engineer
+      tests: ["authorized non-agent confirm creates one appointment", "same-key replay returns the same appointment", "agent remains INVALID_INPUT", "expired/cross-tenant/cross-location/conflicting proposals refuse", "concurrent confirms yield one winner", "decline is idempotent and audited atomically"]
+      definition_of_done: "REST proposal list/read/confirm/decline commands use Idempotency-Key and the existing run_idempotent_command; agent refusal shares the authoritative implementation; OpenAPI and full serial PostgreSQL suite are green."
+    - id: CORE-02
+      classification: MUST_CLOSE_V1
+      business_outcome: "Every Reception/Scheduling flow route rejects unauthenticated callers regardless of deployment configuration."
+      why_required: "ERP anonymous compatibility currently makes tenant safety depend on a settings seam and can silently supply a system identity."
+      dependencies: [CORE-01]
+      write_surface: [app/scheduling, app/catalog, app/organization, app/clinical, app/context.py, tests/test_security_boundary.py, tests/test_authentication.py]
+      difficulty: medium
+      recommended_worker_class: backend_security_engineer
+      tests: ["401 on every flow route with compatibility explicitly enabled", "cross-organization credential denied", "authorized flows remain green", "redacted authentication audit evidence"]
+      definition_of_done: "Lead-to-appointment routes no longer depend on the compatibility seam for identity and the full serial suite passes without reducing coverage."
+    - id: CORE-03
+      classification: DEFER_AFTER_V1
+      business_outcome: "Catalog, location, practitioner, and schedule-rule setup commands also replay safely."
+      why_required: "Uniform idempotency is useful, but setup commands are not on the Reception event-to-appointment critical path already protected by booking idempotency."
+      dependencies: [CORE-01]
+      write_surface: [app/catalog/router.py, app/organization/router.py, app/scheduling/router.py, app/idempotency/service.py call sites]
+      difficulty: medium
+      recommended_worker_class: backend_domain_engineer
+      tests: ["same-key setup replay returns same entity", "changed fingerprint is rejected"]
+      definition_of_done: "Deferred after v1; explicitly tracked as non-blocking setup-command debt."
+    - id: CORE-04
+      classification: MUST_CLOSE_V1
+      business_outcome: "The published API contract and end-to-end regression describe the exact system that is shipped."
+      why_required: "Local-only commits added agent/channel surfaces and the critical flow needs one canonical regression at migration head."
+      dependencies: [CORE-01, CORE-02, AGENT-02, AGENT-03]
+      write_surface: [docs/api/openapi.yaml, docs/api/openapi.json, tests/test_lead_to_appointment_e2e.py]
+      difficulty: medium
+      recommended_worker_class: backend_verification_engineer
+      tests: ["regenerated OpenAPI is consistent", "typed routes and schema/migration head 0019", "availability DST/interval invariants", "inbound-to-authorized-confirm replay adds nothing", "full serial suite with no skips"]
+      definition_of_done: "One recorded run traverses the whole canonical flow including acceptance with green tests and a reviewed contract diff."
+  AGENT:
+    - id: AGENT-01
+      classification: MUST_CLOSE_V1
+      business_outcome: "A bounded real model reads clinic state through typed tools and produces one acceptable proposal, or stops at a named failure boundary."
+      why_required: "The provider/runtime path is configured but no complete real-model evidence exists after the prior bounded smokes."
+      dependencies: [CHAN-01, CORE-01, AGENT-02]
+      write_surface: [evidence handoff only]
+      difficulty: medium
+      recommended_worker_class: supervised_runtime_verifier
+      tests: ["preflight before request", "one synthetic event and one bounded turn", "record provider/tool/proposal/appointment counts", "proposed slot comes from server result", "stop on first external failure with sanitized diagnostics", "no replay/fallback"]
+      definition_of_done: "One real conversation persists exactly one pending proposal and zero appointments, or stops at a named boundary with no duplicate mutation and complete evidence."
+    - id: AGENT-02
+      classification: MUST_CLOSE_V1
+      business_outcome: "A provider/runtime failure queues a human recovery state instead of going silent."
+      why_required: "Sanitized diagnostics exist, but truthful business recovery requires one durable tenant-bound handoff after an authenticated failure."
+      dependencies: []
+      write_surface: [sales_agent/api.py, app/agent_tools/reception.py, tests/test_sales_agent_failure_handoff.py]
+      difficulty: small
+      recommended_worker_class: backend_integration_engineer
+      tests: ["one pending handoff per failed conversation", "repeat failure creates no second open handoff", "public 503 unchanged", "no retry or duplicate tool effect", "no credentials/provider body/exception/patient text stored"]
+      definition_of_done: "Every post-auth failure leaves one open tenant-bound handoff plus the existing sanitized diagnostic; focused and full serial suites pass."
+    - id: AGENT-03
+      classification: MUST_CLOSE_V1
+      business_outcome: "AIRY cannot cancel or move an appointment on free text, matching the booking fail-closed policy."
+      why_required: "The current fail-closed guard covers booking confirmation but the scout found weaker agent cancel/reschedule confirmation."
+      dependencies: []
+      write_surface: [app/agent_tools/booking.py, app/agent_tools/reception.py, tests/test_reception_agent_phase5.py]
+      difficulty: small
+      recommended_worker_class: backend_security_engineer
+      tests: ["agent cancel/reschedule confirmation refused", "authorized human path succeeds", "expiry/tenant/idempotency/audit unchanged"]
+      definition_of_done: "Agent refusal is uniform across book, cancel, and reschedule at the authoritative command boundary."
+    - id: AGENT-04
+      classification: REMOVE_FROM_SCOPE
+      business_outcome: "No automatic agent booking is enabled in v1."
+      why_required: "Automatic booking after inferred acceptance conflicts with the declared manual/fail-closed policy."
+      dependencies: [CORE-01]
+      write_surface: none
+      difficulty: none
+      recommended_worker_class: none
+      tests: ["retain negative tests proving agent confirmation refusal"]
+      definition_of_done: "Removed from scope; the refusal and authorized human path are the contract."
+    - id: AGENT-05
+      classification: REMOVE_FROM_SCOPE
+      business_outcome: "No automatic cross-model fallback hides provider failure."
+      why_required: "Fallback introduces an unverified silent-degradation path and is not needed to prove provider replaceability."
+      dependencies: [AGENT-02]
+      write_surface: none
+      difficulty: none
+      recommended_worker_class: none
+      tests: ["no fallback route and no second provider request on failure"]
+      definition_of_done: "Removed from scope; replacement is configuration-level, not runtime fallback."
+  CHANNEL_INTEGRATION:
+    - id: CHAN-01
+      classification: MUST_CLOSE_V1
+      business_outcome: "A patient message reliably enters the clinic exactly once."
+      why_required: "The only observed new real run returned 404 at canonical inbound while a later unauthenticated probe returned 401; the first boundary is unresolved."
+      dependencies: []
+      write_surface: [integrations/sandbox/sender.py, scripts, tests/test_sandbox_inbound.py]
+      difficulty: small
+      recommended_worker_class: backend_integration_engineer
+      tests: ["capture effective sender origin/full URL and responding process", "authenticated inbound persists once", "replay persists nothing", "invalid auth returns 401", "cross-tenant access denied"]
+      definition_of_done: "The 404 is explained by captured evidence, authenticated inbound and replay are proven, and the check stops before Sales Agent/OpenRouter."
+    - id: CHAN-02
+      classification: MUST_CLOSE_V1
+      business_outcome: "The clinic reply reaches the sandbox recipient with truthful delivery state rather than remaining in an undrained queue."
+      why_required: "Sandbox sender/receiver exist, but no credential-gated dispatcher worker has completed claim, delivery, retry, and dead-letter behavior."
+      dependencies: [CHAN-01]
+      write_surface: [integrations/sandbox/consumer.py, scripts or existing runner surface, tests/test_sandbox_outbound.py]
+      difficulty: medium
+      recommended_worker_class: backend_integration_engineer
+      tests: ["provider remains sandbox", "one outbound to one durable receipt", "duplicate claim replays", "receiver failure retries/dead-letters without false delivery", "cross-tenant invisible", "lease reclaimable"]
+      definition_of_done: "A credential-gated bounded runner drains the sandbox queue and observes delivered, retry, and dead-letter outcomes with no false settlement."
+    - id: CHAN-03
+      classification: MUST_CLOSE_V1
+      business_outcome: "Replacing or removing n8n changes no clinical behavior."
+      why_required: "The business domain must not depend on an inactive export or n8n-specific slot/consent/booking logic."
+      dependencies: [CHAN-01]
+      write_surface: [integrations/n8n/WF-01-sales-agent-v0.json, integrations/n8n/wf_01_sales_agent_v0.py, tests]
+      difficulty: small
+      recommended_worker_class: integration_contract_engineer
+      tests: ["export contains no availability, duration, timezone, consent, proposal, or booking logic", "runner forwards IDs/credentials only", "deletion test leaves domain suite green"]
+      definition_of_done: "Automated assertions enforce n8n as transport-only."
+    - id: CHAN-04
+      classification: MUST_CLOSE_V1
+      business_outcome: "Changing messaging or model vendor never requires rebuilding scheduling."
+      why_required: "Provider isolation is an explicit component contract and must be maintained by a standing test, not a convention."
+      dependencies: [CHAN-02]
+      write_surface: [tests/test_provider_boundary.py]
+      difficulty: small
+      recommended_worker_class: backend_contract_engineer
+      tests: ["no provider import under scheduling/catalog/organization/idempotency/IAM", "channel resolved from ChannelAccount data", "model only in sales_agent adapter", "scheduling suite provider-agnostic"]
+      definition_of_done: "A provider-boundary test fails if vendor identity leaks into the domain."
+    - id: CHAN-05
+      classification: DEFER_AFTER_V1
+      business_outcome: "Real patients reach the clinic on the selected live channel."
+      why_required: "No channel/provider/credential decision exists and WhatsApp is explicitly an integration, not the business-domain blocker."
+      dependencies: [CHAN-02, CHAN-04]
+      write_surface: [channel account provisioning, provider adapter configuration]
+      difficulty: medium
+      recommended_worker_class: integration_owner
+      tests: ["rerun sandbox acceptance template against the chosen live provider"]
+      definition_of_done: "Deferred pending owner provider and credential decision; no speculative WhatsApp-shaped build."
+    - id: CHAN-06
+      classification: DEFER_AFTER_V1
+      business_outcome: "Automation runs on owned infrastructure rather than an inactive lab export."
+      why_required: "A live channel and ownership decision are prerequisites; n8n must remain transport-only regardless."
+      dependencies: [CHAN-03, CHAN-05]
+      write_surface: [deployment configuration only]
+      difficulty: medium
+      recommended_worker_class: integration_owner
+      tests: ["deferred until a live channel exists"]
+      definition_of_done: "Deferred; channel choice and budget gate the deployment."
+  DEPLOYMENT:
+    - id: DEPLOY-01
+      classification: MUST_CLOSE_V1
+      business_outcome: "The verified v1 exists at a reviewable, recoverable Git head rather than only one laptop."
+      why_required: "The audited backend is 11 commits ahead of origin/main and the local AIRYTHM chain is not yet the published authority."
+      dependencies: [CORE-04]
+      write_surface: [backend git ref and handoff evidence]
+      difficulty: small
+      recommended_worker_class: release_engineer
+      tests: ["full serial suite at published commit", "no credential in tree", "fast-forward publication", "unrelated dirty paths excluded"]
+      definition_of_done: "origin/main holds the verified v1 head without history rewrite."
+    - id: DEPLOY-02
+      classification: MUST_CLOSE_V1
+      business_outcome: "The Reception agent runs as a service instead of only a developer process."
+      why_required: "The integration scout found the agent image/deployment shape incomplete: Dockerfile starts app.run and omits the agent extra."
+      dependencies: [DEPLOY-01]
+      write_surface: [Dockerfile, agent service deployment configuration]
+      difficulty: medium
+      recommended_worker_class: deployment_engineer
+      tests: ["image starts sales_agent.api and health responds", "agent/provider imports cleanly", "secrets injected only at runtime", "backend image behavior unchanged"]
+      definition_of_done: "A reviewed agent service image starts the authenticated bounded runtime with no committed secret."
+    - id: DEPLOY-03
+      classification: MUST_CLOSE_V1
+      business_outcome: "The deployed database matches the serving code and schema changes have a reversible path."
+      why_required: "Remote evidence recorded Alembic 0018 while local audited code is at 0019; current state is unverified."
+      dependencies: [DEPLOY-01, DEPLOY-02]
+      write_surface: [remote migration application, deployment evidence]
+      difficulty: high
+      recommended_worker_class: database_release_engineer
+      tests: ["read and record remote head before change", "additive migration review", "downgrade on disposable copy", "post-apply head equals commit", "post-apply smoke without production-data mutation"]
+      definition_of_done: "Remote head is reconciled additively with a verified reversible path and no uncontrolled production write."
+    - id: DEPLOY-04
+      classification: DEFER_AFTER_V1
+      business_outcome: "Managed hosting and a platform read surface exist."
+      why_required: "Hosting is replaceable and not the current business completion constraint."
+      dependencies: [DEPLOY-03]
+      write_surface: [connection configuration only]
+      difficulty: medium
+      recommended_worker_class: platform_engineer
+      tests: ["deferred; reuse migration and suite acceptance template"]
+      definition_of_done: "Deferred after v1."
+    - id: DEPLOY-05
+      classification: DEFER_AFTER_V1
+      business_outcome: "Patients reach a hosted service instead of a local one."
+      why_required: "Hosting is gated by channel and budget decisions; local business completion can be proved first."
+      dependencies: [DEPLOY-02, DEPLOY-03, CHAN-05]
+      write_surface: [deployment configuration only]
+      difficulty: medium
+      recommended_worker_class: deployment_engineer
+      tests: ["deferred"]
+      definition_of_done: "Deferred pending live channel and budget decision; DEPLOY-02/03 make it configuration work."
+classification_summary:
+  must_close_v1: 13
+  defer_after_v1: 5
+  remove_from_scope: 2
+  note: "Per-activity classifications above are authoritative; the planner terminal's compact count line did not match its detailed activity entries and was not used."
+owner_decisions_before_dispatch:
+  - "Whether a bounded paid OpenRouter budget is approved for AGENT-01; otherwise v1 evidence remains fake-model/sandbox only."
+  - "Which live channel/provider and credentials are approved for CHAN-05."
+  - "Whether v1 is accepted as locally runnable or must be hosted; this gates DEPLOY-05, not the deterministic domain closure."
+non_goals:
+  - automatic agent booking
+  - model-level fallback routing
+  - speculative WhatsApp integration
+  - n8n business logic
+  - new observability platform or recovery subsystem
+  - unrelated ERP modules

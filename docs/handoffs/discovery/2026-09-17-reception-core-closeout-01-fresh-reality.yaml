@@ -1,0 +1,72 @@
+activity: RECEPTION-CORE-CLOSEOUT-01
+date: 2026-09-17
+mode: planning_only
+sync_policy: git_fetch_prune_only
+repositories:
+  backend:
+    relevance: domain_authority
+    fetch_prune: succeeded
+    branch: main
+    local_head: 14d918dae1c1cf954f0994f9b39841ac2ffe2969
+    origin_main: b7f11cef9bac6bbe6eb2a0bd144a541b8032f4bc
+    ahead: 11
+    behind: 0
+    origin_branches:
+      - "origin/main b7f11ce docs: add ENG-00 backend engineering baseline handoff"
+      - "origin/codex/render-current-lab-20260908 b140ede feat: preserve current reception continuity for lab deployment"
+      - "origin/integration/sales-agent-v0 3291787 fix: scope sales agent v0 integration boundaries"
+      - "origin/codex/backend-n8n-pilot-20260903 d5274d3 feat: expose contact-bound reception context"
+    recent_local_commits:
+      - "14d918d docs: record sandbox diagnostic smoke boundary"
+      - "db52789 fix: expose sanitized Sales Agent failure diagnostics"
+      - "d6940c6 fix: bound Sales Agent real-model execution"
+      - "18fae8d docs: record first real model sandbox smoke"
+      - "1d4a710 feat: bootstrap OpenRouter Sales Agent runtime"
+      - "22e2b51 feat: close local sandbox inbound loop"
+    dirty_modified: [.gitignore, AGENTS.md]
+    dirty_untracked_summary: "agent skills, local audit/docs/review artifacts, and prior handoffs; preserved"
+    difference_from_handoff:
+      - "The previous handoff's local HEAD is now the audited base, but origin/main remains at b7f11ce."
+      - "The eleven local-only commits include the current agent, sandbox, diagnostics, and handoff chain; they are not remote/main evidence."
+  planning:
+    relevance: control_plane
+    fetch_prune: succeeded
+    branch: main
+    local_head: 63274e1d59778d9f96ed9b69ab838a8c34db158b
+    origin_main: 63274e1d59778d9f96ed9b69ab838a8c34db158b
+    ahead: 0
+    behind: 0
+    origin_branches:
+      - "origin/main 63274e1 docs: finalize FE2 evidence head"
+    dirty_modified: [CAVELOG.md, STATUS.md, orchestration/current-activity.yaml]
+    dirty_untracked_summary: "control-plane instructions, prior handoffs/plans, skills, and evidence; preserved"
+    difference_from_handoff:
+      - "Planning origin/main is unchanged and aligned; current-activity.yaml still points to MVP-01 NOT_STARTED."
+      - "The current activity's recorded backend base/result are stale relative to local backend HEAD and the latest local AIRYTHM commits."
+  frontend:
+    relevance: presentation_adapter_only
+    scope: excluded_from_core_closeout
+    fetch_prune: failed
+    fetch_error: "remote repository not found for the configured Leonardo remote"
+    branch: main
+    local_head: a788df56d2d7f0ea5359da3227bb86fb457ca214
+    origin_main: 0dbfa9e6705efb5b1e6553e3841ca204533cdf97
+    ahead: 1
+    behind: 0
+    dirty: true
+    reason_not_in_scout_scope: "Backend is the domain authority; project topology marks frontend as presentation-only and W6/later for Sales Agent UI."
+  voice:
+    scope: excluded_frozen
+    action: not_touched
+  sim:
+    scope: excluded_frozen_uncommitted_v2_2
+    action: not_touched
+protected_actions_not_taken:
+  - reset
+  - checkout
+  - merge
+  - rebase
+  - clean
+  - discard
+  - product_implementation
+  - openrouter_request

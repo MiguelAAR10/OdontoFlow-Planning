@@ -13,12 +13,12 @@ repo que lees primero.
 |---|---|
 | **odontoflow-planning** (este) | control plane — estado, decisiones, briefs |
 | `odontoflow-backend` | FastAPI + PostgreSQL — el núcleo determinista (agenda, clínica, economía, inventario) |
-| `odontoflow-frontend` | React/Vite — la SPA real (Agenda/Pacientes/Caja/Inventario) |
+| `odontoflow-frontend` | Next.js/React — la SPA real (Agenda/Pacientes/Caja/Inventario) |
 | `odontoflow-voice` | servicio de voz standalone — transcripción + parser, sin LLM en las decisiones |
 | `odontoflow-sim` | simulador de clínica sintética — motor de verdad de referencia para medición futura |
 
-Todos son hermanos bajo `~/AI-EdgeRunners/odontoflow/`. MediStock es legado,
-solo lectura, fuera de este workspace.
+Todos son hermanos bajo `~/projects/portfolio/AI-EdgeRunners/odontoflow/`.
+MediStock es legado, solo lectura, fuera de este workspace.
 
 ## Qué archivo leer para qué
 
@@ -31,6 +31,74 @@ solo lectura, fuera de este workspace.
 | Quién escribió qué, con qué SHA exacto | `CONTRIBUTIONS.md` |
 | El diagnóstico más honesto y completo del proyecto hoy | `docs/handoffs/discovery/ODONTOFLOW_CTO_DISCOVERY_VERIFICATION.md` |
 | El plan vivo de una actividad en curso | `docs/handoffs/plans/*.md` (uno por actividad, se actualiza mientras se trabaja) |
+
+## Primer día (setup, en inglés para que sirva a cualquier colaborador)
+
+### Prerequisites
+
+- Docker (Compose), [`uv`](https://astral.sh/uv), Python 3.12, Node 24, git.
+- Never read or paste secret values. Every repo's `.env.example` lists the
+  variable **names** you need — copy it to `.env.local`/`.env` and fill
+  values locally, never commit them.
+
+### Backend (PostgreSQL, migrations, FastAPI, Sales Agent), from `odontoflow-backend/`
+
+```bash
+docker start odontoflow-db-1              # PostgreSQL 15, host port 5434
+                                           # (never `docker compose up` from here —
+                                           # it derives a different, empty volume)
+uv sync --locked
+uv run alembic upgrade head                # current head: 0019_sandbox_provider
+uv run python -m app.run                   # http://127.0.0.1:8000/docs
+```
+
+### Frontend, from `odontoflow-frontend/`
+
+```bash
+npm install
+npm run dev                                # mock mode by default (npm run dev -p 5173)
+```
+
+### Tests
+
+```bash
+# Backend — full (real PostgreSQL only, never SQLite)
+uv run python -m pytest -q
+
+# Backend — focused on the Reception/Sales Agent surface
+uv run python -m pytest tests/test_sales_agent_w4.py tests/test_reception_agent_phase5.py -q
+
+# Frontend
+npm test && npm run typecheck
+npm run test:e2e:pilot                     # needs PostgreSQL :5434 + backend venv
+```
+
+Never run two backend `pytest` processes concurrently — they share
+`odontoflow_test`. Current verified test counts live in this repo's
+`STATUS.md`, not hardcoded in either product repo's README (historical
+counts there can lag).
+
+### Safe sandbox usage
+
+There is a controlled, development-only `provider=sandbox` channel that
+proves the inbound → Sales Agent turn → outbound → receipt loop without
+touching WhatsApp or spending a real model provider budget. It requires its
+own server-issued credentials (see `.env.example` names
+`SANDBOX_INBOUND_TOKEN`, `SANDBOX_DISPATCHER_TOKEN`,
+`SANDBOX_CHANNEL_ACCOUNT_EXTERNAL_ID`) and never claims or delivers
+`whatsapp`-provider rows. See
+`odontoflow-backend/docs/superpowers/handoffs/2026-09-16-sandbox-inbound-01.md`
+and `2026-09-17-chan-02.md` for exactly what it does and does not prove.
+
+### Where to find things
+
+| Need | Read |
+|---|---|
+| Current activity, what's authorized next | `orchestration/current-activity.yaml`, `STATUS.md → Next activity` |
+| Decision history | `CAVELOG.md` (newest row on top) |
+| Technical handoffs (backend) | `odontoflow-backend/docs/superpowers/handoffs/*` |
+| Living briefs (planning) | `docs/handoffs/plans/*.md` |
+| Canonical architecture + diagram | `docs/ARCHITECTURE.md` |
 
 ## Cómo se "desarrolla" este repo
 
