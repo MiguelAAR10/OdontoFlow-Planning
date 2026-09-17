@@ -1,11 +1,12 @@
 # PROJECT-PUBLISH-01 — Documentation-only onboarding refresh
 
 Date: 2026-09-17
-Mode: **documentation only** — no product code, migration, test, AGENTS,
-`.gitignore`, environment, or secret-bearing file was touched; nothing was
-committed or pushed by this activity.
-Status: **DONE (documentation refresh) — publication itself is NOT authorized
-by this document.**
+Mode: **documentation and controlled publication** — no product code,
+migration, test, environment, or secret-bearing file was touched. The
+documentation writer did not commit or push; the coordinator committed and
+published the reviewed planning/backend documentation with normal fast-forward
+pushes.
+Status: **DONE — planning and backend published; frontend intentionally blocked.**
 
 This is the self-contained entry point for anyone picking up publication or
 onboarding work after this pass. It answers what is being built, what works,
@@ -46,12 +47,11 @@ full shape, including the Mermaid diagram, and the vocabulary in
   rejected (`AGENT-CONFIRM-GUARD-01`); agent-driven confirmation is disabled
   entirely until a trusted proposal-bound acceptance mechanism exists
   (`AGENT-CONFIRM-FAIL-CLOSED-03`).
-- Backend `main` is 11 commits ahead of `origin/main`
-  (`14d918dae1c1cf954f0994f9b39841ac2ffe2969` vs
-  `b7f11cef9bac6bbe6eb2a0bd144a541b8032f4bc`), verified fast-forward-safe by
-  the backend audit packet (no secrets introduced by the delta; two
-  pre-existing doc files on `origin/main` already match a `sk-`-like pattern
-  and were not touched).
+- Backend `main` is published at
+  `193d48b49db6cc4cd04e82965adce08061aad715`, containing the 11 local product
+  commits and the scoped onboarding/audit-evidence documentation commits. The
+  remote was verified at that exact SHA after normal fast-forward pushes; no
+  secrets were introduced by the product delta or documentation commits.
 
 ## What is not done (do not read the above as "shipped")
 
@@ -69,11 +69,10 @@ full shape, including the Mermaid diagram, and the vocabulary in
   automatic fallback or a publication-task action.
 - No real clinic data is loaded anywhere; `M5.2` (revenue-leakage baseline)
   is `BLOCKED_EXTERNAL` on that data.
-- **The planning repo itself was FE2-era on `origin/main`** before this pass
-  (see "Frontend and planning publication state" below) — a fresh clone saw
-  none of the 2026-09-07..17 control-plane work. This documentation pass
-  does not publish anything; it only makes the working tree internally
-  consistent for the coordinator/owner to review before any push.
+- **The planning repo was FE2-era on `origin/main` before this pass.** The
+  reviewed control-plane publication is now at
+  `08b12a0b696c827ea1abdc6d2e2fb9e5517ba98b`; unrelated local tooling and WIP
+  remain uncommitted and preserved.
 - The backend `README.md`/`DEVELOPMENT.md` test-count claims (previously
   "384 tests") could not be reconciled: `CHANGELOG.md` says 403 at migration
   `0008`, an untracked GAP document says 492, and STATUS.md's most recent
@@ -134,10 +133,11 @@ paste secret values.
 - Canonical databases `odontoflow`, `odontoflow_test`, `odontoflow_e2e`.
 - **Frontend files are entirely out of scope for this documentation pass** —
   see the publication block below.
-- Secrets, `.env` values, `AGENTS.md` contracts, and the audit packets this
-  activity read from — read-only, never staged or rewritten by a docs pass.
+- Secrets, `.env` values, and unreviewed raw audit artifacts remain outside
+  the publication. The selected sanitized planning discovery packets were
+  reviewed for publication; no packet was rewritten.
 
-## Frontend and planning publication state (do not push without owner review)
+## Frontend and planning publication state
 
 - **Frontend (`odontoflow-frontend`) origin is healthy**: `origin/main` =
   `0dbfa9e6705efb5b1e6553e3841ca204533cdf97`, local `main` is exactly 1 commit
@@ -158,23 +158,15 @@ paste secret values.
   gone). **Canonical remote is `origin` = `MiguelAAR10/odontoflow-frontend`.**
   This is an onboarding hazard: a naive `git push` to the tracked upstream
   will fail; push to `origin` explicitly.
-- **Planning (`odontoflow-planning`) `origin/main` is FE2-era** (2026-09-06,
-  `63274e1d59778d9f96ed9b69ab838a8c34db158b`, equal to local `HEAD` — planning
-  itself is not ahead, but everything from 2026-09-07 through today exists
-  only as uncommitted/untracked files in this working tree: `CAVELOG.md`
-  rows, refreshed `STATUS.md`, this handoff and its siblings under
-  `docs/handoffs/`, `AGENTS.md`, `CONTEXT.md`,
-  `orchestration/{project.yaml,current-activity.yaml}`, `skills/`, etc. A
-  fresh clone sees none of it. Publishing this state is a **coordinator
-  decision** (what to commit, in what shape) and is explicitly **not**
-  performed by this documentation pass.
-- **Backend (`odontoflow-backend`) origin is healthy and fast-forward-safe**:
-  11 local commits ahead of `origin/main`, verified safe to publish as a
-  plain fast-forward (see the backend audit packet for the full commit list
-  and secret-hygiene scan). Two untracked evidence files
-  (`docs/superpowers/evidence/2026-09-17-chan-01-{live-route,sender}.yaml`)
-  each contain one token-like string that was flagged but not inspected —
-  review before tracking them.
+- **Planning (`odontoflow-planning`)** is published at
+  `08b12a0b696c827ea1abdc6d2e2fb9e5517ba98b`. The commit contains the
+  reviewed control-plane refresh, current Reception/Scheduling handoffs and
+  selected sanitized discovery packets; unrelated local tooling and WIP
+  remains uncommitted and preserved.
+- **Backend (`odontoflow-backend`)** is published at
+  `193d48b49db6cc4cd04e82965adce08061aad715`. The two untracked CHAN-01
+  evidence files with token-like strings remain untracked and were not
+  published.
 
 ## Task selection — what to pick up next
 
@@ -201,8 +193,9 @@ and persist it there before any dispatch.
 ## Handoff location and how this fits the protocol
 
 Per `DEVELOPMENT.md`'s living-brief protocol: this file is the canonical,
-self-contained entry point for **PROJECT-PUBLISH-01**. Technical evidence it
-references keeps its existing homes (`odontoflow-backend/docs/superpowers/`,
+self-contained entry point for **PROJECT-PUBLISH-01**. Selected sanitized
+planning evidence was published alongside it; technical evidence it references
+otherwise keeps its existing homes (`odontoflow-backend/docs/superpowers/`,
 `docs/handoffs/discovery/`) and is linked, not copied. When the next activity
 is chosen, open or reuse a living brief under `docs/handoffs/plans/`, record
 the decision as a new top row in `CAVELOG.md`, and update `STATUS.md`'s
@@ -210,14 +203,15 @@ the decision as a new top row in `CAVELOG.md`, and update `STATUS.md`'s
 
 ## Files changed by this activity
 
-Documentation only, within the allowed write surface: `README.md`,
+Documentation plus controlled publication, within the allowed write surface: `README.md`,
 `DEVELOPMENT.md`, `STATUS.md`, `CAVELOG.md`, `HANDOFFS.md`,
 `REPOSITORIES.md`, `orchestration/current-activity.yaml`,
 `docs/ARCHITECTURE.md` (new), this file (new), and
 `odontoflow-backend/README.md` + `odontoflow-backend/DEVELOPMENT.md` (stale
 migration/test/agent-existence claims corrected). No frontend file, code,
-migration, test, `AGENTS.md`, `.gitignore`, environment, or secret-bearing
-file was edited. Nothing was staged, committed, or pushed.
+migration, test, `.gitignore`, environment, or secret-bearing file was edited.
+The reviewed planning commit `08b12a0b` and backend commit `193d48b8` were
+published normally; unrelated dirt was not staged.
 
 ## Uncertainty / things the coordinator should double-check
 

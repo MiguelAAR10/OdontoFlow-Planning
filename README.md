@@ -46,11 +46,12 @@ Start here: [`STATUS.md`](STATUS.md) (verified snapshot) · [`docs/ARCHITECTURE.
 (canonical architecture + diagram) · [`REPOSITORIES.md`](REPOSITORIES.md) ·
 [`HANDOFFS.md`](HANDOFFS.md) · [`CAVELOG.md`](CAVELOG.md).
 
-**Publication status (2026-09-17):** backend is fast-forward-safe to publish
-(11 commits ahead of `origin/main`); the frontend has one unauthorized local
-commit blocking publication; planning's own `origin/main` is several weeks
-behind this working tree. None of the three were published by the
-documentation refresh below. Full detail:
+**Publication status (2026-09-17):** planning documentation is published at
+`08b12a0b696c827ea1abdc6d2e2fb9e5517ba98b` and backend `main` is published at
+`193d48b49db6cc4cd04e82965adce08061aad715`, including its 11 local product
+commits plus the scoped onboarding and audit-evidence commits. The frontend has one unauthorized
+local commit blocking publication; its canonical `origin/main` remains
+`0dbfa9e6705efb5b1e6553e3841ca204533cdf97`. Full detail:
 [`docs/handoffs/plans/2026-09-17-project-publish-01.md`](docs/handoffs/plans/2026-09-17-project-publish-01.md).
 
 ## Roadmap

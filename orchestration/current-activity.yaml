@@ -14,7 +14,7 @@ source:
 
 activity_id: PROJECT-PUBLISH-01
 title: "PROJECT-PUBLISH-01 — documentation-only onboarding refresh"
-status: DONE — documentation refreshed; publication itself NOT performed
+status: DONE — documentation refreshed and selected planning/backend commits published; frontend intentionally blocked
 started_at: "2026-09-17"
 paused_at: null
 
@@ -34,7 +34,8 @@ scope:
       or secret-bearing file
     - any frontend file (frontend publication is explicitly blocked; see the
       handoff)
-    - committing, pushing, or staging the audit packets themselves
+    - staging unreviewed raw audit packets; the reviewed planning evidence
+      packets selected for this publication are durable documentation
     - authorizing CORE-01, CHAN-03, or any other implementation activity
 
 protected_surfaces:
@@ -62,9 +63,15 @@ acceptance:
 verification:
   focused_tests: N/A — documentation only, no code changed
   typecheck: N/A
-  diff_check: PENDING — coordinator review before any commit
+  diff_check: PASS — reviewed before commit
   browser: N/A
   handoff: docs/handoffs/plans/2026-09-17-project-publish-01.md
+  published:
+    planning: 08b12a0b696c827ea1abdc6d2e2fb9e5517ba98b
+    backend: 193d48b49db6cc4cd04e82965adce08061aad715
+    frontend: BLOCKED — a788df5 remains local-only pending integration-lead approval
+    voice: 70ee066511baa0452246fc3b2107938c5db0126b — no action required
+    sim: 19275c81fabb59bc36573887e423dfe84462f0b5 — no action required
 
 history:
   - activity_id: MVP-01-deployable-authenticated-agent-chain

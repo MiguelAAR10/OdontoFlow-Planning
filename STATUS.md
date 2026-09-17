@@ -30,9 +30,10 @@ for the DONE contract. No next implementation activity is authorized — see
 Corrected stale HEADs/next-activity pointers below, added
 `docs/ARCHITECTURE.md`, and wrote the self-contained
 [`docs/handoffs/plans/2026-09-17-project-publish-01.md`](docs/handoffs/plans/2026-09-17-project-publish-01.md).
-Publication itself (committing/pushing this working tree, or the backend's
-11 ahead-of-origin commits, or the frontend's blocked FE3A commit) is **not**
-performed by this activity — that is a coordinator/owner decision.
+Planning is published at `08b12a0b696c827ea1abdc6d2e2fb9e5517ba98b` and the
+backend is published at `193d48b49db6cc4cd04e82965adce08061aad715` after
+normal fast-forward verification. The frontend's FE3A commit remains blocked
+for publication pending its integration-lead gate.
 
 ## SANDBOX-REAL-MODEL-01 — INITIAL BLOCKER / PROVIDER BOUNDARY SUPERSEDED (2026-09-16)
 
@@ -303,7 +304,7 @@ above. See the
 - **FRONTEND_REMOTE (upstream/reference, dead):** `https://github.com/leonardopanduro-rgb/ODONTO-SMART-FRONT.git` — unreachable as of 2026-09-17 (GitHub 404); local `leonardo/main` ref is stale.
 - **FRONTEND_TESTS:** not re-verified by this pass; see the frontend audit packet (`.audit/project-publish-01-frontend.yaml`) for the dirty-worktree file list.
 - **VOICE_HEAD / SIM_HEAD:** not re-verified by this pass (frozen, untouched siblings per `orchestration/current-activity.yaml`); last verified values (`4149a3e`, `da203a9`) are historical, see prior snapshot below.
-- **PLANNING_HEAD:** `63274e1d59778d9f96ed9b69ab838a8c34db158b`, equal to `origin/main` (planning itself is not ahead) — but everything from 2026-09-07 onward, including this refresh, exists only as uncommitted/untracked files in this working tree. A fresh clone of `OdontoFlow-Planning` sees none of it; publishing this state is a coordinator decision, not performed here.
+- **PLANNING_HEAD:** publication chain starts at `08b12a0b696c827ea1abdc6d2e2fb9e5517ba98b`; the final remote head was re-verified after this handoff update. Unrelated local tooling and WIP remains uncommitted and preserved.
 - **Legacy (medistock):** `ef2fffb` (`main`, synced) — READ ONLY, outside workspace, not re-verified this pass.
 
 The W4 backend commits are clean and synced with `origin/main`; its worktree

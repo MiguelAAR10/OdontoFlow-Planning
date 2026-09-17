@@ -143,4 +143,4 @@ this gap is recorded explicitly and superseded by directory listings:
 
 | Date | Handoff | Topic |
 |---|---|---|
-| 09-17 | **2026-09-17-project-publish-01** | **Canonical living brief** — documentation-only onboarding refresh: corrected stale HEADs/next-activity pointers, added `docs/ARCHITECTURE.md`, and recorded the frontend publication block. Publication itself not performed (`docs/handoffs/plans/2026-09-17-project-publish-01.md`). |
+| 09-17 | **2026-09-17-project-publish-01** | **Canonical living brief** — onboarding refresh published to planning `08b12a0b` and backend `193d48b8`; added `docs/ARCHITECTURE.md`, corrected stale pointers, and recorded the frontend publication block (`docs/handoffs/plans/2026-09-17-project-publish-01.md`). |
