@@ -1,16 +1,13 @@
-# Single current activity for a fresh coordinator. Replaces the stale
-# MVP-01-deployable-authenticated-agent-chain pointer (last_verified
-# 2026-09-16), which never reflected the 2026-09-15..17 AIRYTHM reality-audit
-# chain (CHAN-01, CHAN-02, RECEPTION-CORE-CLOSEOUT-01). This activity is a
-# documentation-only publication/onboarding refresh; it authorizes no
-# implementation work.
+# Single current activity for a fresh coordinator. CORE-01 implementation is
+# AUTHORIZED by the owner (2026-09-17). PROJECT-PUBLISH-01 completed and moved
+# to history; it was not overwritten and nothing else was advanced.
 last_verified: 2026-09-17
 authority: Repo 0 (planning)
 source:
-  - ../odontoflow-backend/docs/superpowers/evidence/2026-09-17-project-publish-01-backend.yaml
-  - ../odontoflow-frontend/.audit/project-publish-01-frontend.yaml
-  - docs/handoffs/discovery/2026-09-17-project-publish-01-planning.yaml
-  - docs/handoffs/plans/2026-09-17-reception-core-closeout-01.yaml
+  - docs/handoffs/plans/2026-09-17-reception-core-closeout-01.yaml   # SPEC / Activity Card
+  - docs/handoffs/plans/2026-09-17-core-01-validation.md             # validation, reused
+  - docs/handoffs/discovery/2026-09-17-core-01-contract-amendment-decision.md
+  - docs/handoffs/plans/2026-09-17-harness-entry-point-repair.md
 
 # Lifecycle contract (added 2026-09-17 by the harness entry-point repair).
 # `lifecycle_state` is the ONE enumerated field the entry point branches on.
@@ -33,135 +30,357 @@ lifecycle_contract:
        effective state is BLOCKED_OWNER_DECISION"
     - "a SubCard is dispatchable only when every dependency is done and no
        in-flight SubCard claims an overlapping write_ownership path"
-    - "`advance_automatically: false` is in force for every state"
+    - "`advance_automatically: false` is in force for every state — it forbids
+       starting a DIFFERENT Activity Card, never the completion of this one's
+       authorized SubCards"
 
-activity_id: PROJECT-PUBLISH-01
-title: "PROJECT-PUBLISH-01 — documentation-only onboarding refresh"
+activity_id: CORE-01
+title: "CORE-01 — human proposal list/read/confirm/decline"
 lifecycle_state: DONE
-implementation_authorized: false
-validation:
-  result: N/A — documentation only
-  report: null
-status: DONE — documentation refreshed and selected planning/backend commits published; frontend intentionally blocked
+implementation_authorized: true
+authorized_by: owner
+authorized_at: "2026-09-17"
 started_at: "2026-09-17"
 paused_at: null
+status: >
+  DONE — implemented, verified and committed as backend 22d6dff (not pushed).
+  All five SubCards complete; 583 passed. Product DONE, not merely validation PASS.
 
-repo: odontoflow-planning
-mode: documentation_only
+repo: odontoflow-backend
+mode: implementation
+skill_lane: backend + sales-agent
+
+validation:
+  result: PASS with bounded contract amendments
+  report: docs/handoffs/plans/2026-09-17-core-01-validation.md
+  amendment_evidence: docs/handoffs/discovery/2026-09-17-core-01-contract-amendment-decision.md
+  reusable: true
+  revalidated_at: "2026-09-17"
+  revalidation_basis: >
+    Backend HEAD 8fcd9e1 adds only CLAUDE.md on top of c92b558. Every file in the
+    write surface is unchanged since 2026-09-06/16, i.e. before the validation was
+    written, so no evidence was invalidated and nothing was reinspected. A second
+    validation report is forbidden by the lifecycle contract.
+
+spec: docs/handoffs/plans/2026-09-17-reception-core-closeout-01.yaml   # activities.CORE_BUSINESS[CORE-01]
+business_outcome: >
+  Staff can see the proposal produced by AIRY and turn exactly one into exactly
+  one appointment, or decline it.
+
+write_surface:
+  - app/scheduling/router.py
+  - app/scheduling/schemas.py
+  - app/scheduling/service.py
+  - app/agent_tools/booking.py
+  - docs/api/openapi.yaml
+  - docs/api/openapi.json
+  - tests/test_appointment_proposals.py
+
+# The seven amendments are the authorized contract; they are not re-decidable
+# here. Source: the contract-amendment decision, section "Minimum amendment set".
+authorized_contract:
+  - "decline = status `expired` + audit action `appointment_proposal.declined`; idempotent; refuses a confirmed proposal; conversation returns to open"
+  - "gate new confirm/decline routes on `ctx.principal_type == 'human'` (allow-list, not `!= 'agent'`)"
+  - "apply `_require_later_inbound_message` only when `ctx.principal_type != 'human'`"
+  - "move agent refusal ahead of the confirmed-replay branch, extracted as `require_human_confirmation(ctx)` for AGENT-03 to reuse"
+  - "pass `location_id=proposal.location_id` to `require_permission` in confirm"
+  - "require canonical UUIDv4 `Idempotency-Key` on confirm and decline via the existing `require_uuid4_idempotency_key`"
+  - "regenerate docs/api/openapi.{yaml,json}; add tests/test_appointment_proposals.py covering the six DoD cases"
+
+subcards:
+  - id: CORE-01-A
+    outcome: "Failing focused tests and DTO contracts express the authorized behaviour before any runtime change."
+    dependencies: []
+    interfaces: "proposal list/read/confirm/decline DTOs in app/scheduling/schemas.py"
+    write_ownership: [tests/test_appointment_proposals.py, app/scheduling/schemas.py]
+    evidence: docs/handoffs/plans/2026-09-17-core-01-validation.md  # TEST_PLAN table
+    acceptance: "new tests exist and FAIL for the right reason (missing routes/commands), against real PostgreSQL"
+    model_class: capable
+    status: done
+    completed_at: "2026-09-18"
+    evidence_actual: "12 tests; -x -q -> 1 failed / 2 warnings / 2.75s; 404 on GET /scheduling/appointment-proposals; schemas.py DTOs from attempt 1"
+    open_caveat: "4 of 12 pass incidentally against a missing route; must be tightened in SubCard B"
+  - id: CORE-01-B
+    outcome: "Canonical service/command/API implementation makes those tests pass."
+    dependencies: [CORE-01-A]
+    interfaces: "tenant-scoped REST proposal routes; require_human_confirmation(ctx); atomic decline"
+    write_ownership: [app/scheduling/router.py, app/agent_tools/booking.py, app/scheduling/service.py]
+    evidence: docs/handoffs/discovery/2026-09-17-core-01-contract-amendment-decision.md
+    acceptance: "all seven authorized_contract items implemented; _book_appointment_core remains the only booking authority; focused suite green"
+    model_class: capable
+    status: done
+    completed_at: "2026-09-18"
+    dispatch: ctx_be6565fa221f (same writer/terminal as CORE-01-A — one writer throughout)
+    evidence_actual: "python -m pytest tests/test_appointment_proposals.py -q -> 12 passed"
+    files: [app/agent_tools/booking.py, app/scheduling/router.py, tests/test_appointment_proposals.py]
+    coordinator_verified:
+      - "protected surfaces untouched: alembic/, errors.py, db.py, availability.py, catalog/schemas.py, reception.py, app/__init__.py, conftest.py, service.py all clean"
+      - "_book_appointment_core: 1 definition (service.py:326), 2 callers (booking.py:354 proposal path, service.py:450 direct path) — reused, not duplicated"
+      - "no Appointment() construction added outside service.py — no second booking engine"
+      - "auth scoped to the 4 NEW routes only (router.py lines 375/387/399/434 of 11 total routes); the 7 pre-existing scheduling routes untouched"
+      - "no 'declined' status value and no migration; decline sets status='expired' + audit PROPOSAL_DECLINED_ACTION='appointment_proposal.declined'"
+      - "confirm guard order verified: locked lookup -> require_permission(location_id) -> require_human_confirmation -> status guard -> human-scoped later-inbound -> _book_appointment_core"
+      - "4 incidental passes genuinely tightened (404+NOT_FOUND, 403, 422+INVALID_INPUT, 409+SLOT_BLOCKED); zero weakened assertion patterns remain"
+    deviations_accepted_by_coordinator:
+      - deviation: "removed the old 'already-confirmed -> silently return existing appointment' shortcut, folded into the generic status != pending -> INVALID_INPUT guard"
+        why_accepted: >
+          Required for exactly-one-winner under concurrent confirm. Same-key replay
+          is settled by run_idempotent_command BEFORE this function is entered, so
+          replay never reaches the removed branch — verified in the guard ordering
+          and by test_same_key_confirm_replay (200/200, no second appointment).
+          Regression risk is on the agent path; SubCard C must run
+          test_agent_booking_phase4.py and test_reception_agent_phase5.py.
+      - deviation: "added Depends(require_authenticated_context) to the 4 new routes"
+        why_accepted: >
+          SECURITY FINDING, pre-existing and NOT caused by CORE-01: scheduling_router
+          was never wired through require_authenticated_context in app/__init__.py
+          (only agent_tools_router and messaging_router are), so every pre-existing
+          scheduling route ignores bearer tokens entirely. The writer correctly did
+          NOT widen the fix router-wide — that seam is CORE-02 — and guarded only the
+          4 new routes. Escalated to the owner as a finding; CORE-01 does not close it.
+      - deviation: "fixed a SubCard-A fixture bug: seeded proposals used 2026-09-01 (Tuesday) against a Monday-only availability rule, causing false SLOT_BLOCKED on intended-success paths; changed to 2026-08-31 (Monday)"
+        why_accepted: "test-data correctness, not an assertion change; verified no weakened assertions remain"
+  - id: CORE-01-C
+    outcome: "OpenAPI regenerated from the app factory and the full serial suite is green."
+    dependencies: [CORE-01-B]
+    interfaces: "docs/api/openapi.{yaml,json}"
+    write_ownership: [docs/api/openapi.yaml, docs/api/openapi.json]
+    evidence: "repository's own generation process; FAIL-CLOSED-03 baseline was 529 passed"
+    acceptance: "OpenAPI regenerated, not hand-edited; one serial full real-PostgreSQL suite green; no concurrent pytest"
+    model_class: capable
+    status: done
+    completed_at: "2026-09-18"
+    dispatch: ctx_dedae9ec03f4 (same writer/terminal — one writer across A, B, C)
+    evidence_actual:
+      openapi: "48 -> 52 paths via .venv/bin/python scripts/generate_openapi.py; all 4 routes present; diff purely additive (1522 insertions, 0 deletions) so no existing contract changed"
+      regression: "python -m pytest tests/test_agent_booking_phase4.py tests/test_reception_agent_phase5.py -q -> 16 passed"
+      full_suite: "python -m pytest -q -> 582 passed, 21 warnings (570 baseline + 12), zero failures"
+    defects_found_and_repaired_by_writer:
+      - "a stray SubCard-B edit deleted the POST /appointments/{id}/reschedule decorator, silently unregistering the route. Restored. Coordinator independently confirmed via before/after route inventory that all 8 pre-existing scheduling routes are intact."
+      - "Depends(require_authenticated_context) made FastAPI auto-declare an OpenAPI security requirement on the new operations, violating test_security_boundary.py's contract that only /internal/ and /agent-tools/ operations may declare security. Fixed by calling require_authenticated_context directly (_authenticate_reviewer) so no security metadata is emitted. Coordinator verified enforcement is unchanged: _authenticate_reviewer(request) is the FIRST statement in all 4 route bodies and _require_human_reviewer(ctx) runs before run_idempotent_command."
+
+  - id: CORE-01-D
+    outcome: "Close the coordinator-found coverage gap: no test asserted unauthenticated refusal on the 4 new routes."
+    dependencies: [CORE-01-C]
+    interfaces: "tests/test_appointment_proposals.py only"
+    write_ownership: [tests/test_appointment_proposals.py]
+    evidence: "coordinator review: amendment 2's invariant was asserted by no test"
+    acceptance: "all 4 routes proven to refuse an anonymous caller, with no side effects"
+    model_class: capable
+    status: done
+    completed_at: "2026-09-18"
+    dispatch: ctx_17513a27758f
+    evidence_actual: >
+      test_unauthenticated_caller_is_refused_on_all_proposal_routes added.
+      All 4 routes return 401 AUTHENTICATION_REQUIRED to an anonymous caller,
+      discovered empirically from app/iam/credentials.authenticate() rather than
+      assumed; zero appointments created and proposal status unchanged as a side
+      effect. python -m pytest tests/test_appointment_proposals.py -q -> 13 passed.
+      DEFECT: none — amendment 2 is genuinely enforced.
+
+  - id: CORE-01-E
+    outcome: "Authoritative full-suite number matching the final 13-test tree."
+    dependencies: [CORE-01-D]
+    interfaces: none
+    write_ownership: []
+    evidence: "the 582 figure predates the 13th test; re-run so the recorded number is not stale"
+    acceptance: "one serial full real-PostgreSQL run; expected 583"
+    model_class: cheap
+    status: done
+    completed_at: "2026-09-18"
+    dispatch: ctx_5cf459385488
+    evidence_actual: "python -m pytest -q -> 583 passed, 21 warnings in 580.93s (0:09:40); 570 baseline + 13; zero failures"
+
+# Write surfaces overlap across every SubCard, so they run in sequence with the
+# SAME writer. max_parallel_writers: 1.
+execution:
+  writer_model: "claude sonnet (verified accessible on this host 2026-09-17: `claude -p --model sonnet` -> SONNET_OK)"
+  writer_agent: claude
+  max_parallel_writers: 1
+  worktree: existing odontoflow-backend main checkout (no new worktree; isolation not required)
+  coordinator: Claude Opus 5 (this session) — owns activity state, dependencies, integration, handoff; writes no product code
+
+protected_surfaces:
+  - odontoflow-frontend/** (unauthorized local commit a788df5, 19 dirty tracked files — do not touch)
+  - ../odontoflow-backend/alembic/versions/** (NO new migration is authorized)
+  - ../odontoflow-backend/app/errors.py, app/db.py, app/scheduling/availability.py, app/catalog/schemas.py
+  - ../odontoflow-backend/app/agent_tools/reception.py (cancel/reschedule parity is AGENT-03)
+  - canonical databases odontoflow, odontoflow_test, odontoflow_e2e
+  - pre-existing dirty/untracked work in both repos (backend AGENTS.md, .gitignore, .agents/**, .claude/**)
+  - odontoflow-sim, odontoflow-voice (frozen)
 
 scope:
   in:
-    - refresh README/DEVELOPMENT/STATUS/CAVELOG/HANDOFFS/REPOSITORIES and this
-      file with verified facts from the three read-only audit packets
-    - add docs/ARCHITECTURE.md and the self-contained planning handoff
-      docs/handoffs/plans/2026-09-17-project-publish-01.md
-    - correct stale migration/test/agent-existence claims in
-      odontoflow-backend/README.md and odontoflow-backend/DEVELOPMENT.md
+    - the seven authorized_contract amendments, inside write_surface only
+    - focused real-PostgreSQL tests, then one serial full suite
+    - OpenAPI regeneration through the repository's own process
   out:
-    - any product code, migration, test, AGENTS.md, .gitignore, environment,
-      or secret-bearing file
-    - any frontend file (frontend publication is explicitly blocked; see the
-      handoff)
-    - staging unreviewed raw audit packets; the reviewed planning evidence
-      packets selected for this publication are durable documentation
-    - authorizing CORE-01, CHAN-03, or any other implementation activity
-
-protected_surfaces:
-  - odontoflow-frontend/** (canonical origin healthy, but the local FE3A
-    commit a788df5 is unauthorized and the worktree is dirty — do not touch)
-  - ../odontoflow-backend/alembic/versions/**, app/errors.py, app/db.py,
-    app/scheduling/availability.py
-  - canonical databases: odontoflow, odontoflow_test, odontoflow_e2e
-  - the audit packets listed under `source` above (read, never rewritten)
+    - any alembic migration, including a `declined` status value
+    - a second booking engine, consent classifier, or agent booking capability
+    - CORE-02's ERP_ANONYMOUS_COMPAT closure; CORE-03 setup idempotency; AGENT-03 parity
+    - frontend, n8n, WhatsApp, provider configuration, deployment, production writes
+    - broad refactors, including the app/agent_tools vs app/scheduling layering compromise
 
 acceptance:
   observable_outcome: >
-    A fresh reader of odontoflow-planning (plus the two linked backend docs)
-    can find accurate repository heads, a correct architecture explanation
-    with one Mermaid diagram, a working first-day setup, and a single
-    self-contained handoff that states what works, what does not, and that
-    the next implementation activity is owner-decision-required.
+    An authenticated, tenant-scoped human can list and read AIRY's pending
+    proposals and turn exactly one into exactly one appointment, or decline it —
+    with agents refused before replay or mutation, safe idempotent replay,
+    serialized concurrent confirmation, fail-closed expiry, and transactionally
+    consistent proposal/receipt/audit outcomes.
   required_checks:
-    - docs/ARCHITECTURE.md exists with the Reception/Scheduling v1 flow and
-      one Mermaid diagram
-    - docs/handoffs/plans/2026-09-17-project-publish-01.md is self-contained
-    - this file no longer points at MVP-01 or implies any activity is
-      authorized to start
+    - authorized proposal list/read; cross-tenant and cross-location denial
+    - human confirm creates exactly one appointment; human decline creates none
+    - agent refusal precedes the confirmed-replay branch
+    - same-key replay returns the same outcome without a second appointment or audit
+    - concurrent confirms yield exactly one winner
+    - expired and slot-conflicting proposals fail closed
+    - decline sets `expired` and records `appointment_proposal.declined`; repeat is idempotent
+    - existing direct-booking and Sales Agent tests stay green
+    - OpenAPI regenerated; one serial full PostgreSQL suite green
 
 verification:
-  focused_tests: N/A — documentation only, no code changed
-  typecheck: N/A
-  diff_check: PASS — reviewed before commit
-  browser: N/A
-  handoff: docs/handoffs/plans/2026-09-17-project-publish-01.md
-  published:
-    planning: 08b12a0b696c827ea1abdc6d2e2fb9e5517ba98b
-    backend: 193d48b49db6cc4cd04e82965adce08061aad715
-    frontend: BLOCKED — a788df5 remains local-only pending integration-lead approval
-    voice: 70ee066511baa0452246fc3b2107938c5db0126b — no action required
-    sim: 19275c81fabb59bc36573887e423dfe84462f0b5 — no action required
+  focused_tests: "13 passed (tests/test_appointment_proposals.py); 16 passed (agent regression suites)"
+  full_suite: "583 passed, 21 warnings in 580.93s — 570 baseline + 13, zero failures"
+  openapi: "regenerated via .venv/bin/python scripts/generate_openapi.py; 48 -> 52 paths; purely additive"
+  commit: "backend 22d6dff — 6 files, +2509/-42, NOT pushed (origin/main still 193d48b, branch 3 ahead)"
+  handoff: docs/handoffs/plans/2026-09-17-core-01-implementation.md
+
+orchestration:
+  run: run_1514e1bd8481
+  task: task_3811c2521490
+  dispatch: ctx_caf2cc7fe68f
+  agent_terminal: term_2ff7fef1-018b-4c73-b8ae-35adf963a840
+  worktree: reused existing odontoflow-backend main checkout (no new worktree created)
+  agent: claude
+  model: sonnet
+  dispatched_at: "2026-09-17"
+  attempts:
+    - dispatch: ctx_caf2cc7fe68f
+      model: sonnet
+      effort: default (host effortLevel=high)
+      scope: all three SubCards in one dispatch
+      outcome: FAILED — stopped mid-task (NOT dead; see correction)
+      evidence: >
+        Terminal reported `Billowing... (11h 24m 52s - thinking more with high
+        effort)` in a single un-ended model turn. Last completed action was
+        reading tests/test_rescheduling.py; app/scheduling/schemas.py was last
+        written 2026-09-17T21:54:35 and nothing changed in the following ~11.3h.
+        Stopped (stop_unknown), abandoned, terminal retained as
+        `identity_unproven` — Orca could not prove process ownership, so no
+        process was killed. The idle claude TUI in that terminal is fenced from
+        orchestration but was left running; it holds no lock on any file.
+      diagnosis: >
+        Oversized single dispatch (all three SubCards, dense ~60-line spec) with
+        no named fixture anchors, combined with the host's global
+        effortLevel=high, sent the writer into unbounded exploration of the test
+        suite. Not a contract problem and not a model-capability problem.
+      correction_to_the_above: >
+        The coordinator initially judged this worker "hung". That was wrong. The
+        11h24m single turn was real, but the worker was ALIVE: after
+        `worker-stop` interrupted the turn it resumed, moved to phase
+        `implementing`, and kept writing SubCard A. It was still working when
+        its capability was revoked.
+      ONE_WRITER_VIOLATION: >
+        COORDINATOR ERROR. Dispatching ctx_fab77f956f9e while ctx_caf2cc7fe68f
+        was still alive put TWO writers on the same write surface
+        (tests/test_appointment_proposals.py), violating max_parallel_writers: 1
+        and the harness anti-pattern "Overlapping writers". The old worker
+        detected it and escalated correctly:
+        "another peer session has since overwritten
+        tests/test_appointment_proposals.py with a different draft ... risks a
+        two-writer conflict on the same write surface. Stopping now."
+        Orca had already revoked its capability, so that escalation was
+        delivered as a `Rejected escalation` and the worker stopped writing.
+      damage_assessment: >
+        NO corruption. Verified after the fact: schemas.py mtime 2026-09-17
+        21:54:35 (attempt 1's work, untouched by attempt 2 which reported not
+        touching it); tests/test_appointment_proposals.py mtime 2026-09-18
+        09:17:42, a complete 575-line overwrite by attempt 2 with 12 unique
+        test functions, no duplicates, no merge-conflict markers, no truncation,
+        parses clean. Both surfaces are cleanly attributable. The window was
+        closed by capability revocation, not by luck of timing alone, but the
+        violation was real and is recorded rather than smoothed over.
+      residual_resource: >
+        Attempt 1's terminal term_2ff7fef1-018b-4c73-b8ae-35adf963a840 is still
+        RUNNING and live at an idle prompt. `worker-release` returned
+        state=retained reason=identity_unproven processAction=none — Orca
+        declines to reclaim a process it cannot prove it owns, and the
+        coordinator did not force-kill it outside the lifecycle mechanism. It is
+        fenced: dispatch capability revoked, orchestration cannot feed it, and it
+        acts only on typed input. Owner can close it from the Orca UI.
+      salvaged: >
+        app/scheduling/schemas.py (+44 lines: AppointmentProposalRead /
+        Confirm / Decline) is valid, additive, convention-consistent, and
+        PRESERVED. It is genuine CORE-01-A output; the retry builds on it.
+    - dispatch: ctx_fab77f956f9e
+      task: task_859fe9f79300
+      model: sonnet
+      effort: medium (explicit, to avoid the unbounded deep-think of attempt 1)
+      scope: CORE-01-A ONLY — write tests/test_appointment_proposals.py
+      corrections_applied:
+        - narrowed from three SubCards to one deliverable
+        - named the exact fixture files to copy (test_agent_booking_phase4.py,
+          test_reception_agent_phase5.py, conftest.py) and capped exploration
+        - listed the 12 test cases and the 4 route shapes explicitly
+        - pinned --effort medium rather than inheriting host effortLevel=high
+      outcome: SUCCEEDED — SubCard A complete
+      worker_done: >
+        tests/test_appointment_proposals.py, 12 tests, real PostgreSQL fixtures
+        copied from test_agent_booking_phase4.py / test_reception_agent_phase5.py.
+        `python -m pytest tests/test_appointment_proposals.py -x -q` ->
+        1 failed, 2 warnings in 2.75s, failing on
+        test_human_lists_own_tenant_proposals_only with 404 on
+        GET /scheduling/appointment-proposals — red for the right reason.
+      writer_reported_caveat: >
+        A full non-`-x` run shows 8/12 explicit failures plus 4 INCIDENTAL
+        passes: those four assert a not-200/expects-error shape, which a 404
+        satisfies, so they do not yet exercise real route logic. Carried into
+        SubCard B as a required tightening step — they must assert the specific
+        status and error envelope once the routes exist, or CORE-01's acceptance
+        is weaker than the contract requires.
+  reproducibility_limitation: >
+    The writer's repository-local skills resolve through odontoflow-backend/.claude/skills
+    -> .agents/skills, and BOTH directories are untracked in git; only
+    odontoflow-engineering resolves to a tracked file (planning skills/odontoflow-engineering/SKILL.md).
+    backend AGENTS.md is also dirty (+7 lines uncommitted). The worker therefore loads a skill
+    set that a fresh clone would not reproduce. Preserved as-is and reported; no cleanup performed.
+
+handoff_target: docs/handoffs/plans/2026-09-17-core-01-implementation.md
+advance_automatically: false
+next: >
+  OWNER-DECISION-REQUIRED. CORE-01 is complete and authorizes nothing further.
+  CORE-02 (close the ERP_ANONYMOUS_COMPAT seam) is now dependency-ready since
+  CORE-01 was its only listed dependency, but ready-by-ordering is not approval.
+  AGENT-02, AGENT-03, CHAN-03, CHAN-04 likewise. The owner must choose one,
+  persist it here with implementation_authorized: true, and only then dispatch.
 
 history:
+  - activity_id: PROJECT-PUBLISH-01
+    status: DONE — documentation refreshed and selected planning/backend commits
+      published; frontend publication intentionally blocked
+    lifecycle_state: DONE
+    handoff: docs/handoffs/plans/2026-09-17-project-publish-01.md
+    published:
+      planning: 08b12a0b696c827ea1abdc6d2e2fb9e5517ba98b
+      backend: 193d48b49db6cc4cd04e82965adce08061aad715
+      frontend: BLOCKED — a788df5 remains local-only pending integration-lead approval
+  - activity_id: HARNESS-ENTRY-01
+    status: DONE — planning entry point repaired; 42/42 scenario proofs; planning
+      33a6759, backend 8fcd9e1, neither pushed
+    lifecycle_state: DONE
+    handoff: docs/handoffs/plans/2026-09-17-harness-entry-point-repair.md
   - activity_id: MVP-01-deployable-authenticated-agent-chain
-    status: NOT_STARTED — superseded as the "current" pointer by this entry;
-      not cancelled, not resumed. Its scope (agent image build, WF-01 against
-      a live n8n, outbound dispatcher worker, provider key) remains real
-      unfinished work, now reachable only via the dependency-ordering notes
-      in RECEPTION-CORE-CLOSEOUT-01's plan, not as a standing "next" pointer.
+    status: NOT_STARTED — superseded as the "current" pointer; not cancelled, not
+      resumed. Its scope (agent image build, WF-01 against a live n8n, outbound
+      dispatcher worker, provider key) remains real unfinished work, reachable via
+      the dependency-ordering notes in RECEPTION-CORE-CLOSEOUT-01's plan.
     handoff: docs/handoffs/plans/2026-09-15-airy-reality-01-lead-to-appointment.md
   - activity_id: RECEPTION-CORE-CLOSEOUT-01
-    status: PLANNED, NOT_DONE_planning_only — component remains open; no
-      implementation dispatched by that activity or this one
+    status: PLANNED, NOT_DONE_planning_only — component remains open; CORE-01 is
+      the first of its activities to be authorized for implementation
     handoff: docs/handoffs/plans/2026-09-17-reception-core-closeout-01.md
   - activity_id: FE3A-S1-checkout-salvage
     status: paused at explicit owner stop (2026-09-06); its one local commit
-      (a788df5) remains blocked for publication — see the PROJECT-PUBLISH-01
-      handoff's "Frontend and planning publication state" section
+      (a788df5) remains blocked for publication
     handoff: docs/handoffs/plans/2026-09-06-fe3a-s1-checkout-salvage.md
-
-handoff_target: docs/handoffs/plans/2026-09-17-project-publish-01.md
-advance_automatically: false
-
-# Registered, NOT authorized. Recorded 2026-09-17 by the harness entry-point
-# repair so the control plane stops being blind to work that already happened.
-# Flipping implementation_authorized to true is the OWNER's action; doing so
-# and copying this block over the activity fields above is what moves the
-# entry point from BLOCKED_OWNER_DECISION to READY_TO_BUILD. Nothing here
-# starts on its own.
-next_activity_candidate:
-  activity_id: CORE-01
-  title: "CORE-01 — human proposal list/read/confirm/decline"
-  lifecycle_state: BLOCKED_OWNER_DECISION
-  implementation_authorized: false
-  would_become: READY_TO_BUILD
-  spec: docs/handoffs/plans/2026-09-17-reception-core-closeout-01.yaml   # activities.CORE_BUSINESS[CORE-01]
-  validation:
-    result: PASS with bounded contract amendments
-    report: docs/handoffs/plans/2026-09-17-core-01-validation.md
-    amendment_evidence: docs/handoffs/discovery/2026-09-17-core-01-contract-amendment-decision.md
-    reuse: >
-      This validation is current and sufficient. An authorized CORE-01
-      implementation session must NOT re-run it or write a second validation
-      report; it implements against this one.
-  repo: odontoflow-backend
-  skill_lane: backend + sales-agent
-  write_surface:
-    - app/scheduling/router.py
-    - app/scheduling/schemas.py
-    - app/scheduling/service.py
-    - app/agent_tools/booking.py
-    - docs/api/openapi.yaml
-    - docs/api/openapi.json
-    - tests/test_appointment_proposals.py
-  recommended_worker_class: backend_domain_engineer
-  owner_decision_required: >
-    Authorize CORE-01 implementation (yes/no). The product contract is approved
-    and validated; only the dispatch authorization is missing.
-next: >
-  OWNER-DECISION-REQUIRED. No artifact in this repository selects the next
-  implementation activity. RECEPTION-CORE-CLOSEOUT-01's plan lists
-  dependency-free candidates (CORE-01, AGENT-02, AGENT-03, CHAN-03, CHAN-04)
-  as ready by ordering, not as approved. The coordinator/owner must explicitly
-  choose one, persist it here, and only then dispatch. This activity
-  authorizes none of them. Frontend publication of a788df5 is likewise an
-  explicit owner/integration-lead decision, not made here.

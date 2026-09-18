@@ -15,7 +15,7 @@ from pathlib import Path
 import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from route import DEFAULT_STATE, REPO_ROOT, route  # noqa: E402
+from route import DEFAULT_STATE, REPO_ROOT, ROUTES, route  # noqa: E402
 
 FAILURES: list[str] = []
 PASSES: list[str] = []
@@ -220,15 +220,26 @@ def live_state() -> None:
     s = "LIVE current-activity.yaml"
     activity = yaml.safe_load(DEFAULT_STATE.read_text())
     d = route(activity)
-    check(s, "the live control plane parses and routes",
-          d["effective_state"] in ("DONE", "BLOCKED_OWNER_DECISION"))
-    check(s, "it starts nothing on its own", "dispatch" not in d)
-    check(s, "it surfaces the pending CORE-01 owner decision",
-          d.get("owner_decision", {}).get("activity_id") == "CORE-01")
+    # Assert invariants that hold in EVERY state, not the snapshot of the day.
+    check(s, "the live control plane parses and routes to a known state",
+          d["effective_state"] in ROUTES)
     check(s, "the lifecycle contract is present in the canonical file",
           "lifecycle_contract" in activity)
     check(s, "the planning entry point Claude Code actually loads exists",
           (REPO_ROOT / "CLAUDE.md").is_file())
+
+    if d["effective_state"] in ("READY_TO_BUILD", "IN_PROGRESS", "KNOWN_FIX"):
+        # Dispatching states must be owner-authorized and land somewhere real.
+        check(s, "a dispatching live state is owner-authorized",
+              activity.get("implementation_authorized") is True)
+        check(s, "the live dispatch target loads its own instructions",
+              d["dispatch"]["loads_instructions"] is True)
+        check(s, "the live card never auto-starts a different Activity Card",
+              "different Activity Card" in d["forbidden"]
+              or "another validation report" in d["forbidden"])
+    else:
+        # Non-dispatching states must start nothing at all.
+        check(s, "a non-dispatching live state starts nothing", "dispatch" not in d)
 
 
 def main() -> int:
