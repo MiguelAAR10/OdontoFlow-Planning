@@ -12,8 +12,36 @@ source:
   - docs/handoffs/discovery/2026-09-17-project-publish-01-planning.yaml
   - docs/handoffs/plans/2026-09-17-reception-core-closeout-01.yaml
 
+# Lifecycle contract (added 2026-09-17 by the harness entry-point repair).
+# `lifecycle_state` is the ONE enumerated field the entry point branches on.
+# The free-text `status:` below stays for humans; routing must never parse it.
+lifecycle_contract:
+  states:
+    NEEDS_PRODUCT_DISCOVERY: new or materially ambiguous product work — Opus runs discovery, produces SPEC + product delivery plan, stops for owner approval
+    SPEC_APPROVED: approved product contract — targeted functional validation, then technical design, emit Activity Card + SubCards
+    READY_TO_BUILD: validated and authorized — dispatch one writer per surface and work dependency-ready SubCards; do NOT produce another validation report
+    IN_PROGRESS: keep working the SAME card's remaining dependency-ready SubCards; never auto-start a different card
+    NEEDS_VERIFICATION: verify against acceptance, then write the self-contained handoff
+    KNOWN_FIX: bounded known repair — implement directly, no SPEC, no discovery, no decomposition
+    BLOCKED_OWNER_DECISION: present decision + options + trade-offs and stop
+    CONTRACT_CONTRADICTION: return to owner with the cited contradiction; preserve every unaffected completed SubCard
+    DONE: nothing further; report and wait for an explicit owner choice
+  rules:
+    - "validation PASS is `validation.result`, never `lifecycle_state`; a
+       written validation report is not a stopping point for an authorized card"
+    - "READY_TO_BUILD requires `implementation_authorized: true`; without it the
+       effective state is BLOCKED_OWNER_DECISION"
+    - "a SubCard is dispatchable only when every dependency is done and no
+       in-flight SubCard claims an overlapping write_ownership path"
+    - "`advance_automatically: false` is in force for every state"
+
 activity_id: PROJECT-PUBLISH-01
 title: "PROJECT-PUBLISH-01 — documentation-only onboarding refresh"
+lifecycle_state: DONE
+implementation_authorized: false
+validation:
+  result: N/A — documentation only
+  report: null
 status: DONE — documentation refreshed and selected planning/backend commits published; frontend intentionally blocked
 started_at: "2026-09-17"
 paused_at: null
@@ -93,6 +121,42 @@ history:
 
 handoff_target: docs/handoffs/plans/2026-09-17-project-publish-01.md
 advance_automatically: false
+
+# Registered, NOT authorized. Recorded 2026-09-17 by the harness entry-point
+# repair so the control plane stops being blind to work that already happened.
+# Flipping implementation_authorized to true is the OWNER's action; doing so
+# and copying this block over the activity fields above is what moves the
+# entry point from BLOCKED_OWNER_DECISION to READY_TO_BUILD. Nothing here
+# starts on its own.
+next_activity_candidate:
+  activity_id: CORE-01
+  title: "CORE-01 — human proposal list/read/confirm/decline"
+  lifecycle_state: BLOCKED_OWNER_DECISION
+  implementation_authorized: false
+  would_become: READY_TO_BUILD
+  spec: docs/handoffs/plans/2026-09-17-reception-core-closeout-01.yaml   # activities.CORE_BUSINESS[CORE-01]
+  validation:
+    result: PASS with bounded contract amendments
+    report: docs/handoffs/plans/2026-09-17-core-01-validation.md
+    amendment_evidence: docs/handoffs/discovery/2026-09-17-core-01-contract-amendment-decision.md
+    reuse: >
+      This validation is current and sufficient. An authorized CORE-01
+      implementation session must NOT re-run it or write a second validation
+      report; it implements against this one.
+  repo: odontoflow-backend
+  skill_lane: backend + sales-agent
+  write_surface:
+    - app/scheduling/router.py
+    - app/scheduling/schemas.py
+    - app/scheduling/service.py
+    - app/agent_tools/booking.py
+    - docs/api/openapi.yaml
+    - docs/api/openapi.json
+    - tests/test_appointment_proposals.py
+  recommended_worker_class: backend_domain_engineer
+  owner_decision_required: >
+    Authorize CORE-01 implementation (yes/no). The product contract is approved
+    and validated; only the dispatch authorization is missing.
 next: >
   OWNER-DECISION-REQUIRED. No artifact in this repository selects the next
   implementation activity. RECEPTION-CORE-CLOSEOUT-01's plan lists

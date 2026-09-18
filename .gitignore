@@ -11,3 +11,6 @@
 # editor/OS noise
 .DS_Store
 *.swp
+
+# byte-code byproduct of the harness dry-run (orchestration/route.py)
+__pycache__/
