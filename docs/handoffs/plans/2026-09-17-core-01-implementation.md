@@ -166,9 +166,15 @@ operations present; diff purely additive.
 **Backend `22d6dff`** — exactly the 6 write-surface files, +2509/−42. Parent
 `8fcd9e1`. `origin/main` remains `193d48b`; the branch is **3 ahead, unpushed**.
 
+**Planning `f99790e`** — 4 files: this handoff, `CAVELOG.md`,
+`orchestration/current-activity.yaml` (CORE-01 recorded and closed at
+`lifecycle_state: DONE`) and `orchestration/test_route.py`. Parent `33a6759`;
+`origin/main` remains `8d61f3a`, the branch is **2 ahead, unpushed**.
+
 Pre-existing work left untouched and uncommitted: backend `AGENTS.md` (+7) and
-`.gitignore` (+1), plus 85 untracked paths. Planning `33a6759` carries the
-activity-state updates. Frontend was not touched at all.
+`.gitignore` (+1) plus 85 untracked paths; planning keeps 34 untracked paths.
+Frontend was not touched at all — still `a788df5`, 19 dirty tracked files, zero
+commits from this activity.
 
 ## Orchestration
 
