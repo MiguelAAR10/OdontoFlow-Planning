@@ -157,8 +157,12 @@ frontend, integration, deployment, or production database change was made.
 
 - Backend commit: `59be27678d7cc46041befe93206242f34ed145de`; remote SHA verified
   at `origin/main` after a normal fast-forward push.
-- Planning closeout commit and remote SHA: to be recorded after this handoff,
-  route matrix, CAVELOG and current-activity update are committed and pushed.
+- Planning artifact commit: `f020eb2ffe1ae9a3c898d6f61052480b976621aa`;
+  `origin/main` was verified at the same SHA after a normal fast-forward push.
+  This SHA contains the route matrix, CAVELOG, current-activity update and this
+  handoff. The documentation-only annotation that records this verification is
+  the subsequent planning commit; the final planning head is reported in the
+  closeout status.
 - Residual runtime bookkeeping: the two completed Orca worker terminals remain
   identified and retained as `user_owned` with `processAction=none`; their
   tasks are completed and no writer is active. The owner can close those idle
