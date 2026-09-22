@@ -1,0 +1,48 @@
+core: CORE-02
+scope: "Lead-to-Appointment and Reception/Scheduling protected API boundary"
+compatibility: "ERP_ANONYMOUS_COMPAT may remain enabled for unrelated legacy ERP surfaces; these routes require an explicit bearer credential."
+public_endpoints:
+  - method: GET
+    path: /health
+    behavior: public health probe
+  - method: GET
+    path: /docs
+    behavior: documentation endpoint
+  - method: GET
+    path: /openapi.json
+    behavior: documentation endpoint
+routes:
+  - {method: GET, path: /leads, auth_dependency: resolve_http_context, permission: leads.read, compatibility_behavior: system_fallback_before_CORE_02, intended_behavior: explicit_auth_401_without_credential, required_test: leads_list_requires_auth}
+  - {method: POST, path: /leads, auth_dependency: resolve_http_context, permission: leads.create, compatibility_behavior: system_fallback_before_CORE_02, intended_behavior: explicit_auth_401_without_credential, required_test: leads_create_requires_auth}
+  - {method: GET, path: "/leads/{lead_id}", auth_dependency: resolve_http_context, permission: leads.read, compatibility_behavior: system_fallback_before_CORE_02, intended_behavior: explicit_auth_401_without_credential, required_test: lead_read_requires_auth}
+  - {method: POST, path: /services, auth_dependency: resolve_http_context, permission: services.manage, compatibility_behavior: system_fallback_before_CORE_02, intended_behavior: explicit_auth_401_without_credential, required_test: services_create_requires_auth}
+  - {method: GET, path: /services, auth_dependency: resolve_http_context, permission: services.read, compatibility_behavior: system_fallback_before_CORE_02, intended_behavior: explicit_auth_401_without_credential, required_test: services_list_requires_auth}
+  - {method: GET, path: /locations, auth_dependency: resolve_http_context, permission: locations.read, compatibility_behavior: system_fallback_before_CORE_02, intended_behavior: explicit_auth_401_without_credential, required_test: locations_list_requires_auth}
+  - {method: POST, path: /locations, auth_dependency: resolve_http_context, permission: locations.manage, compatibility_behavior: system_fallback_before_CORE_02, intended_behavior: explicit_auth_401_without_credential, required_test: locations_create_requires_auth}
+  - {method: POST, path: /practitioners, auth_dependency: resolve_http_context, permission: practitioners.manage, compatibility_behavior: system_fallback_before_CORE_02, intended_behavior: explicit_auth_401_without_credential, required_test: practitioners_create_requires_auth}
+  - {method: POST, path: /capabilities, auth_dependency: resolve_http_context, permission: capabilities.manage, compatibility_behavior: system_fallback_before_CORE_02, intended_behavior: explicit_auth_401_without_credential, required_test: capabilities_create_requires_auth}
+  - {method: GET, path: /practitioners/eligible, auth_dependency: resolve_http_context, permission: practitioners.read, compatibility_behavior: system_fallback_before_CORE_02, intended_behavior: explicit_auth_401_without_credential, required_test: eligible_practitioners_requires_auth}
+  - {method: POST, path: /patients, auth_dependency: resolve_http_context, permission: patients.create, compatibility_behavior: system_fallback_before_CORE_02, intended_behavior: explicit_auth_401_without_credential, required_test: patients_create_requires_auth}
+  - {method: GET, path: /patients, auth_dependency: resolve_http_context, permission: patients.read, compatibility_behavior: system_fallback_before_CORE_02, intended_behavior: explicit_auth_401_without_credential, required_test: patients_list_requires_auth}
+  - {method: GET, path: "/patients/{patient_id}", auth_dependency: resolve_http_context, permission: patients.read, compatibility_behavior: system_fallback_before_CORE_02, intended_behavior: explicit_auth_401_without_credential, required_test: patient_read_requires_auth}
+  - {method: POST, path: /visits, auth_dependency: resolve_http_context, permission: visits.create, compatibility_behavior: system_fallback_before_CORE_02, intended_behavior: explicit_auth_401_without_credential, required_test: visits_create_requires_auth}
+  - {method: GET, path: /visits, auth_dependency: resolve_http_context, permission: visits.read, compatibility_behavior: system_fallback_before_CORE_02, intended_behavior: explicit_auth_401_without_credential, required_test: visits_list_requires_auth}
+  - {method: GET, path: "/visits/{visit_id}", auth_dependency: resolve_http_context, permission: visits.read, compatibility_behavior: system_fallback_before_CORE_02, intended_behavior: explicit_auth_401_without_credential, required_test: visit_read_requires_auth}
+  - {method: GET, path: "/visits/{visit_id}/executions", auth_dependency: resolve_http_context, permission: executions.read, compatibility_behavior: system_fallback_before_CORE_02, intended_behavior: explicit_auth_401_without_credential, required_test: visit_executions_requires_auth}
+  - {method: GET, path: /executions, auth_dependency: resolve_http_context, permission: executions.read, compatibility_behavior: system_fallback_before_CORE_02, intended_behavior: explicit_auth_401_without_credential, required_test: executions_list_requires_auth}
+  - {method: POST, path: "/visits/{visit_id}/executions", auth_dependency: resolve_http_context, permission: executions.create, compatibility_behavior: system_fallback_before_CORE_02, intended_behavior: explicit_auth_401_without_credential, required_test: execution_create_requires_auth}
+  - {method: POST, path: /availability-rules, auth_dependency: resolve_http_context, permission: availability.manage, compatibility_behavior: system_fallback_before_CORE_02, intended_behavior: explicit_auth_401_without_credential, required_test: availability_rule_requires_auth}
+  - {method: POST, path: /schedule-blocks, auth_dependency: resolve_http_context, permission: availability.manage, compatibility_behavior: system_fallback_before_CORE_02, intended_behavior: explicit_auth_401_without_credential, required_test: schedule_block_requires_auth}
+  - {method: POST, path: /slots/query, auth_dependency: resolve_http_context, permission: availability.read, compatibility_behavior: system_fallback_before_CORE_02, intended_behavior: explicit_auth_401_without_credential, required_test: slot_query_requires_auth}
+  - {method: GET, path: /appointments, auth_dependency: resolve_http_context, permission: appointments.read, compatibility_behavior: system_fallback_before_CORE_02, intended_behavior: explicit_auth_401_without_credential, required_test: appointments_list_requires_auth}
+  - {method: GET, path: "/appointments/{appointment_id}", auth_dependency: resolve_http_context, permission: appointments.read, compatibility_behavior: system_fallback_before_CORE_02, intended_behavior: explicit_auth_401_without_credential, required_test: appointment_read_requires_auth}
+  - {method: POST, path: /appointments, auth_dependency: resolve_http_context, permission: appointments.create, compatibility_behavior: system_fallback_before_CORE_02, intended_behavior: explicit_auth_401_without_credential, required_test: appointment_create_requires_auth}
+  - {method: POST, path: "/appointments/{appointment_id}/cancel", auth_dependency: resolve_http_context, permission: appointments.cancel, compatibility_behavior: system_fallback_before_CORE_02, intended_behavior: explicit_auth_401_without_credential, required_test: appointment_cancel_requires_auth}
+  - {method: POST, path: "/appointments/{appointment_id}/reschedule", auth_dependency: resolve_http_context, permission: appointments.reschedule, compatibility_behavior: system_fallback_before_CORE_02, intended_behavior: explicit_auth_401_without_credential, required_test: appointment_reschedule_requires_auth}
+  - {method: GET, path: /scheduling/appointment-proposals, auth_dependency: require_authenticated_context, permission: appointments.read, compatibility_behavior: direct_auth_already, intended_behavior: explicit_auth_401_without_credential, required_test: proposal_list_auth_and_read}
+  - {method: GET, path: "/scheduling/appointment-proposals/{proposal_id}", auth_dependency: require_authenticated_context, permission: appointments.read, compatibility_behavior: direct_auth_already, intended_behavior: explicit_auth_401_without_credential, required_test: proposal_read_auth_and_tenant_isolation}
+  - {method: POST, path: /scheduling/appointment-proposals/confirm, auth_dependency: require_authenticated_context, permission: contact_appointments.book, compatibility_behavior: direct_auth_already, intended_behavior: explicit_auth_401_without_credential, required_test: proposal_confirm_auth_and_human_gate}
+  - {method: POST, path: /scheduling/appointment-proposals/decline, auth_dependency: require_authenticated_context, permission: contact_appointments.book, compatibility_behavior: direct_auth_already, intended_behavior: explicit_auth_401_without_credential, required_test: proposal_decline_auth_and_human_gate}
+notes:
+  - "The four proposal routes already performed direct credential authentication; CORE-02 must preserve their human-only and tenant/permission behavior."
+  - "The app's existing /agent-tools and /internal integration routes are already explicitly authenticated and remain outside this newly closed ERP boundary."

@@ -1,13 +1,13 @@
-# Single current activity for a fresh coordinator. CORE-01 implementation is
-# AUTHORIZED by the owner (2026-09-17). PROJECT-PUBLISH-01 completed and moved
-# to history; it was not overwritten and nothing else was advanced.
-last_verified: 2026-09-17
+# Single current activity for a fresh coordinator. CORE-02 was authorized by
+# the owner in the continuation request on 2026-09-22 and is now complete.
+# CORE-01 remains in the history and its published base is preserved.
+last_verified: 2026-09-22
 authority: Repo 0 (planning)
 source:
-  - docs/handoffs/plans/2026-09-17-reception-core-closeout-01.yaml   # SPEC / Activity Card
-  - docs/handoffs/plans/2026-09-17-core-01-validation.md             # validation, reused
-  - docs/handoffs/discovery/2026-09-17-core-01-contract-amendment-decision.md
-  - docs/handoffs/plans/2026-09-17-harness-entry-point-repair.md
+  - docs/handoffs/plans/2026-09-17-reception-core-closeout-01.yaml   # approved CORE-02 card
+  - docs/handoffs/plans/2026-09-20-core-02-preflight-blocker.md       # resumed checkpoint
+  - docs/handoffs/plans/2026-09-22-core-02-route-matrix.yaml
+  - docs/handoffs/plans/2026-09-22-core-02-secure-reception-authentication.md
 
 # Lifecycle contract (added 2026-09-17 by the harness entry-point repair).
 # `lifecycle_state` is the ONE enumerated field the entry point branches on.
@@ -34,60 +34,83 @@ lifecycle_contract:
        starting a DIFFERENT Activity Card, never the completion of this one's
        authorized SubCards"
 
-activity_id: CORE-01
-title: "CORE-01 — human proposal list/read/confirm/decline"
+activity_id: CORE-02
+title: "CORE-02 — secure Reception/Scheduling authentication"
 lifecycle_state: DONE
 implementation_authorized: true
-authorized_by: owner
-authorized_at: "2026-09-17"
-started_at: "2026-09-17"
+authorized_by: owner continuation request
+authorized_at: "2026-09-22"
+started_at: "2026-09-22"
 paused_at: null
 status: >
-  DONE — implemented, verified and committed as backend 22d6dff (not pushed).
-  All five SubCards complete; 583 passed. Product DONE, not merely validation PASS.
+  DONE — implemented, independently reviewed, committed as backend 59be276 and
+  pushed to origin/main. All protected Lead-to-Appointment and
+  Reception/Scheduling operations require explicit authentication even when
+  ERP_ANONYMOUS_COMPAT is enabled.
 
 repo: odontoflow-backend
 mode: implementation
 skill_lane: backend + sales-agent
 
 validation:
-  result: PASS with bounded contract amendments
-  report: docs/handoffs/plans/2026-09-17-core-01-validation.md
-  amendment_evidence: docs/handoffs/discovery/2026-09-17-core-01-contract-amendment-decision.md
-  reusable: true
-  revalidated_at: "2026-09-17"
-  revalidation_basis: >
-    Backend HEAD 8fcd9e1 adds only CLAUDE.md on top of c92b558. Every file in the
-    write surface is unchanged since 2026-09-06/16, i.e. before the validation was
-    written, so no evidence was invalidated and nothing was reinspected. A second
-    validation report is forbidden by the lifecycle contract.
+  result: PASS
+  report: docs/handoffs/plans/2026-09-22-core-02-secure-reception-authentication.md
+  validated_at: "2026-09-22"
+  basis: "Direct route inspection, test-first red/green evidence, full serial PostgreSQL suite, generated OpenAPI comparison and independent review."
 
-spec: docs/handoffs/plans/2026-09-17-reception-core-closeout-01.yaml   # activities.CORE_BUSINESS[CORE-01]
+spec: docs/handoffs/plans/2026-09-17-reception-core-closeout-01.yaml   # activities.CORE_BUSINESS[CORE-02]
 business_outcome: >
-  Staff can see the proposal produced by AIRY and turn exactly one into exactly
-  one appointment, or decline it.
+  Every protected Lead-to-Appointment and Reception/Scheduling action runs
+  through an identified, authorized principal; anonymous compatibility cannot
+  substitute the seeded system identity.
 
 write_surface:
+  - app/__init__.py
+  - app/context.py
   - app/scheduling/router.py
-  - app/scheduling/schemas.py
-  - app/scheduling/service.py
-  - app/agent_tools/booking.py
   - docs/api/openapi.yaml
   - docs/api/openapi.json
-  - tests/test_appointment_proposals.py
+  - tests/test_security_boundary.py
+  - tests/test_core02_business_auth_boundary.py
+  - CHANGELOG.md
 
-# The seven amendments are the authorized contract; they are not re-decidable
-# here. Source: the contract-amendment decision, section "Minimum amendment set".
 authorized_contract:
-  - "decline = status `expired` + audit action `appointment_proposal.declined`; idempotent; refuses a confirmed proposal; conversation returns to open"
-  - "gate new confirm/decline routes on `ctx.principal_type == 'human'` (allow-list, not `!= 'agent'`)"
-  - "apply `_require_later_inbound_message` only when `ctx.principal_type != 'human'`"
-  - "move agent refusal ahead of the confirmed-replay branch, extracted as `require_human_confirmation(ctx)` for AGENT-03 to reuse"
-  - "pass `location_id=proposal.location_id` to `require_permission` in confirm"
-  - "require canonical UUIDv4 `Idempotency-Key` on confirm and decline via the existing `require_uuid4_idempotency_key`"
-  - "regenerate docs/api/openapi.{yaml,json}; add tests/test_appointment_proposals.py covering the six DoD cases"
+  - "Protected Lead-to-Appointment and Reception/Scheduling operations reject missing or invalid credentials with 401 while ERP_ANONYMOUS_COMPAT is enabled."
+  - "Reuse require_authenticated_context and the existing ExecutionContext; do not add an auth framework or duplicate permission logic."
+  - "Preserve authorized callers, tenant isolation, idempotency, audit, deterministic availability, proposal human-only confirmation/decline and agent fail-closed behavior."
+  - "Leave health/documentation endpoints public and unrelated economics/inventory compatibility unchanged."
 
-subcards:
+scope:
+  in: ["31 protected route operations in commercial, catalog, organization, clinical and scheduling", "focused real-PostgreSQL tests", "generated OpenAPI security metadata"]
+  out: ["economics/inventory compatibility migration", "frontend", "n8n", "WhatsApp", "OpenRouter", "deployment", "schema changes", "unrelated ERP refactor"]
+
+acceptance:
+  observable_outcome: "An unauthenticated request to every matrix operation returns 401 with no compatibility identity; authenticated authorized behavior remains functional and tenant-scoped."
+  required_checks: ["missing and invalid credential 401 with ERP_ANONYMOUS_COMPAT=true", "authorized walk-through", "cross-organization denial", "CORE-01 proposal regressions", "agent confirmation refusal", "redacted authentication evidence", "OpenAPI consistency", "full serial PostgreSQL suite"]
+
+verification:
+  baseline: "583 passed, 21 warnings before implementation"
+  red: "56 of 57 focused CORE-02 cases failed with implementation files stashed"
+  focused: "57 passed"
+  regressions: "142 passed"
+  full_suite: "640 passed, 21 warnings in 683.93s"
+  openapi: "31 operation-level security additions; generated JSON/YAML agree"
+  backend_commit: "59be27678d7cc46041befe93206242f34ed145de"
+  handoff: docs/handoffs/plans/2026-09-22-core-02-secure-reception-authentication.md
+
+orchestration:
+  run: run_7e46837e9c83
+  writer_task: task_ef045f8e0371
+  writer_dispatch: ctx_78573cf4782a
+  writer_terminal: term_eb2e84d9-2e44-4c50-889e-fe473b179ca5
+  reviewer_task: task_811559ec5bbb
+  reviewer_dispatch: ctx_bce609ff0148
+  reviewer_terminal: term_9069cd99-dd18-4484-a6bb-8da0cef37946
+  writer_outcome: SUCCEEDED
+  reviewer_outcome: PASS
+  terminal_cleanup: "both completed terminals identified and retained user_owned/user_takeover with processAction=none; no active task"
+
+core01_history_subcards:
   - id: CORE-01-A
     outcome: "Failing focused tests and DTO contracts express the authorized behaviour before any runtime change."
     dependencies: []
@@ -193,14 +216,14 @@ subcards:
 
 # Write surfaces overlap across every SubCard, so they run in sequence with the
 # SAME writer. max_parallel_writers: 1.
-execution:
+core01_history_execution:
   writer_model: "claude sonnet (verified accessible on this host 2026-09-17: `claude -p --model sonnet` -> SONNET_OK)"
   writer_agent: claude
   max_parallel_writers: 1
   worktree: existing odontoflow-backend main checkout (no new worktree; isolation not required)
   coordinator: Claude Opus 5 (this session) — owns activity state, dependencies, integration, handoff; writes no product code
 
-protected_surfaces:
+core01_history_protected_surfaces:
   - odontoflow-frontend/** (unauthorized local commit a788df5, 19 dirty tracked files — do not touch)
   - ../odontoflow-backend/alembic/versions/** (NO new migration is authorized)
   - ../odontoflow-backend/app/errors.py, app/db.py, app/scheduling/availability.py, app/catalog/schemas.py
@@ -209,7 +232,7 @@ protected_surfaces:
   - pre-existing dirty/untracked work in both repos (backend AGENTS.md, .gitignore, .agents/**, .claude/**)
   - odontoflow-sim, odontoflow-voice (frozen)
 
-scope:
+core01_history_scope:
   in:
     - the seven authorized_contract amendments, inside write_surface only
     - focused real-PostgreSQL tests, then one serial full suite
@@ -221,7 +244,7 @@ scope:
     - frontend, n8n, WhatsApp, provider configuration, deployment, production writes
     - broad refactors, including the app/agent_tools vs app/scheduling layering compromise
 
-acceptance:
+core01_history_acceptance:
   observable_outcome: >
     An authenticated, tenant-scoped human can list and read AIRY's pending
     proposals and turn exactly one into exactly one appointment, or decline it —
@@ -239,14 +262,14 @@ acceptance:
     - existing direct-booking and Sales Agent tests stay green
     - OpenAPI regenerated; one serial full PostgreSQL suite green
 
-verification:
+core01_history_verification:
   focused_tests: "13 passed (tests/test_appointment_proposals.py); 16 passed (agent regression suites)"
   full_suite: "583 passed, 21 warnings in 580.93s — 570 baseline + 13, zero failures"
   openapi: "regenerated via .venv/bin/python scripts/generate_openapi.py; 48 -> 52 paths; purely additive"
   commit: "backend 22d6dff — 6 files, +2509/-42, NOT pushed (origin/main still 193d48b, branch 3 ahead)"
   handoff: docs/handoffs/plans/2026-09-17-core-01-implementation.md
 
-orchestration:
+core01_history_orchestration:
   run: run_1514e1bd8481
   task: task_3811c2521490
   dispatch: ctx_caf2cc7fe68f
@@ -346,16 +369,22 @@ orchestration:
     backend AGENTS.md is also dirty (+7 lines uncommitted). The worker therefore loads a skill
     set that a fresh clone would not reproduce. Preserved as-is and reported; no cleanup performed.
 
-handoff_target: docs/handoffs/plans/2026-09-17-core-01-implementation.md
+handoff_target: docs/handoffs/plans/2026-09-22-core-02-secure-reception-authentication.md
 advance_automatically: false
 next: >
-  OWNER-DECISION-REQUIRED. CORE-01 is complete and authorizes nothing further.
-  CORE-02 (close the ERP_ANONYMOUS_COMPAT seam) is now dependency-ready since
-  CORE-01 was its only listed dependency, but ready-by-ordering is not approval.
-  AGENT-02, AGENT-03, CHAN-03, CHAN-04 likewise. The owner must choose one,
-  persist it here with implementation_authorized: true, and only then dispatch.
+  OWNER-DECISION-REQUIRED. CORE-02 is complete and authorizes nothing further.
+  Do not auto-start AGENT-02, AGENT-03, CHAN-03, deployment, frontend, n8n,
+  WhatsApp or OpenRouter work. The owner must choose and authorize the next
+  activity explicitly.
 
 history:
+  - activity_id: CORE-01
+    status: DONE — human proposal list/read/confirm/decline completed and published
+    lifecycle_state: DONE
+    handoff: docs/handoffs/plans/2026-09-17-core-01-implementation.md
+    published:
+      backend: 22d6dff3774b45b3201c0f6ac41dd484f4d5fdda
+      planning: f7cbe32d2033276a699efc8e10ffa4086da1dfc0
   - activity_id: PROJECT-PUBLISH-01
     status: DONE — documentation refreshed and selected planning/backend commits
       published; frontend publication intentionally blocked
