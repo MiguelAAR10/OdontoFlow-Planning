@@ -1,11 +1,11 @@
 ---
 title: OdontoFlow — Status (verified snapshot)
 status: active
-last_verified: 2026-09-17
+last_verified: 2026-09-23
 authority: Repo 0 (planning) — numbers re-verified from repos at verify time
 ---
 
-# Status — Verified Snapshot (2026-09-17)
+# Status — Verified Snapshot (2026-09-17; AGENT-03 entry refreshed 2026-09-23)
 
 ## Milestone
 
@@ -545,22 +545,32 @@ figures remain the author's Apple Silicon measurements, not ours.
 
 ## Next activity
 
-**NEXT_ACTIVITY = OWNER-DECISION-REQUIRED (as of 2026-09-17).**
+**NEXT_ACTIVITY = NONE — AGENT-03 DONE; await an explicit owner choice (verified 2026-09-23).**
 
-No artifact in this repository selects the next *implementation* activity for
-the backend/agent workstream. The 2026-09-17 living brief authorized only
-`CHAN-01`; both it and the already-approved `CHAN-02` are now PASS (see the
-active-workstream note under "Milestone" above). The Opus closeout plan for
-`RECEPTION-CORE-CLOSEOUT-01` orders, but does not approve, the following
-dependency-free candidates: `CORE-01` (canonical proposal list/read/confirm/
-decline), `AGENT-02` (durable human handoff), `AGENT-03` (agent cancel/
-reschedule fail closed), `CHAN-03` (n8n transport-only assertions),
-`CHAN-04` (provider-boundary standing tests). The coordinator/owner must
-explicitly choose one and persist it in `orchestration/current-activity.yaml`
-before any dispatch. See
-[`docs/handoffs/plans/2026-09-17-project-publish-01.md`](docs/handoffs/plans/2026-09-17-project-publish-01.md)
-for the full picture, including the separately blocked frontend publication
-decision.
+CORE-01 and CORE-02 remain complete. AGENT-03 implementation used the
+authorized direct fallback. Backend commit
+02fb031c6949c1c5ea69278a9e9a33a4cbb17f72 has parent
+59be27678d7cc46041befe93206242f34ed145de and the post-push read-only Codex
+verifier confirmed that origin/main equals the commit and contains exactly
+the six approved AGENT-03 paths.
+
+The historical evidence remains 6 expected RED failures, 10 focused passes,
+166 related regressions, and 650 serial PostgreSQL passes / 21 warnings; it
+was reused because the audited file and diff hashes matched. The independent
+security review and the post-push release verification both returned PASS.
+No test suite was rerun during delivery recovery.
+
+The owner approved a one-time exception to the MediStock-clean gate for this
+AGENT-03 commit. MediStock .audit/ remained completely untouched. The staged
+diff check reported three trailing-space Markdown hard-break lines in the
+unchanged backend handoff; the audited snapshot was preserved. Credential
+rotation remains a separate pending operational follow-up and does not block
+this release. Do not start AGENT-02 or another Activity Card without an
+explicit owner choice.
+
+Final handoff: [AGENT-03 living brief](docs/handoffs/plans/2026-09-22-agent-03-human-controlled-appointment-mutations.md);
+backend technical handoff:
+[2026-09-22-agent-03-human-controlled-appointment-mutations.md](../odontoflow-backend/docs/superpowers/handoffs/2026-09-22-agent-03-human-controlled-appointment-mutations.md).
 
 The prior pointer here (`V2.2 — Named Scenario Configuration`, for
 `odontoflow-sim`) is **superseded as "next" but not cancelled** — the

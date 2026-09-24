@@ -1,13 +1,11 @@
-# Single current activity for a fresh coordinator. CORE-02 was authorized by
-# the owner in the continuation request on 2026-09-22 and is now complete.
-# CORE-01 remains in the history and its published base is preserved.
-last_verified: 2026-09-22
+# Single current activity. AGENT-03 is DONE; wait for the owner to select
+# any next activity explicitly. CORE-02 and CORE-01 remain completed history.
+last_verified: 2026-09-23
 authority: Repo 0 (planning)
 source:
-  - docs/handoffs/plans/2026-09-17-reception-core-closeout-01.yaml   # approved CORE-02 card
-  - docs/handoffs/plans/2026-09-20-core-02-preflight-blocker.md       # resumed checkpoint
-  - docs/handoffs/plans/2026-09-22-core-02-route-matrix.yaml
+  - docs/handoffs/plans/2026-09-17-reception-core-closeout-01.yaml   # approved AGENT-03 card
   - docs/handoffs/plans/2026-09-22-core-02-secure-reception-authentication.md
+  - ../odontoflow-backend/docs/superpowers/handoffs/2026-09-16-agent-confirm-fail-closed-03.md
 
 # Lifecycle contract (added 2026-09-17 by the harness entry-point repair).
 # `lifecycle_state` is the ONE enumerated field the entry point branches on.
@@ -34,81 +32,156 @@ lifecycle_contract:
        starting a DIFFERENT Activity Card, never the completion of this one's
        authorized SubCards"
 
-activity_id: CORE-02
-title: "CORE-02 — secure Reception/Scheduling authentication"
+activity_id: AGENT-03
+title: "AGENT-03 — human-controlled appointment mutations"
 lifecycle_state: DONE
 implementation_authorized: true
-authorized_by: owner continuation request
+authorized_by: owner request to complete AGENT-03
 authorized_at: "2026-09-22"
 started_at: "2026-09-22"
 paused_at: null
 status: >
-  DONE — implemented, independently reviewed, committed as backend 59be276 and
-  pushed to origin/main. All protected Lead-to-Appointment and
-  Reception/Scheduling operations require explicit authentication even when
-  ERP_ANONYMOUS_COMPAT is enabled.
+  DONE. Implementation used the owner-authorized direct fallback; publication
+  used an Orca-supervised Codex release. Backend commit
+  02fb031c6949c1c5ea69278a9e9a33a4cbb17f72 is verified on origin/main with
+  the expected parent and exactly the six approved AGENT-03 paths. Historical
+  test evidence was reused because the audited hashes matched. The one-time
+  MediStock-clean exception was approved and ../../medistock/.audit/ remained
+  untouched. Credential rotation remains a separate pending operational
+  follow-up. Do not start another Activity Card without an explicit owner choice.
 
 repo: odontoflow-backend
 mode: implementation
+implementation_mode: "direct fallback"
+delivery_mode: "Orca-supervised release"
 skill_lane: backend + sales-agent
 
-validation:
-  result: PASS
-  report: docs/handoffs/plans/2026-09-22-core-02-secure-reception-authentication.md
-  validated_at: "2026-09-22"
-  basis: "Direct route inspection, test-first red/green evidence, full serial PostgreSQL suite, generated OpenAPI comparison and independent review."
-
-spec: docs/handoffs/plans/2026-09-17-reception-core-closeout-01.yaml   # activities.CORE_BUSINESS[CORE-02]
+spec: docs/handoffs/plans/2026-09-17-reception-core-closeout-01.yaml   # activities.AGENT[AGENT-03]
 business_outcome: >
-  Every protected Lead-to-Appointment and Reception/Scheduling action runs
-  through an identified, authorized principal; anonymous compatibility cannot
-  substitute the seeded system identity.
+  AIRI may propose cancellation or rescheduling, but an agent principal cannot
+  execute either operation. Authorized human execution remains functional.
 
 write_surface:
-  - app/__init__.py
-  - app/context.py
-  - app/scheduling/router.py
-  - docs/api/openapi.yaml
-  - docs/api/openapi.json
-  - tests/test_security_boundary.py
-  - tests/test_core02_business_auth_boundary.py
+  - app/agent_tools/booking.py
+  - app/agent_tools/guards.py
+  - app/agent_tools/reception.py
+  - tests/test_reception_agent_phase5.py
   - CHANGELOG.md
+  - docs/superpowers/handoffs/2026-09-22-agent-03-human-controlled-appointment-mutations.md
 
 authorized_contract:
-  - "Protected Lead-to-Appointment and Reception/Scheduling operations reject missing or invalid credentials with 401 while ERP_ANONYMOUS_COMPAT is enabled."
-  - "Reuse require_authenticated_context and the existing ExecutionContext; do not add an auth framework or duplicate permission logic."
-  - "Preserve authorized callers, tenant isolation, idempotency, audit, deterministic availability, proposal human-only confirmation/decline and agent fail-closed behavior."
-  - "Leave health/documentation endpoints public and unrelated economics/inventory compatibility unchanged."
+  - "Agent principals may create cancellation/reschedule proposals but never execute confirmation, including direct command and idempotent receipt-replay paths."
+  - "Reuse server-resolved ExecutionContext and the existing human-confirmation refusal; do not add an auth framework or duplicate permission logic."
+  - "Preserve authorized human cancellation/rescheduling, tenant isolation, permissions, proposal expiry, idempotency, transaction integrity, audit and booking confirmation refusal."
+  - "Do not change proposal creation, scheduling rules, database schema, OpenAPI, frontend, providers or unrelated ERP behavior."
 
 scope:
-  in: ["31 protected route operations in commercial, catalog, organization, clinical and scheduling", "focused real-PostgreSQL tests", "generated OpenAPI security metadata"]
-  out: ["economics/inventory compatibility migration", "frontend", "n8n", "WhatsApp", "OpenRouter", "deployment", "schema changes", "unrelated ERP refactor"]
+  in: ["authoritative cancellation/reschedule command and adapter guards", "direct and stored-receipt replay regressions", "human success and relevant invariant regressions", "required backend changelog and technical handoff"]
+  out: ["proposal creation changes", "global IAM or compatibility changes", "database/schema migration", "OpenAPI changes", "frontend", "n8n", "WhatsApp", "OpenRouter", "deployment", "unrelated ERP refactor"]
 
 acceptance:
-  observable_outcome: "An unauthenticated request to every matrix operation returns 401 with no compatibility identity; authenticated authorized behavior remains functional and tenant-scoped."
-  required_checks: ["missing and invalid credential 401 with ERP_ANONYMOUS_COMPAT=true", "authorized walk-through", "cross-organization denial", "CORE-01 proposal regressions", "agent confirmation refusal", "redacted authentication evidence", "OpenAPI consistency", "full serial PostgreSQL suite"]
+  observable_outcome: "Agent confirmation commands refuse before mutation or replay success; authorized human cancellation and rescheduling continue to pass."
+  required_checks: ["agent direct cancellation/reschedule command refusal", "agent tool receipt replay refusal", "already-confirmed proposal does not reveal success to agent", "human cancellation/reschedule success", "tenant/permission/expiry/idempotency/audit regressions", "booking fail-closed regressions", "full serial PostgreSQL suite"]
 
-verification:
-  baseline: "583 passed, 21 warnings before implementation"
-  red: "56 of 57 focused CORE-02 cases failed with implementation files stashed"
-  focused: "57 passed"
-  regressions: "142 passed"
-  full_suite: "640 passed, 21 warnings in 683.93s"
-  openapi: "31 operation-level security additions; generated JSON/YAML agree"
-  backend_commit: "59be27678d7cc46041befe93206242f34ed145de"
-  handoff: docs/handoffs/plans/2026-09-22-core-02-secure-reception-authentication.md
+worker_brief:
+  TARGET: "Verified backend paths: app/agent_tools/booking.py (existing require_human_confirmation), app/agent_tools/guards.py (shared guard location if needed to avoid the booking↔reception import cycle), app/agent_tools/reception.py (confirm_cancellation_proposal, run_confirm_cancellation_tool, confirm_reschedule_proposal, run_confirm_reschedule_tool), tests/test_reception_agent_phase5.py; required docs CHANGELOG.md and docs/superpowers/handoffs/2026-09-22-agent-03-human-controlled-appointment-mutations.md."
+  CHANGE: "At the authoritative direct-command boundary refuse agent principals before receipt claim, proposal status shortcuts or mutation. At each tool adapter refuse before run_idempotent_command can return a stored success. Reuse the existing human-confirmation rule; preserve proposal creation."
+  CONTRACTS: "Server-resolved principal identity; existing IAM permissions; agent refusal for booking/cancel/reschedule; human operations; tenant isolation; expiry; idempotent replay; transactional mutation; audit; no schema or scheduling changes."
+  OWNERSHIP: "Exactly one supervised writer owns the complete AGENT-03 backend write_surface listed above. No other worker or coordinator edits those backend paths while the Dispatch is active."
+  ACCEPTANCE: "Real-PostgreSQL RED then GREEN tests for direct agent cancellation/reschedule, already-confirmed and stored-receipt replay refusal with no success result or mutation; existing human success, booking refusal and relevant tenant/expiry/idempotency/audit tests pass; final full suite runs serially once stable."
+  STOP_CONDITIONS: "Escalate through Orca if the verified execution context cannot distinguish server-resolved agent principals, if the approved human/agent contract conflicts with IAM behavior, or if a schema/global IAM/scheduling redesign is required. Do not expand scope."
 
+# Historical failed product-implementation launch; release evidence follows.
 orchestration:
-  run: run_7e46837e9c83
-  writer_task: task_ef045f8e0371
-  writer_dispatch: ctx_78573cf4782a
-  writer_terminal: term_eb2e84d9-2e44-4c50-889e-fe473b179ca5
-  reviewer_task: task_811559ec5bbb
-  reviewer_dispatch: ctx_bce609ff0148
-  reviewer_terminal: term_9069cd99-dd18-4484-a6bb-8da0cef37946
-  writer_outcome: SUCCEEDED
-  reviewer_outcome: PASS
-  terminal_cleanup: "both completed terminals identified and retained user_owned/user_takeover with processAction=none; no active task"
+  run: run_f7bcef0d21a4
+  writer_task: task_19538d3b9169
+  writer_dispatch: ctx_fb67f2dfbeec
+  writer_terminal: term_09fc80c1-1d9c-4f07-a28b-013e518b9809
+  resume_preflight: blocked
+  resume_dispatch: not_started
+  writer_model_requested_effective: "claude / sonnet / sonnet"
+  writer_outcome: "FAILED — stopped before product edits because effective permission mode was unverified"
+  reviewer_task: not_started
+  reviewer_dispatch: not_started
+  reviewer_terminal: not_started
+  reviewer_outcome: "No Orca reviewer Task was created. A separate read-only reviewer returned PASS on the implementation paths; see the existing handoff for scope and limitations."
+  terminal_cleanup: "Dispatch settled failed; capability revoked; terminal exited and absent from live inventory. worker-release returned retained/identity_unproven, processAction=none, archive=null."
+
+
+release_orchestration:
+  run: run_0faacef0f28a
+  release_task: task_2db853df1e84
+  release_dispatches:
+    - "ctx_45637e89ad76 — Codex gpt-5.6-luna; release completed, lifecycle report rejected after agent_prompt_stalled"
+    - "ctx_7635e6060803 — retry on the same Codex terminal; found the already-pushed commit and did not restage or push again"
+  release_task_result: "Coordinator recovery recorded the completed commit/push and the staged diff-check finding."
+  release_terminal: "term_42d3f235-8385-4796-a2ed-19855d4e613a — released"
+  verifier_task: task_4f8ef3b3cbef
+  verifier_dispatch: ctx_8d7bbc5f25a1
+  verifier_result: "PASS — remote SHA, expected parent, and exact six-path set verified read-only."
+  verifier_terminal: "term_43313003-0c88-4edd-a969-ed323263032f — closed after PASS"
+
+live_write_authority:
+  backend_worktree: "/home/miguel/projects/portfolio/AI-EdgeRunners/odontoflow/odontoflow-backend"
+  coordinator_terminal: "term_fc74c4f0-221c-4c15-abfd-2fea6deb6635 — current coordinator shell"
+  active_agent03_writers: 0
+  evidence: >-
+    The Codex release terminal was released after the commit/push result was
+    recorded. The read-only verifier terminal was closed after PASS. Both
+    release Dispatch attempts settled with agent_prompt_stalled; the
+    verification Dispatch completed. No AGENT-03 writer remains active.
+  launch_permissions: "The historical Claude profile bypass finding remains historical and was not investigated or changed during this release."
+
+delivery_evidence:
+  execution_mode: "Implementation: direct fallback. Publication: Orca-supervised Codex release."
+  backend_base_head: 59be27678d7cc46041befe93206242f34ed145de
+  backend_head: 02fb031c6949c1c5ea69278a9e9a33a4cbb17f72
+  backend_origin_main: 02fb031c6949c1c5ea69278a9e9a33a4cbb17f72
+  backend_parent: 59be27678d7cc46041befe93206242f34ed145de
+  backend_ahead_behind: "0/0 at post-push verification"
+  changed_paths:
+    - app/agent_tools/booking.py
+    - app/agent_tools/guards.py
+    - app/agent_tools/reception.py
+    - tests/test_reception_agent_phase5.py
+    - CHANGELOG.md
+    - docs/superpowers/handoffs/2026-09-22-agent-03-human-controlled-appointment-mutations.md
+  diff_audit: "DIFF_AUDIT = PASS_UNCHANGED; intended diff and file hashes matched the recovery snapshot."
+  red_green: "6 expected initial failures; final focused AGENT-03 cases 10 passed, 9 deselected"
+  related_regressions: "166 passed"
+  full_suite: "650 passed, 21 warnings, one serial real-PostgreSQL run"
+  test_evidence_disposition: "Historical evidence reused because the audited hashes matched; no tests rerun."
+  security_review: "Independent read-only implementation review PASS; it did not run tests or use the database."
+  release_verification:
+    result: PASS
+    task: task_4f8ef3b3cbef
+    dispatch: ctx_8d7bbc5f25a1
+    details: "Read-only Codex verification confirmed exact origin/main SHA, expected parent, and the six approved paths only."
+  staged_diff_check: "FAILED: three trailing-space Markdown hard-break lines in the unchanged backend technical handoff; snapshot was preserved."
+  scoped_secret_scan: "Clean; no secret-like matches in the staged intended diff."
+  evidence_tie: >-
+    The audit snapshot matched at release. Historical test and independent
+    security-review summaries are reused by path/diff hash continuity; raw
+    pytest logs and a test-time content hash were not recorded. No full-suite
+    rerun was made during delivery recovery.
+
+blocker:
+  category: repository_commit_gate
+  status: RESOLVED_BY_APPROVED_ONE_TIME_EXCEPTION
+  evidence: >-
+    The owner approved the one-time MediStock-clean gate exception for this
+    AGENT-03 backend commit. MediStock .audit/ remained completely untouched.
+    The exception applies only to this bounded AGENT-03 release.
+  required_recovery: "None for AGENT-03 publication; do not generalize this exception to another task."
+
+credential_followup:
+  reference: "Remote database URL credential referenced by backend .env.local; value intentionally omitted."
+  status: "Pending separately with the authorized owner; rotation/revocation does not block this release. No credential was reread or used."
+
+harness_debt:
+  context7: "Codex reported mcp_servers.context7.type as ignored or unrecognized configuration; non-blocking and not changed."
+  claude_dispatch: "Claude agent_prompt_blocked remains a separate harness issue; Claude was not used for this release."
+  codex_dispatch: "Two Codex worker-start attempts reported agent_prompt_stalled; release completed, and this harness issue remains for separate investigation."
 
 core01_history_subcards:
   - id: CORE-01-A
@@ -369,15 +442,23 @@ core01_history_orchestration:
     backend AGENTS.md is also dirty (+7 lines uncommitted). The worker therefore loads a skill
     set that a fresh clone would not reproduce. Preserved as-is and reported; no cleanup performed.
 
-handoff_target: docs/handoffs/plans/2026-09-22-core-02-secure-reception-authentication.md
+handoff_target: docs/handoffs/plans/2026-09-22-agent-03-human-controlled-appointment-mutations.md
 advance_automatically: false
 next: >
-  OWNER-DECISION-REQUIRED. CORE-02 is complete and authorizes nothing further.
-  Do not auto-start AGENT-02, AGENT-03, CHAN-03, deployment, frontend, n8n,
-  WhatsApp or OpenRouter work. The owner must choose and authorize the next
-  activity explicitly.
+  AGENT-03 is DONE. Wait for an explicit owner choice before starting any other
+  Activity Card. Do not start AGENT-02 or another activity.
 
 history:
+  - activity_id: CORE-02
+    status: DONE — secure Reception/Scheduling authentication implemented, reviewed, committed and published
+    lifecycle_state: DONE
+    handoff: docs/handoffs/plans/2026-09-22-core-02-secure-reception-authentication.md
+    backend_commit: 59be27678d7cc46041befe93206242f34ed145de
+    published_backend: 59be27678d7cc46041befe93206242f34ed145de
+    orchestration:
+      run: run_7e46837e9c83
+      writer: task_ef045f8e0371 / ctx_78573cf4782a
+      reviewer: task_811559ec5bbb / ctx_bce609ff0148
   - activity_id: CORE-01
     status: DONE — human proposal list/read/confirm/decline completed and published
     lifecycle_state: DONE
