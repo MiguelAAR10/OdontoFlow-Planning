@@ -1,5 +1,5 @@
-# Single current activity. AGENT-02 discovery/specification is complete after
-# W5 PASS and the recorded owner decisions authorize the existing SubCard graph.
+# Single current activity. AGENT-02 implementation, verification and backend
+# publication are complete; wait for an explicit owner choice before new work.
 last_verified: "2026-09-24"
 authority: Repo 0 (planning)
 source:
@@ -29,22 +29,28 @@ lifecycle_contract:
 
 activity_id: AGENT-02
 title: "AGENT-02 — truthful AI failure to human recovery"
-lifecycle_state: READY_TO_BUILD
+lifecycle_state: DONE
 implementation_authorized: true
 discovery_authorized: true
 specification_complete: true
-ready_to_build: true
+ready_to_build: false
 authorized_by: "Owner decisions recorded after W5 final re-review PASS"
 authorized_at: "2026-09-24"
 started_at: "2026-09-23"
 paused_at: null
+completed_at: "2026-09-24"
 status: >
-  Discovery and evidence/specification are complete, and the accepted Spec
-  passed the W5 final re-review. The four owner decisions are recorded below;
-  the existing sequential SubCard graph is authorized and ready to build.
+  PASS — provider/runtime failure recovery is implemented through the existing
+  authenticated typed handoff command, the required serial PostgreSQL suite
+  passed, independent static review passed after bounded repair, and backend
+  commit 492dbb35f8c87b6f159efb540228055a62174aa7 is verified on origin/main.
+  No new recovery architecture or Activity Card was started. One non-blocking
+  static-coverage note and one Orca worker-reporting failure are documented in
+  the living brief; neither blocks publication or completion.
 repo: odontoflow-backend
-mode: ready_to_build
-delivery_mode: "Orca-supervised discovery and specification"
+mode: completed
+implementation_mode: "Codex Luna test-first work; single Claude Sonnet backend writer"
+delivery_mode: "Orca-supervised implementation, verification and backend release"
 skill_lane: backend + sales-agent
 seed:
   path: docs/handoffs/plans/2026-09-17-reception-core-closeout-01.yaml#AGENT-02
@@ -100,35 +106,80 @@ subcards:
     - id: AGENT-02-T
       title: failure-handoff contract tests
       depends_on: []
-      status: NOT_DISPATCHED
+      status: DONE
+      result: PASS
+      task: task_fc9dc8c30be7
+      dispatch: ctx_36fce6c0731f
       write_ownership:
         - odontoflow-backend/tests/test_sales_agent_failure_handoff.py
-      dispatch_blockers:
-        - W5 PASS recorded
-        - implementation_authorized: true
     - id: AGENT-02-I
       title: connect failure boundary to ReceptionHandoff
       depends_on:
         - AGENT-02-T PASS
-      status: NOT_DISPATCHED
+      status: DONE
+      result: PASS
+      implementation_task: task_12f5cb5c280d
+      bounded_repair_task: task_47de38e92377
       write_ownership:
         - odontoflow-backend/sales_agent/api.py
         - odontoflow-backend/app/agent_tools/reception.py
-      dispatch_blockers:
-        - W5 PASS recorded
-        - implementation_authorized: true
   no_parallel_writers: true
 write_surface:
-  planning: none
-  future_only:
+  planning: "control-plane activation and final closeout only"
+  completed_backend:
     - odontoflow-backend/tests/test_sales_agent_failure_handoff.py
     - odontoflow-backend/sales_agent/api.py
     - odontoflow-backend/app/agent_tools/reception.py
+    - odontoflow-backend/docs/superpowers/handoffs/2026-09-24-agent-02-truthful-ai-failure-human-recovery.md
 orchestration:
   run: run_a8f8429f181f
   planning_sync:
     task: task_b744090efbe7
     verified_sha: d4964c18dc850bd6c87ca7b3ef7bdd22e843f7d3
+  activation:
+    task: task_52f663a1c71c
+    dispatch: ctx_ab99e144e4fc
+    planning_commit: fb8b702a19938b1e5411e7e045cd008045341b15
+  implementation:
+    red_task: task_fc9dc8c30be7
+    red_dispatch: ctx_36fce6c0731f
+    initial_red: "7 failed, 0 passed; missing failure-created handoff behavior"
+    writer_task: task_12f5cb5c280d
+    writer_dispatch: ctx_016e890dd7b4
+    bounded_repair_task: task_47de38e92377
+    bounded_repair_dispatch: ctx_32d461ee4be9
+    bounded_repair_red: "3 new exclusion/reuse assertions failed before repair"
+    focused_after_repair: "10 passed, 0 failed, 0 skipped, 2 warnings"
+  verification:
+    D1_initial_finding:
+      task: task_ad8d8d6fbab3
+      result: "FAIL finding returned to the same Claude writer; excluded RuntimeError categories and repeat-call reuse were corrected"
+    D1_final:
+      task: task_db21f6f7c931
+      dispatch: ctx_1a241f9fd6a2
+      result: PASS
+      note: "UUIDv4 receipts/audit events remain per-command provenance; the one open ReceptionHandoff is the business deduplication authority"
+    D2_final:
+      task: task_10023381cc73
+      dispatch: ctx_7571c8fb81f2
+      focused: "10 passed, 0 failed, 0 skipped, 2 warnings"
+      full_serial_postgres: "660 passed, 0 failed, 0 skipped, 21 warnings"
+  release:
+    task: task_68d805a24986
+    dispatch: ctx_1f312eed1847
+    dispatch_reporting: "Orca reported agent_prompt_stalled and revoked the reporting capability after terminal creation; coordinator reconciled terminal output and independently verified the remote SHA"
+    commit: 492dbb35f8c87b6f159efb540228055a62174aa7
+    parent: 02fb031c6949c1c5ea69278a9e9a33a4cbb17f72
+    remote_origin_main: 492dbb35f8c87b6f159efb540228055a62174aa7
+    subject: "fix: route provider failures to human recovery"
+    staged_paths_exact: true
+    staged_diff_check: PASS
+    scoped_secret_scan: "PASS; no matches in staged additions"
+    handoff: odontoflow-backend/docs/superpowers/handoffs/2026-09-24-agent-02-truthful-ai-failure-human-recovery.md
+    planning_closeout: "published with this bounded Planning closeout; remote SHA reported in release summary"
+  material_risks:
+    - "Non-blocking coverage note: auth and rate-limit exclusions are directly parameterized; other excluded categories are protected by the explicit recovery-category allowlist and existing branch mappings."
+    - "No known in-scope product blocker."
   scouts:
     W1:
       task: task_53828561d1db

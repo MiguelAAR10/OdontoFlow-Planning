@@ -6,39 +6,45 @@ source_seed: docs/handoffs/plans/2026-09-17-reception-core-closeout-01.yaml#AGEN
 discovery_authorized: true
 discovery_spec_status: complete_after_W5_pass
 spec_artifact_status: COMPLETE_AND_ACCEPTED_AFTER_W5_PASS
-control_plane_lifecycle: READY_TO_BUILD
-lifecycle_state: READY_TO_BUILD
-post_review_lifecycle: READY_TO_BUILD_AFTER_W5_PASS_AND_OWNER_AUTHORIZATION
+control_plane_lifecycle: DONE
+lifecycle_state: DONE
+post_review_lifecycle: DONE_AFTER_IMPLEMENTATION_VERIFICATION_AND_PUBLICATION
 implementation_authorized: true
-ready_to_build: true
+ready_to_build: false
 backend_evidence_head: 02fb031c6949c1c5ea69278a9e9a33a4cbb17f72
+backend_commit: 492dbb35f8c87b6f159efb540228055a62174aa7
+verified_backend_remote_sha: 492dbb35f8c87b6f159efb540228055a62174aa7
+closed_on: 2026-09-24
 ---
 
 # AGENT-02 — Truthful AI Failure to Human Recovery — FOREMAN living brief
 
 ## Executive status
 
-The Spec/Activity Card artifact passed the W5 final re-review. The four owner
-decisions below are now recorded exactly, so the accepted architecture is
-authorized for the existing sequential SubCard graph and the activity is
-`READY_TO_BUILD`.
+The accepted Spec passed W5, the recorded owner decisions authorized the
+existing sequential SubCard graph, and AGENT-02 is now **DONE** after backend
+implementation, verification, and publication. The closeout evidence below is
+tied to the published backend commit and its verified `origin/main` SHA.
 
 The artifact and the control-plane lifecycle are intentionally separate:
 
 | Concern | Current value | Meaning |
 |---|---|---|
 | Spec artifact | `COMPLETE_AND_ACCEPTED_AFTER_W5_PASS` | This file contains the repaired, evidence-bounded contract accepted by W5. |
-| Control-plane lifecycle | `READY_TO_BUILD` | `orchestration/current-activity.yaml` records the authorized build state. |
-| Implementation | `implementation_authorized: true` | The existing SubCard graph may be dispatched in dependency order. |
-| Build readiness | `ready_to_build: true` | This activity is ready for the existing `AGENT-02-T -> AGENT-02-I` graph. |
-| After review | W5 PASS plus owner authorization recorded | No owner gate remains unresolved; no new Activity Card is registered. |
+| Control-plane lifecycle | `DONE` | `orchestration/current-activity.yaml` records the completed activity. |
+| Implementation | PASS | Existing typed handoff command and `ReceptionHandoff` are reused; no second recovery architecture was added. |
+| Verification | PASS | Focused AGENT-02 tests: 10 passed / 2 warnings; final full serial PostgreSQL suite: 660 passed / 21 warnings. |
+| Backend release | `492dbb35f8c87b6f159efb540228055a62174aa7` | Parent is the expected `02fb031c6949c1c5ea69278a9e9a33a4cbb17f72`; `origin/main` independently resolves to the release SHA. |
+| Review | D1 PASS | Initial material defects were returned to the same writer and repaired; final review disposition is persisted in `task_db21f6f7c931`. |
+| Owner gate | Complete | No further implementation is authorized by this closeout; wait for an explicit owner choice before starting other work. |
 
 The prior W4 repair dispatches `ctx_a5e4672fa57c` and
-`ctx_168c655bac70` failed before any file write. This bounded activation
-records the W5 PASS and owner decisions in the two existing AGENT-02 planning
-artifacts; it does not alter the accepted architecture.
+`ctx_168c655bac70` failed before any file write. Their history remains
+unchanged. This closeout records the completed implementation in the same
+canonical Activity Card and living brief; it does not add a new Activity Card
+or broaden the accepted recovery architecture.
 
-Owner decisions recorded for the future SubCards:
+Owner decisions applied by the completed implementation:
 
 1. Failure scope is provider/runtime execution failure only: provider timeout,
    turn timeout, and generic provider/runtime exception mapped through the
@@ -58,6 +64,88 @@ Owner decisions recorded for the future SubCards:
    original public provider/runtime failure response and sanitized diagnostic
    behavior; claim a durable handoff only after the backend command commits.
 
+## IMPLEMENTATION AND RELEASE CLOSEOUT — 2026-09-24
+
+### Result
+
+**PASS — AGENT-02 is implemented and published.** Only the approved runtime
+failure categories (`provider_timeout`, `turn_timeout`, and `unknown`) make a
+best-effort call through the authenticated `BackendGateway` to the existing
+`request_human_handoff` typed tool. The backend reuses the tenant-bound open
+`ReceptionHandoff`, keeps the existing public `503 / AGENT_EXECUTION_FAILED`
+response and sanitized diagnostics, and writes only the fixed `other` reason
+metadata. Handoff persistence failure does not fabricate a recovery claim.
+
+The bounded product changes are `sales_agent/api.py`,
+`app/agent_tools/reception.py`, and
+`tests/test_sales_agent_failure_handoff.py`. The backend handoff is
+`odontoflow-backend/docs/superpowers/handoffs/2026-09-24-agent-02-truthful-ai-failure-human-recovery.md`.
+No schema, migration, queue, retry, fallback, frontend, n8n, or deployment
+change was made.
+
+### RED, implementation, and verification evidence
+
+- **RED:** `task_fc9dc8c30be7` / `ctx_36fce6c0731f` first ran the new focused
+  contract against the actual backend and recorded **7 failed / 0 passed**
+  because failure-created recovery was missing. During the bounded repair,
+  three new exclusion/reuse assertions also failed before the same writer
+  repaired the behavior. Acceptance was not weakened.
+- **Implementation:** Codex Luna created the tests first; one Claude Sonnet
+  worker owned the implementation in `sales_agent/api.py` and
+  `app/agent_tools/reception.py`. The same writer handled the bounded D1 repair
+  in `task_47de38e92377`. Focused tests then passed **10 / 10**.
+- **Focused verification:** `task_10023381cc73` / `ctx_7571c8fb81f2` ran
+  `./.venv/bin/python -m pytest -q tests/test_sales_agent_failure_handoff.py`:
+  **10 passed, 0 failed, 0 skipped, 2 warnings**.
+- **Full serial PostgreSQL verification:** the same task ran
+  `./.venv/bin/python -m pytest -q`: **660 passed, 0 failed, 0 skipped,
+  21 warnings**. The suite ran after repair and before release; release did not
+  rerun it.
+- **Static review:** initial material findings about catching excluded
+  `RuntimeError` categories and repeat-call reuse were repaired by the same
+  writer. Final D1 disposition is **PASS** (`task_db21f6f7c931` /
+  `ctx_1a241f9fd6a2`). The later receipt/audit concern was adjudicated against
+  the owner contract: per-invocation UUIDv4 receipts and audit events are
+  normal command provenance; the single open handoff row is business
+  deduplication. No whole-turn idempotency was added.
+
+### Backend publication
+
+- Commit: `492dbb35f8c87b6f159efb540228055a62174aa7`
+- Subject: `fix: route provider failures to human recovery`
+- Expected parent: `02fb031c6949c1c5ea69278a9e9a33a4cbb17f72`
+- Verified remote: `origin/main` =
+  `492dbb35f8c87b6f159efb540228055a62174aa7`, independently confirmed with
+  `git ls-remote`.
+- Exact committed paths: the two implementation files, the focused test file,
+  and the backend technical handoff named above. Staged paths matched this
+  allowlist; `git diff --cached --check` passed; scoped secret scan found no
+  matches in staged additions. Unrelated pre-existing backend dirt was not
+  staged.
+- Release task: `task_68d805a24986` / `ctx_1f312eed1847` in Run
+  `run_a8f8429f181f`.
+
+### Deviations and remaining risk
+
+- **Narrow implementation seam:** `request_handoff` may run while the
+  conversation is already `human_handoff`, solely to let the existing command
+  reuse its open row. Other reception tools retain the automation-active
+  guard. This bounded change was required by the repeat-failure test and was
+  reviewed; it does not add another recovery path.
+- **Non-blocking coverage note:** focused exclusion parametrization directly
+  exercises authentication and rate-limit categories. Other excluded
+  categories are protected by the explicit recovery allowlist and existing
+  branch mappings. D1 found no correctness path that hands those excluded
+  categories off.
+- **Orca reporting deviation:** Orca marked the release Dispatch
+  `agent_prompt_stalled` and revoked its reporting capability after creating
+  the live backend terminal. That terminal completed the scoped commit/push;
+  its output was reconciled into the Run Task result and the remote SHA was
+  independently verified. This harness issue does not change product status.
+- **Product blockers:** none known within the approved V1 scope. Provider-side
+  effects outside the existing authenticated backend and the non-blocking
+  exclusion-coverage note remain as documented limits.
+
 ## Objective and success criteria
 
 Objective: after an authenticated provider/runtime execution failure in the
@@ -66,33 +154,32 @@ existing tenant-bound human handoff command and leaves one truthful recovery
 state, while preserving the established sanitized diagnostics and public error
 contract.
 
-Success criteria for the future implementation are A1–A7 in
-**TEST-FIRST ACCEPTANCE**: one tenant-bound open handoff, no duplicate
-handoff/receipt/domain-audit effect, unchanged branch-specific public errors,
-no hidden retry/fallback or fabricated outbound, no prohibited recovery data,
-tenant isolation, and an explicit handoff-write-failure outcome. The focused
-tests must be written first and initially fail for the missing behavior; the
-full required serial suite and exact results must be recorded before any PASS,
-DONE, or READY claim.
+The implementation closed A1–A7 in **TEST-FIRST ACCEPTANCE**: one
+tenant-bound open handoff, existing public failure responses, no hidden
+retry/fallback or fabricated outbound, no prohibited recovery data, tenant
+isolation, and truthful handoff-write-failure behavior. Tests were written
+first and demonstrated RED before product changes. Repeated typed calls retain
+ordinary per-command UUIDv4 receipts/audit provenance; the existing open
+`ReceptionHandoff` row and transition are the business deduplication
+authority. Exact final test results are recorded above.
 
-Constraints are the existing `ReceptionHandoff` domain, the authenticated API
-boundary, the seed write surface, the four recorded owner decisions above, and
-the existing one-card graph. Exclusions are a new recovery architecture,
-direct database access from the Sales Agent, provider fallback, queue/retry,
-whole-turn replay or idempotency, frontend/channel work, and any control-plane,
-seed, or CAVELOG change beyond this bounded Planning activation.
+The implementation used the existing `ReceptionHandoff` domain,
+authenticated API boundary, seed write surface, four owner decisions, and
+one-card graph. It did not add a recovery architecture, direct database access
+from the Sales Agent, provider fallback, queue/retry, whole-turn replay or
+idempotency, frontend/channel work, or deployment.
 
 ## Repository reality
 
-- Repo 0 is the planning control plane. The canonical artifact is this file;
-  `orchestration/current-activity.yaml` remains the status authority and now
-  says `READY_TO_BUILD` with `implementation_authorized: true`.
+- Repo 0 is the planning control plane. This file remains the canonical
+  living brief; `orchestration/current-activity.yaml` is the status authority
+  and now says `DONE`.
 - The approved seed is
   `docs/handoffs/plans/2026-09-17-reception-core-closeout-01.yaml#AGENT-02`.
   W1, W2, W3, and coordinator fan-in are the read-only evidence packets used
   here. Their recorded backend evidence head is
-  `02fb031c6949c1c5ea69278a9e9a33a4cbb17f72`; future implementation must
-  revalidate it.
+  `02fb031c6949c1c5ea69278a9e9a33a4cbb17f72`; the published implementation
+  commit and verified remote SHA are recorded in this closeout.
 - The packets establish an authenticated `POST /sales-agent/turn`, a
   sanitized diagnostic/public-error path, and an existing transactional
   `request_handoff`/`run_handoff_tool` command with tenant binding, one-open-row
@@ -102,7 +189,8 @@ seed, or CAVELOG change beyond this bounded Planning activation.
   typed-tool effect followed by failure, failure-row metadata sanitization, or
   cross-tenant failure-created recovery. The owner decision fixes the
   failure-created value as `reason_code: other` with the fixed content-free
-  summary recorded above; implementation must still prove the sanitization.
+  summary recorded above; focused privacy assertions passed and the final
+  serial suite passed.
 - This W4 repair reads planning conventions and evidence packets only. It does
   not inspect backend source, run tests, contact a provider/live database,
   edit the seed, or change any other planning file.
@@ -255,8 +343,8 @@ order; no new Activity Card or architecture is introduced.
   content-free `reason_summary` `Automatic assistance could not complete the
   conversation and human recovery is required.` Never persist a credential,
   provider response/body/header, exception text or stack, prompt or patient
-  message text, or secret. The current explicit handoff field is caller-
-  provided, so the failure path needs a direct sanitization assertion.
+  message text, or secret. The focused tests inspect this failure-created
+  metadata and its sanitized public/diagnostic boundary.
   [W2:F02,F15; W1:E011-E012; W3:A5,U2]
 - Keep public failure responses trace-only and preserve the established status
   and code; diagnostic stage/category/upstream details do not become public.
@@ -264,7 +352,7 @@ order; no new Activity Card or architecture is introduced.
 - No fabricated outbound or delivery state; outbound remains downstream of a
   valid turn response. [W1:E021-E022; W3:E9-E10]
 
-## What we will build and how
+## Approved implementation direction (as run)
 
 This is an API-first connection to the existing recovery command:
 
@@ -291,7 +379,7 @@ This is an API-first connection to the existing recovery command:
    the original provider/runtime response remains public and no durable
    handoff is claimed.
 
-Conceptual future file scope is limited to the seed surface:
+The completed product diff stayed within the seed write surface:
 
 - `odontoflow-backend/sales_agent/api.py` — connect the provider/runtime
   execution-failure branch through the authenticated gateway boundary while
@@ -302,10 +390,9 @@ Conceptual future file scope is limited to the seed surface:
 - `odontoflow-backend/tests/test_sales_agent_failure_handoff.py` — the focused
   contract file named by the seed and absent at the packet evidence head.
 
-No schema, migration, planning-state, seed, frontend, deployment, or
-unrelated backend path is authorized by this card. The smallest useful graph
-is tests first, then one implementation writer for the two overlapping
-recovery surfaces.
+No schema, migration, seed, frontend, deployment, or unrelated backend path
+was changed. The executed graph was tests first, then one implementation
+writer for the two overlapping recovery surfaces.
 
 ## Risks, conflicts, and protected surfaces
 
@@ -314,30 +401,30 @@ recovery surfaces.
   the broader branches; no implementation may expand it.
 - **Write-failure risk:** a handoff-tool failure can be swallowed by an
   existing recursion-bound path, so a handoff response does not prove a
-  committed row. The test-first gate below forbids claiming durable recovery
-  without commit. [W2:G04; W1:E019-E020]
+  committed row. Focused A7 verification confirms the original failure remains
+  public and no durable recovery is claimed without commit. [W2:G04;
+  W1:E019-E020; task_10023381cc73]
 - **Identity and duplicate-effect risk:** the turn has no whole-turn
   idempotency field by decision; the existing tool UUIDv4 contract remains in
   force, and the existing open-row uniqueness/reuse is the business
-  deduplication authority. A prior separately committed typed-tool effect and
+  deduplication authority. Per-invocation receipts/audit events are normal
+  command provenance. A prior separately committed typed-tool effect and
   unknown provider/checkpointer effects remain outside this activity's control.
   [W1:F007-F008,U003-U004; W2:F08-F10,G06; W3:G2-G3]
 - **Metadata risk:** the owner decision fixes `reason_code: other` and one
-  fixed content-free summary. Implementation must still prove that no
-  provider body, exception text, stack, prompt, patient message, credential,
-  or secret crosses into the handoff row. [W2:F02,E08; W3:U2]
+  fixed content-free summary. Focused tests assert that provider body,
+  exception text, stack, prompt, patient message, credential, and secret do not
+  cross into the handoff row. [W2:F02,E08; W3:U2; task_10023381cc73]
 
-Protected surfaces for this bounded pass are
-`orchestration/current-activity.yaml`, `CAVELOG.md`, the approved seed,
-backend/frontend source and tests, other plans/evidence, and all runtime,
-provider, database, credential, and publication state. Only the two bounded
-Planning artifacts listed by this activity may change.
+Implementation protected the approved seed, unrelated backend/frontend source
+and tests, other plans/evidence, and runtime/provider/database/credential
+state. The authorized Planning lifecycle updates were limited to the existing
+`orchestration/current-activity.yaml`, `CAVELOG.md`, and this living brief.
 
 ## WRITE SURFACE
 
-This Planning activation writes only the two existing artifacts in this
-activity. Future implementation, after W5 PASS and the recorded owner
-authorization, is limited to the seed's surface:
+The completed implementation stayed within the seed's bounded backend
+surface:
 
 - `odontoflow-backend/sales_agent/api.py` — connect the approved
   provider/runtime execution-failure branch to the existing authenticated
@@ -348,8 +435,9 @@ authorization, is limited to the seed's surface:
 - `odontoflow-backend/tests/test_sales_agent_failure_handoff.py` — the missing
   focused contract file named by the seed.
 
-No schema, migration, planning-state, seed, frontend, deployment, or unrelated
-backend path is authorized by this card.
+No schema, migration, seed, frontend, deployment, or unrelated backend path
+was changed. Planning closeout updates only the existing card, CAVELOG, and
+this living brief.
 
 ## SUBCARDS
 
@@ -370,20 +458,20 @@ evidence, acceptance, model class, and status.
 - `interfaces:` Authenticated synthetic Sales Agent turn/runtime seams and the
   existing tenant-bound handoff fixtures; no live provider, direct database
   access from the Sales Agent, or new product interface.
-- `write_ownership:` Future writer owns only
+- `write_ownership:` The Codex Luna test-first worker owned only
   `odontoflow-backend/tests/test_sales_agent_failure_handoff.py`; it must not
   edit implementation, seed, planning state, or CAVELOG.
 - `evidence:` W3:E1-E13, W3:A1-A7, W3:G2-G5; W1:E005,E007,E019-E020;
   W2:F04-F10,G04,G06.
-- `acceptance:` Write tests first and initially fail for the missing behavior;
-  cover A1–A7, the resolved failure-branch table, one handoff/receipt/domain
-  audit versus duplicate counts, the existing human-handoff guard contract,
-  `reason_code: other` and the fixed summary, tenant isolation, and the
-  committed versus uncommitted handoff-write outcome.
+- `acceptance:` Tests were written first and initially failed for the missing
+  behavior; focused A1–A7 acceptance passed. The existing `ReceptionHandoff`
+  row is the business deduplication authority, and ordinary per-call
+  UUIDv4 receipt/audit provenance remains intact.
 - `model_class:` `Codex Luna`.
 - `worker_role:` `backend_contract_engineer`.
-- `status:` `NOT_DISPATCHED` — ready to dispatch after the existing dependency
-  order is honored; `implementation_authorized: true`.
+- `status:` `DONE` — RED **7 failed / 0 passed**, followed by focused
+  **10 passed** after implementation and bounded repair. Task
+  `task_fc9dc8c30be7`; final verification `task_10023381cc73`.
 
 ### AGENT-02-I — connect failure boundary to ReceptionHandoff
 
@@ -398,7 +486,7 @@ evidence, acceptance, model class, and status.
   `POST /agent-tools/call` for existing `request_human_handoff`; existing
   `ReceptionHandoff` command/result only. No direct cross-process import or
   database access. [W1:E005,E007,E019; W2:F04,F08]
-- `write_ownership:` Future writer owns only
+- `write_ownership:` The single Claude Sonnet implementation writer owned only
   `odontoflow-backend/sales_agent/api.py` and
   `odontoflow-backend/app/agent_tools/reception.py` for the minimal seam;
   there is no parallel writer on either path and no schema/route/queue/worker.
@@ -409,10 +497,10 @@ evidence, acceptance, model class, and status.
   unchanged; one committed recovery transition is proven; no retry/fallback,
   fabricated outbound, duplicate canonical effect, secret-bearing metadata,
   or cross-tenant access is introduced.
-- `model_class:` `Codex Luna`.
+- `model_class:` `Claude Sonnet` (owner-directed).
 - `worker_role:` `backend_integration_engineer`.
-- `status:` `NOT_DISPATCHED` — depends on AGENT-02-T and remains the second card
-  in the existing sequential graph; implementation is authorized.
+- `status:` `DONE` — implemented after AGENT-02-T RED evidence and one bounded
+  repair pass. Tasks `task_12f5cb5c280d` and `task_47de38e92377`.
 
 ## REAL DEPENDENCIES
 
@@ -422,31 +510,32 @@ evidence, acceptance, model class, and status.
 - Existing runtime dependencies are the authenticated turn context and the
   already-shipped `ReceptionHandoff` domain, not a new service or queue.
   [W1:E002-E005,E019; W2:reuse_assessment]
-- Before future writing, revalidate the backend HEAD and dirty paths; the
-  packets are read-only evidence captured at
-  `02fb031c6949c1c5ea69278a9e9a33a4cbb17f72`, not a promise that the worktree
-  remains unchanged. [W1:backend; W2:backend_head; W3:backend]
+- Before implementation, backend HEAD and dirty paths were revalidated at
+  `02fb031c6949c1c5ea69278a9e9a33a4cbb17f72`; the resulting release commit
+  and remote SHA are recorded above. [W1:backend; W2:backend_head; W3:backend]
 - Owner decisions in **Executive status** and the failure-branch table are the
   fixed contract. If a test exposes a new contradiction, escalate it rather
   than introducing infrastructure or changing the accepted architecture.
 
 ## WRITE OWNERSHIP
 
-- Planning activation: `orchestration/current-activity.yaml` and this
-  canonical Markdown artifact only.
-- Future `AGENT-02-T`: one test writer, test file only.
-- Future `AGENT-02-I`: one backend integration writer,
+- Planning activation and closeout: existing
+  `orchestration/current-activity.yaml`, `CAVELOG.md`, and this canonical
+  living brief.
+- `AGENT-02-T`: Codex Luna test-first worker, focused test file only.
+- `AGENT-02-I`: one Claude Sonnet implementation writer,
   `sales_agent/api.py` and `app/agent_tools/reception.py` only; no parallel
   writer on either path.
-- Coordinator/owner: W5 PASS and the four owner decisions are recorded;
-  dispatch the existing graph in order. No worker may add another Activity
-  Card or change the accepted architecture.
-- Repo 0 control-plane files, CAVELOG, the seed, frontend, runtime/provider,
-  database, credentials, publication, and unrelated evidence remain untouched.
+- The sequential graph is complete. No worker may add another Activity Card
+  or change the accepted recovery architecture.
+- The seed, frontend, runtime/provider configuration, database, credentials,
+  and unrelated backend or Planning paths were not changed.
 
 ## TEST-FIRST ACCEPTANCE
 
-The fan-in status describes current evidence, not a PASS for the future card.
+The `Current status` cells below preserve the discovery-time evidence snapshot;
+implementation outcomes and current PASS status are recorded in the closeout
+section above.
 The expected counts below distinguish the canonical handoff row, the command
 receipt, and the domain audit from any generic tool-call observation. A generic
 `agent_tool.called` audit may be recorded for a replay under the existing
@@ -462,19 +551,20 @@ boundary; it must not be mistaken for a second handoff domain mutation.
 | A6 | Failure recovery remains tenant-isolated. | **Partially covered** — general isolation exists, failure-created row test absent. [FI:G6; W3:A6] | Run equivalent authenticated failures for two tenants; assert each sees only its own handoff/metadata and cross-tenant access is rejected. [W2:F03-F04; W3:G5,U3] |
 | A7 | A handoff command write failure is not reported as durable recovery without commit. | **Recorded decision** — current recursion evidence can swallow the command failure and does not prove a committed row. [W2:G04; W1:E019-E020] | Test a failure before transaction commit; assert no durable handoff/receipt/domain audit is claimed absent commit. Preserve the original provider/runtime public status/code/details and sanitized diagnostic behavior; do not add queue, retry, fallback, or a second persistence path. |
 
-The existing tests must remain green; no acceptance item may be waived because
-the implementation is small. A4 must respect the recorded absence of
-whole-turn idempotency and prove no duplicate canonical effect beyond the
-observed baseline; a new contradiction is an escalation, not a new
-retry/fallback or persistence design. [W2:F16,G06; W1:U003-U004]
+The implementation retained the existing tests and respected the recorded
+absence of whole-turn idempotency. A4 is interpreted as no duplicate canonical
+business effect beyond the observed baseline; per-invocation receipts and
+audit events remain command provenance. A new contradiction is an escalation,
+not a new retry/fallback or persistence design. [W2:F16,G06; W1:U003-U004]
 
 ### A2/A4 count and identity contract
 
-The expected canonical result is one `ReceptionHandoff` row, one executed
-command receipt/outcome for the recovery transition, and one
-`conversation.human_handoff_requested` domain audit for the actual mutation.
-An existing generic `agent_tool.called` observation may occur for each tool
-request or replay; it is not permission to count a second handoff mutation.
+The expected canonical result is one `ReceptionHandoff` row and one
+`conversation.human_handoff_requested` transition for the actual mutation.
+Each separate typed request retains its normal UUIDv4 command receipt and
+audit provenance; per-invocation records do not create a second business
+recovery state. An existing generic `agent_tool.called` observation may also
+occur for each request or replay.
 The current turn request intentionally has no whole-turn idempotency key. The
 existing command's UUIDv4 tool-key contract remains unchanged, and its
 tenant-plus-conversation open-row uniqueness/reuse is the business
@@ -491,23 +581,25 @@ rollback or control of those effects. [W1:F007-F008,U003-U004; W3:G3,U1]
 
 ### Repeat failure after `human_handoff`
 
-Repeated provider/runtime failure uses the existing open `ReceptionHandoff`
-for the authenticated tenant + conversation. The existing tool UUIDv4 contract
-remains unchanged, and open-row uniqueness/reuse is the business deduplication
-authority; no whole-turn idempotency is added. The existing `human_handoff`
-automation guard and recursion-bound path remain unchanged and are not a second
-failure path. [W2:F04-F05,F14; W3:E4,E8]
+Repeated typed failure uses the existing open `ReceptionHandoff` for the
+authenticated tenant + conversation. The existing tool UUIDv4 contract
+remains unchanged, and open-row uniqueness/reuse is the business
+deduplication authority; no whole-turn idempotency is added. The
+`request_handoff` command alone may run while the conversation is already in
+`human_handoff` so it can reuse that row; all other reception tools retain the
+automation-active guard, and the recursion-bound path is unchanged.
+[W2:F04-F05,F14; W3:E4,E8; task_47de38e92377; task_db21f6f7c931]
 
 ### Handoff write-failure decision
 
 The existing handoff command's receipt claim, domain write, audit, and receipt
 settlement are transaction-scoped. A command error before commit means there
 is no durable recovery state to report, even if an outer path has a handoff
-intent or a handoff-shaped response. The test must force that failure and
+intent or a handoff-shaped response. Focused A7 tests force that failure and
 assert the original provider/runtime public status/code/details and sanitized
 diagnostic behavior remain public. No durable handoff is claimed until the
 backend command commits; there is no queue, retry, fallback, or second
-persistence path. [W2:G04; W1:E019-E020]
+persistence path. [W2:G04; W1:E019-E020; task_10023381cc73]
 
 ### Recovery metadata decision
 
@@ -519,8 +611,8 @@ prompt, patient content, credential, or secret. [W2:F02; W2:E08; W3:U2]
 
 ## DEFINITION OF DONE
 
-W5 PASS, the four recorded owner decisions, and the lifecycle transition to
-`READY_TO_BUILD` authorize future implementation:
+AGENT-02 is `DONE`: W5 PASS and the four owner decisions authorized the
+bounded implementation, and the following completion evidence is recorded:
 
 - All four owner decisions are recorded, and the focused tests are written
   first and initially fail for missing behavior.
@@ -535,27 +627,26 @@ W5 PASS, the four recorded owner decisions, and the lifecycle transition to
   channel, deployment, or unrelated refactor is introduced.
 - The existing operator resume path remains the only human recovery transition
   and does not replay the AI turn.
-- A reviewer accepts the **REVIEW CONTRACT** and the coordinator emits a
-  self-contained implementation handoff. This artifact remains the living
-  brief for the same card; no new Activity Card is registered.
+- D1 final static review is PASS; the backend technical handoff and this
+  existing living brief record implementation and release. No new Activity
+  Card is registered.
 
 ## Execution model
 
-This is a solo, bounded Planning activation by the dispatched Codex worker;
-no implementation worker is active. The graph is sequential and intentionally
-small: `AGENT-02-T` first, then `AGENT-02-I`, with no overlapping writer on
-either surface. Both future writers use the `Codex Luna` model class; their
-roles are `backend_contract_engineer` and `backend_integration_engineer`
-respectively. Parallelism is not authorized because the two SubCards have a
-dependency and overlapping recovery semantics.
+Execution used the existing Orca Run `run_a8f8429f181f`. Codex Luna wrote the
+focused tests first and established RED; one Claude Sonnet worker owned the
+backend implementation and bounded repair; separate Codex Luna workers
+performed static review and serial test verification. The dependency order
+was preserved and no concurrent product writers were used. The final release
+Task result was reconciled by the coordinator after Orca revoked the
+Dispatch's reporting capability.
 
 ## RECOMMENDED WRITER MODEL
 
-Use Codex Luna for both future SubCards after the recorded W5 PASS and owner
-authorization. `AGENT-02-T` is the contract-test writer;
-`AGENT-02-I` is the single code-aware integration writer for the two declared
-backend surfaces. The model recommendation is not implementation
-authorization.
+As executed: Codex Luna for `AGENT-02-T`, Claude Sonnet for the single
+`AGENT-02-I` implementation writer, and Codex Luna for independent review and
+test verification. Implementation and release are complete; this routing
+does not authorize another writer.
 
 ## REVIEW CONTRACT
 
@@ -594,13 +685,12 @@ This artifact remains the canonical living brief for the same Activity Card:
 
 `docs/handoffs/plans/2026-09-23-agent-02-truthful-ai-failure-human-recovery.md`
 
-The coordinator has recorded W5 PASS, all four owner decisions, and
-`READY_TO_BUILD` with `implementation_authorized: true` in
-`orchestration/current-activity.yaml`. Dispatch `AGENT-02-T` then
-`AGENT-02-I` with the exact write ownership above; do not register another
-Activity Card, modify `CAVELOG.md`, modify the seed, or change the accepted
-architecture. Any new contradiction, missing handoff write, or privacy
-ambiguity returns to the owner; it must not be resolved by adding another
+The coordinator recorded W5 PASS, all four owner decisions, and final `DONE`
+in `orchestration/current-activity.yaml`. The backend commit and verified
+remote SHA are recorded above. The existing card is complete; do not dispatch
+another implementation worker or start another Activity Card from this
+closeout. Any newly discovered contradiction or privacy issue requires an
+explicit owner decision and must not be resolved by adding another
 architecture.
 
 ## AUTHORITY AND EVIDENCE USED
@@ -615,12 +705,11 @@ Packet aliases used throughout this brief:
 
 Planning conventions applied: the repository `AGENTS.md`, `CONTEXT.md`, the
 project `foreman-handoff` skill, and the existing living-brief/Activity Card
-shape. Source claims in this repair are taken from the persisted packets and
-coordinator fan-in; this pass did not rediscover or inspect backend source.
-The evidence packets' source inspection and their limitations remain theirs;
-this file does not upgrade packet evidence into implementation verification.
+shape. The accepted Spec's discovery-time source claims remain tied to the
+persisted packets and fan-in; the implementation and release facts are
+separately evidenced in the closeout section above and the backend handoff.
 
-## EVIDENCE AND VALIDATION
+## PLANNING ACTIVATION EVIDENCE (HISTORICAL)
 
 Read-only validation for this activation: the two existing AGENT-02 artifacts
 and the repository git status/log were inspected; the persisted W5 PASS and
@@ -630,20 +719,24 @@ planning artifact was edited or run. This pass changes only
 `orchestration/current-activity.yaml` and this canonical brief, and records the
 four owner decisions, `READY_TO_BUILD`, and `implementation_authorized: true`.
 
-This section is evidence of Planning activation only, not implementation
-verification or a business PASS; the existing W5 PASS is persisted in the
-control plane and is not re-reviewed here.
+This section records the Planning activation only. Implementation verification
+and the business PASS are recorded in the closeout section above.
 
 ## DECISION AND PROGRESS LOG
 
+- **2026-09-24 — Implementation and release closeout:** Recorded AGENT-02
+  PASS, the exact backend commit and verified `origin/main` SHA, focused and
+  full serial PostgreSQL results, final D1 PASS, the narrow guard exception,
+  non-blocking coverage note, and Orca release-reporting deviation. Set the
+  existing card to `DONE`; no new Activity Card or architecture was added.
 - **2026-09-24 — Planning activation:** Recorded the four owner decisions:
   provider/runtime execution failure scope only; fixed `reason_code: other`
   and content-free summary; existing open `ReceptionHandoff` reuse with the
   UUIDv4 tool contract and no whole-turn idempotency; and preservation of the
   original sanitized provider/runtime failure when persistence does not
   commit. Set the existing card to `READY_TO_BUILD` with
-  `implementation_authorized: true`; no new Activity Card or architecture was
-  introduced.
+  `implementation_authorized: true`; this was the authorized build gate and
+  was later superseded by the completion record above.
 - **2026-09-23 — W4 initial artifact:** Compiled the approved AGENT-02 seed
   and read-only W1–W3 evidence into one canonical Spec + Activity Card. No
   implementation was authorized.
@@ -656,8 +749,7 @@ control plane and is not re-reviewed here.
 
 ## NEXT APPROVAL / NEXT STEP
 
-The existing card is now `READY_TO_BUILD` after the persisted W5 PASS and the
-four recorded owner decisions. The next step is to dispatch `AGENT-02-T` and
-then `AGENT-02-I` with their existing write ownership and dependency order.
-No new Activity Card, architecture, seed, CAVELOG entry, or unrelated Planning
-artifact is authorized by this activation.
+The existing card is `DONE`; no implementation step remains in this
+Activity Card. Wait for an explicit owner choice before registering or
+starting any other work. No new Activity Card, architecture, seed, or
+unrelated Planning artifact is authorized by this closeout.
