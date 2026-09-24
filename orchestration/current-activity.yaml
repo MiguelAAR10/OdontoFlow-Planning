@@ -1,6 +1,6 @@
 # Single current activity. AGENT-02 discovery/specification is complete after
-# W5 PASS; implementation remains blocked on explicit owner decisions.
-last_verified: "2026-09-23"
+# W5 PASS and the recorded owner decisions authorize the existing SubCard graph.
+last_verified: "2026-09-24"
 authority: Repo 0 (planning)
 source:
   - docs/handoffs/plans/2026-09-17-reception-core-closeout-01.yaml#AGENT-02
@@ -29,23 +29,21 @@ lifecycle_contract:
 
 activity_id: AGENT-02
 title: "AGENT-02 — truthful AI failure to human recovery"
-lifecycle_state: BLOCKED_OWNER_DECISION
-implementation_authorized: false
+lifecycle_state: READY_TO_BUILD
+implementation_authorized: true
 discovery_authorized: true
 specification_complete: true
-ready_to_build: false
-authorized_by: "Owner request for discovery, evidence and specification only"
-authorized_at: "2026-09-23"
+ready_to_build: true
+authorized_by: "Owner decisions recorded after W5 final re-review PASS"
+authorized_at: "2026-09-24"
 started_at: "2026-09-23"
 paused_at: null
 status: >
-  Discovery and evidence/specification are complete. The accepted Spec passed
-  the W5 final re-review, but four explicit owner gates remain unresolved;
-  completion of discovery/specification is not authorization to implement.
-  Stop at BLOCKED_OWNER_DECISION: no SubCard dispatch, implementation, or
-  READY_TO_BUILD claim is authorized.
+  Discovery and evidence/specification are complete, and the accepted Spec
+  passed the W5 final re-review. The four owner decisions are recorded below;
+  the existing sequential SubCard graph is authorized and ready to build.
 repo: odontoflow-backend
-mode: specification
+mode: ready_to_build
 delivery_mode: "Orca-supervised discovery and specification"
 skill_lane: backend + sales-agent
 seed:
@@ -59,45 +57,43 @@ business_outcome: >
 spec:
   path: docs/handoffs/plans/2026-09-23-agent-02-truthful-ai-failure-human-recovery.md
   status: COMPLETE_AND_ACCEPTED_AFTER_W5_PASS
-  implementation_authorized: false
+  implementation_authorized: true
 review:
   result: PASS
   phase: W5_final_re_review
   task: task_a21200bd208e
   dispatch: ctx_972e0fe2e4ac
   result_message: msg_167010b25750
-owner_gate:
-  required: true
-  implementation_authorized: false
-  decision_required: true
-  unresolved_count: 4
-  gates:
-    - id: failure_boundary_scope
-      status: unresolved
-      decision: >
-        Choose provider/runtime-only or the seed wording of every post-auth
-        failure; preserve pre-auth exclusion and each selected branch's
-        established public status/code/details.
-    - id: duplicate_identity_and_repeat_guard
-      status: unresolved
-      decision: >
-        Define the failure-boundary handoff command's idempotency identity and
-        the allowed receipt/audit/row deltas after a prior committed typed-tool
-        mutation, then decide whether a second attempt after human_handoff is
-        an automation-guard rejection or a handoff-row reuse path.
-    - id: handoff_write_failure_outcome
-      status: unresolved
-      decision: >
-        Approve the expected public result when the handoff command fails
-        before commit; no durable recovery may be claimed without a committed
-        row, receipt, and audit boundary.
-    - id: recovery_metadata
-      status: unresolved
-      decision: >
-        Select one existing value from the seven-value closed reason_code set
-        and one fixed, content-free reason_summary; do not invent literals or
-        persist diagnostics, provider text, exception, credential, prompt, or
-        patient content.
+owner_decisions:
+  - id: failure_boundary_scope
+    decision: >
+      Failure scope is provider/runtime execution failure only: provider
+      timeout, turn timeout, and generic provider/runtime exception mapped
+      through the existing execution-failure boundary. Exclude
+      authentication/permission, rate limit/request validation, GatewayError,
+      invalid structured response, disabled integration, unrelated transport
+      failures, and the existing recursion handoff path.
+  - id: recovery_metadata
+    reason_code: other
+    reason_summary: "Automatic assistance could not complete the conversation and human recovery is required."
+    decision: >
+      Failure handoff metadata uses reason_code: other and one fixed
+      content-free reason_summary meaning automatic assistance could not
+      complete the conversation and human recovery is required. Never persist
+      provider body, exception text, stack, prompt, patient message,
+      credential, or secret.
+  - id: duplicate_identity_and_repeat_guard
+    decision: >
+      Repeated failure reuses the existing open ReceptionHandoff for tenant +
+      conversation. Do not add whole-turn idempotency. Preserve the existing
+      tool UUIDv4 contract and ReceptionHandoff open-row uniqueness/reuse as
+      the business deduplication authority.
+  - id: handoff_write_failure_outcome
+    decision: >
+      If handoff persistence fails, never fabricate recovery. Preserve the
+      original public provider/runtime failure response and sanitized
+      diagnostic behavior; claim a durable handoff only after the backend
+      command commits.
 subcards:
   graph: "AGENT-02-T -> AGENT-02-I"
   cards:
@@ -109,7 +105,6 @@ subcards:
         - odontoflow-backend/tests/test_sales_agent_failure_handoff.py
       dispatch_blockers:
         - W5 PASS recorded
-        - all four owner gates resolved
         - implementation_authorized: true
     - id: AGENT-02-I
       title: connect failure boundary to ReceptionHandoff
@@ -121,7 +116,6 @@ subcards:
         - odontoflow-backend/app/agent_tools/reception.py
       dispatch_blockers:
         - W5 PASS recorded
-        - all four owner gates resolved
         - implementation_authorized: true
   no_parallel_writers: true
 write_surface:
