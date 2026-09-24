@@ -1,0 +1,591 @@
+artifact:
+  kind: human_handoff_domain_scout
+  activity_id: AGENT-02
+  task_id: task_d1aa69764c9d
+  agent: AGENT-02
+  generated_on: "2026-09-23"
+  evidence_only: true
+
+scope:
+  objective: >-
+    Map the existing backend Human Handoff domain, services, callers, and
+    recovery behavior so AGENT-02 can assess reuse without introducing a second
+    recovery architecture.
+  repository_inspected: ../odontoflow-backend
+  planning_repository: .
+  included:
+    - declared Conversation and ReceptionHandoff persistence models and migrations
+    - conversation and handoff states and observed transitions
+    - tenant binding, authentication, authorization, and operator profiles
+    - handoff command/tool dispatch and idempotency behavior
+    - audit events and failure diagnostics already present
+    - existing Sales Agent, agent-tool, messaging-route, and contract callers
+    - operator resume behavior and its connection to runtime recovery
+    - relevant planning seed and backend handoff/reality documents
+  excluded:
+    - implementation or edits in odontoflow-backend
+    - test execution, database inspection, schema introspection, and live services
+    - .env files, credentials, production systems, live databases, and patient/provider content
+
+backend_head:
+  repository: ../odontoflow-backend
+  head: 02fb031c6949c1c5ea69278a9e9a33a4cbb17f72
+  origin_main: 02fb031c6949c1c5ea69278a9e9a33a4cbb17f72
+  merge_base: 02fb031c6949c1c5ea69278a9e9a33a4cbb17f72
+  relation_to_origin_main: equal
+  relevant_source_diff_from_head: []
+  worktree_note: >-
+    The backend worktree is dirty in setup/documentation paths, but the
+    inspected app, sales_agent, alembic, and test source paths have no tracked
+    diff from HEAD. This report describes the current checked-out source and
+    records HEAD explicitly.
+  evidence_refs: [E01]
+
+findings:
+  overall:
+    statement: >-
+      A durable, tenant-bound human handoff mechanism already exists. It is
+      complete for an explicit typed handoff request and operator resume, but
+      the Sales Agent provider/runtime failure boundary currently records only a
+      sanitized diagnostic and returns a 503; it does not invoke the durable
+      handoff command.
+    evidence_refs: [E05, E06, E20, E27, E29]
+  persistence:
+    statement: >-
+      ReceptionHandoff is a PostgreSQL-backed model linked to one Conversation
+      and one ContactIdentity. Conversation carries the automation gate, while
+      ReceptionHandoff carries controlled reason data, lifecycle status, and
+      timestamps.
+    evidence_refs: [E02, E03]
+  states_and_transitions:
+    conversation_statuses:
+      allowed: [open, awaiting_confirmation, human_handoff, closed]
+      evidence_refs: [E02, E16]
+    handoff_statuses:
+      allowed: [pending, claimed, resolved]
+      evidence_refs: [E02, E03]
+    transitions:
+      - domain: conversation
+        from: [absent]
+        to: open
+        trigger: ingest_inbound_message creates a new conversation
+        evidence_refs: [E15]
+      - domain: conversation
+        from: [open, awaiting_confirmation]
+        to: awaiting_confirmation
+        trigger: appointment proposal creation
+        evidence_refs: [E17]
+      - domain: conversation
+        from: [awaiting_confirmation]
+        to: open
+        trigger: proposal confirmation or decline
+        evidence_refs: [E17]
+      - domain: conversation
+        from: [open, awaiting_confirmation]
+        to: human_handoff
+        trigger: request_handoff after the automation-active guard
+        evidence_refs: [E05, E07]
+      - domain: conversation
+        from: [open, awaiting_confirmation, human_handoff]
+        to: open
+        trigger: resume_automation on a non-closed conversation
+        evidence_refs: [E06]
+      - domain: conversation
+        from: [open, awaiting_confirmation, human_handoff]
+        to: closed
+        trigger: close_conversation
+        evidence_refs: [E15]
+      - domain: reception_handoff
+        from: [absent]
+        to: pending
+        trigger: request_handoff when no pending or claimed row exists
+        evidence_refs: [E05]
+      - domain: reception_handoff
+        from: [pending, claimed]
+        to: resolved
+        trigger: resume_automation
+        evidence_refs: [E06]
+      - domain: reception_handoff
+        from: [pending]
+        to: claimed
+        observed: false
+        trigger: null
+        note: claimed is allowed by the schema, but no source assignment path was found
+        evidence_refs: [E24, E30]
+    observed_transition_contract: >-
+      New inbound conversations are opened; proposal flows move conversations
+      to awaiting_confirmation and successful/declined proposal flows return
+      them to open; an explicit handoff sets human_handoff; operator resume
+      resolves pending/claimed handoffs and sets the conversation open; close
+      sets a non-closed conversation closed. The source has no handoff claim
+      assignment path.
+    evidence_refs: [E05, E06, E15, E17, E30]
+  tenant_binding:
+    statement: >-
+      The HTTP execution context derives organization and principal from the
+      authenticated credential and PostgreSQL membership, not request body or
+      headers. Handoff queries additionally filter organization_id, and the
+      model has composite foreign keys from organization_id to the conversation
+      and contact rows.
+    evidence_refs: [E02, E12, E13, E14]
+  creation_command_service_tool:
+    statement: >-
+      The application command is request_handoff in app.agent_tools.reception;
+      run_handoff_tool wraps it in the generic idempotent command handler; the
+      generic POST /agent-tools/call route dispatches request_human_handoff to
+      that wrapper. There is no separate handoff REST-create route in the
+      inspected backend source.
+    evidence_refs: [E05, E08, E09, E18, E30]
+  dedupe_and_idempotency:
+    statement: >-
+      Mutation tool envelopes require version 1.1 and UUIDv4 idempotency keys.
+      The handoff operation is recorded as conversations.request_handoff in
+      command_receipts, whose organization/operation/key uniqueness and
+      fingerprint/principal comparison replay a matching request and reject a
+      collision with different request identity. A PostgreSQL partial unique
+      index permits at most one pending or claimed handoff per organization and
+      conversation.
+    evidence_refs: [E02, E08, E10, E11]
+  permission_checks:
+    statement: >-
+      Handoff creation requires conversations.manage inside the transaction;
+      resume requires conversations.resume. Router-level bearer authentication
+      resolves the tenant context first. The sales-agent-v0 profile has manage
+      but not resume; reception-operator has read and resume only.
+    evidence_refs: [E05, E06, E12, E13, E14, E22]
+  audit_behavior:
+    statement: >-
+      request_handoff atomically stages conversation.human_handoff_requested;
+      resume atomically stages conversation.automation_resumed; both use the
+      ExecutionContext-derived tenant, actor, request, and correlation values.
+      The generic agent-tool boundary also stages agent_tool.called for success
+      and AppError outcomes. The Sales Agent HTTP failure boundary emits a
+      content-free logger record, not a canonical AuditEvent or handoff row.
+    evidence_refs: [E05, E06, E09, E20, E27]
+  existing_callers:
+    statement: >-
+      The explicit handoff is callable from the Sales Agent V0 wrapper and from
+      the generic authenticated agent-tool gateway. The bounded runtime calls
+      the same typed wrapper on GraphRecursionError. The operator resume route
+      calls resume_automation through the generic idempotent command handler.
+    evidence_refs: [E06, E09, E18, E19, E25]
+  resume_and_recovery:
+    statement: >-
+      POST /internal/conversations/{conversation_id}/resume accepts an empty
+      request body and UUIDv4 idempotency key, locks a tenant-scoped
+      non-closed conversation, resolves pending/claimed handoffs, sets status
+      open, emits an audit event, and returns resolved handoff IDs. The function
+      does not call the Sales Agent runtime, enqueue a turn, or manipulate the
+      separate agent-memory checkpointer.
+    evidence_refs: [E06, E16, E19, E26]
+  provider_runtime_failure_boundary:
+    statement: >-
+      After /sales-agent/turn authentication, runtime/provider/gateway/invalid
+      response failures are caught at the API boundary, logged through the
+      sanitized diagnostic path, and rendered as an error response. No branch
+      in that boundary calls request_handoff, resume_automation, or another
+      canonical handoff writer.
+    evidence_refs: [E13, E19, E20, E27, E28]
+
+evidence_refs:
+  E01:
+    path: ../odontoflow-backend
+    lines: "git rev-parse HEAD; git rev-parse origin/main; git status --short --branch"
+    function: repository state inspection
+    supports: backend HEAD, origin equality, and relevant-source worktree state
+  E02:
+    path: ../odontoflow-backend/app/messaging/models.py
+    lines: "145-210, 398-451"
+    function: Conversation; ReceptionHandoff
+    supports: persistence fields, allowed states, tenant constraints, and partial unique indexes
+  E03:
+    path: ../odontoflow-backend/alembic/versions/0014_reception_agent_phase5.py
+    lines: "16-42, 216-265"
+    function: upgrade
+    supports: conversations.manage catalog entry and reception_handoffs table/index creation
+  E04:
+    path: ../odontoflow-backend/alembic/versions/0015_n8n_reception_hardening.py
+    lines: "16-45"
+    function: upgrade
+    supports: conversations.resume permission creation and system-role grant
+  E05:
+    path: ../odontoflow-backend/app/agent_tools/reception.py
+    lines: "313-340, 1202-1293"
+    function: _load_conversation_contact; _handoff_outcome; request_handoff; run_handoff_tool
+    supports: command transaction, tenant query, automation guard, creation/reuse, audit, receipt settlement, and tool wrapper
+  E06:
+    path: ../odontoflow-backend/app/agent_tools/reception.py
+    lines: "1296-1354"
+    function: resume_automation
+    supports: operator resume mutation, resolution of pending/claimed rows, audit, and receipt settlement
+  E07:
+    path: ../odontoflow-backend/app/agent_tools/guards.py
+    lines: "8-14"
+    function: require_automation_active
+    supports: blocking LLM-facing automation while conversation status is human_handoff
+  E08:
+    path: ../odontoflow-backend/app/agent_tools/schemas.py
+    lines: "10-48, 105-117, 185-208"
+    function: ToolName; HumanHandoffArguments; AgentToolCall.validate_version_and_idempotency
+    supports: tool allow-list, reason contract, mutation version, and UUIDv4 key requirement
+  E09:
+    path: ../odontoflow-backend/app/agent_tools/service.py
+    lines: "64-81, 273-299, 300-431"
+    function: ARGUMENT_MODELS; _audit_tool_call; call_agent_tool
+    supports: gateway dispatch and generic success/error audit behavior
+  E10:
+    path: ../odontoflow-backend/app/idempotency/service.py
+    lines: "103-148, 198-288"
+    function: claim_receipt; settle_receipt; _replay_or_reject; run_idempotent_command
+    supports: first-statement claim, atomic settlement, replay/reject rules, and fingerprint/principal checks
+  E11:
+    path: ../odontoflow-backend/app/idempotency/models.py
+    lines: "29-81"
+    function: CommandReceipt
+    supports: durable receipt fields, unique organization/operation/key, and membership FK
+  E12:
+    path: ../odontoflow-backend/app/iam/permissions.py
+    lines: "59-66, 114-133"
+    function: permission constants and PERMISSION_CATALOG
+    supports: conversations.read/manage/resume permission vocabulary and descriptions
+  E13:
+    path: ../odontoflow-backend/app/context.py
+    lines: "121-240"
+    function: require_authenticated_context; resolve_http_context
+    supports: bearer authentication, credential-derived tenant context, and router context resolution
+  E14:
+    path: ../odontoflow-backend/app/__init__.py
+    lines: "52-91"
+    function: create_app
+    supports: router-level authentication for agent-tools and messaging routes
+  E15:
+    path: ../odontoflow-backend/app/messaging/service.py
+    lines: "60-152, 196-318"
+    function: list_conversations; close_conversation; ingest_inbound_message
+    supports: conversation listing/close, new-inbound open status, provider-message dedupe, and no automatic resume in ingress
+  E16:
+    path: ../odontoflow-backend/app/messaging/router.py
+    lines: "68-109, 137-161, 221-250"
+    function: list_conversations_route; close_conversation_route; resume_automation_route
+    supports: existing conversation routes and operator resume transport contract
+  E17:
+    path: ../odontoflow-backend/app/agent_tools/booking.py; ../odontoflow-backend/app/agent_tools/reception.py
+    lines: "booking.py:236-280, 330-375, 515-560; reception.py:693-728, 817-844, 1005-1040, 1134-1155"
+    function: proposal creation/confirmation/decline functions
+    supports: awaiting_confirmation and open transitions around appointment proposal flows
+  E18:
+    path: ../odontoflow-backend/sales_agent/tools.py
+    lines: "18-20, 171-214"
+    function: build_v0_tools; request_human_handoff
+    supports: Sales Agent V0 explicit handoff caller and conversation binding
+  E19:
+    path: ../odontoflow-backend/sales_agent/runtime.py
+    lines: "373-436, 487-491, 569-711"
+    function: _build_middleware; invoke_config; _request_handoff; SalesAgentRuntime.turn
+    supports: bounded runtime, recursion fallback, partial-effect diagnostic, and failure exception handling
+  E20:
+    path: ../odontoflow-backend/sales_agent/api.py
+    lines: "69-95, 121-150, 178-247"
+    function: _authorize_sales_agent_turn; _record_failure; create_app.sales_agent_turn
+    supports: post-auth runtime boundary, sanitized failure logging, and unchanged public error mapping
+  E21:
+    path: ../odontoflow-backend/sales_agent/schemas.py
+    lines: "93-118"
+    function: SalesAgentTurnRequest; SalesAgentResponse
+    supports: turn request has conversation/message IDs but no idempotency field; response outcome/handoff shape
+  E22:
+    path: ../odontoflow-backend/scripts/issue_credential.py; ../odontoflow-backend/tests/test_security_boundary.py
+    lines: "issue_credential.py:68-97; test_security_boundary.py:525-597"
+    function: PROFILE_PERMISSIONS; profile tests
+    supports: sales-agent-v0 and reception-operator permission sets
+  E23:
+    path: ../odontoflow-backend/tests/test_reception_agent_phase5.py
+    lines: "1063-1177"
+    function: test_handoff_pauses_automation_and_persists_one_actionable_request; test_resume_automation_is_operator_only_and_not_an_agent_tool
+    supports: existing synthetic contract for one pending row, replay, automation block, operator-only resume, and resolution
+  E24:
+    path: ../odontoflow-backend/docs/reviews/2026-09-11-backend-product-reality.md
+    lines: "64-74"
+    function: Messaging domain inventory
+    supports: ReceptionHandoff is tool-only and has no claim route
+  E25:
+    path: ../odontoflow-backend/docs/superpowers/handoffs/2026-09-05-sales-agent-v0-w3.md; ../odontoflow-backend/docs/superpowers/handoffs/2026-09-05-sales-agent-v0-w4.md
+    lines: "w3:37-74; w4:74-106, 110-122"
+    function: Sales Agent V0 and WF-01 handoff contracts
+    supports: typed handoff caller, same-thread runtime context, no turn idempotency, and human-handoff automation block
+  E26:
+    path: ../odontoflow-backend/docs/superpowers/handoffs/2026-08-30-n8n-reception-hardening.md
+    lines: "8-24, 43-56"
+    function: Shipped behavior and boundary
+    supports: operator route replacing resume tool and source-of-truth placement in backend
+  E27:
+    path: ../odontoflow-backend/docs/superpowers/handoffs/2026-09-16-real-model-diagnostics-01.md
+    lines: "47-76, 115-135"
+    function: Diagnostic contract; concurrency/business-state status; blockers
+    supports: sanitized diagnostics, no retry/fallback/business mutation, and absence of durable failure handoff
+  E28:
+    path: ../odontoflow-backend/docs/superpowers/handoffs/2026-09-16-sandbox-real-model-03.md; ../odontoflow-backend/docs/superpowers/handoffs/2026-09-16-sandbox-real-model-04.md
+    lines: "real-model-03:9-20,54-72,118-120; real-model-04:42-63"
+    function: Outcome; timeout trace; provider/tools/delivery; diagnostic evidence
+    supports: observed failure boundaries stopped without retry and route/provider failure distinctions
+  E29:
+    path: docs/handoffs/plans/2026-09-17-reception-core-closeout-01.yaml
+    lines: "56-59, 159-164, 268-277"
+    function: DC-6; truthful_agent_failure_recovery; AGENT-02
+    supports: current planning contract and explicit remaining post-auth failure handoff gap
+  E30:
+    path: ../odontoflow-backend/docs/reviews/2026-09-11-backend-product-reality.md; ../odontoflow-backend/app/agent_tools/reception.py
+    lines: "review:73; reception.py:1230-1237, 1316-1327"
+    function: Messaging inventory; request_handoff/resume_automation queries
+    supports: no claim assignment/list route found and only pending/claimed filtering/resolution in source
+
+facts:
+  - id: F01
+    statement: >-
+      Conversation is tenant-owned and has statuses open, awaiting_confirmation,
+      human_handoff, and closed; the active-contact partial unique index permits
+      one non-closed conversation per organization/channel/contact.
+    evidence_refs: [E02]
+  - id: F02
+    statement: >-
+      ReceptionHandoff stores id, organization_id, conversation_id,
+      contact_identity_id, reason_code, reason_summary, status, created_at, and
+      updated_at. Reason codes are a seven-value closed set; statuses are
+      pending, claimed, and resolved.
+    evidence_refs: [E02, E03, E08]
+  - id: F03
+    statement: >-
+      Handoff persistence is structurally tenant-bound by composite foreign keys
+      (organization_id, conversation_id) to conversations and
+      (organization_id, contact_identity_id) to contact_identities; the pending
+      or claimed partial unique index is keyed by organization_id and conversation_id.
+    evidence_refs: [E02, E03]
+  - id: F04
+    statement: >-
+      request_handoff opens a transaction, claims an optional command receipt,
+      requires conversations.manage, loads a tenant-scoped non-closed conversation
+      and contact, reuses an existing pending/claimed row or inserts pending,
+      sets Conversation.status to human_handoff, audits, settles the receipt, and
+      returns the handoff.
+    evidence_refs: [E05]
+  - id: F05
+    statement: >-
+      The automation guard rejects a conversation in human_handoff with
+      ENTITY_INACTIVE/HUMAN_HANDOFF_ACTIVE; the guard is used by the conversation
+      loading path for LLM-facing tools.
+    evidence_refs: [E05, E07, E23]
+  - id: F06
+    statement: >-
+      New inbound persistence initializes a new conversation as open and dedupes
+      an inbound event by organization, channel account, and provider_message_id;
+      existing non-closed conversations are updated without an automatic
+      human_handoff-to-open transition.
+    evidence_refs: [E15]
+  - id: F07
+    statement: >-
+      The generic agent-tool endpoint accepts request_human_handoff as an
+      allowlisted mutation and dispatches it to run_handoff_tool; the Sales Agent
+      V0 wrapper is conversation-bound and calls the same tool through its
+      authenticated BackendGateway.
+    evidence_refs: [E08, E09, E14, E18]
+  - id: F08
+    statement: >-
+      Mutation transport requires tool_version 1.1 and a canonical UUIDv4
+      idempotency key. run_handoff_tool names the operation
+      conversations.request_handoff and includes conversation plus handoff
+      arguments in the request fingerprint.
+    evidence_refs: [E05, E08, E10]
+  - id: F09
+    statement: >-
+      CommandReceipt uniqueness is organization_id plus operation plus
+      idempotency_key. A matching fingerprint and principal replays the stored
+      outcome; a different fingerprint/principal is rejected as an idempotency
+      key reuse. Receipt, handoff mutation, and domain audit are committed
+      together on the executed path.
+    evidence_refs: [E10, E11]
+  - id: F10
+    statement: >-
+      request_handoff emits conversation.human_handoff_requested with handoff id,
+      reason code, and status. call_agent_tool additionally emits agent_tool.called
+      for both successful and AppError tool calls. A replay does not rerun the
+      domain command, while the generic tool boundary still records the call
+      audit.
+    evidence_refs: [E05, E09, E10]
+  - id: F11
+    statement: >-
+      resume_automation requires conversations.resume, locks a tenant-scoped
+      non-closed conversation, marks all pending/claimed handoffs for that
+      conversation resolved, sets the conversation open, emits
+      conversation.automation_resumed, and settles a conversations.resume_automation
+      receipt.
+    evidence_refs: [E06, E12, E16]
+  - id: F12
+    statement: >-
+      The resume transport is POST /internal/conversations/{conversation_id}/resume
+      with an empty typed body and required UUIDv4 Idempotency-Key. The route is
+      permission-gated; the shipped reception-operator profile has
+      conversations.read and conversations.resume only, while sales-agent-v0 has
+      conversations.manage but not conversations.resume.
+    evidence_refs: [E16, E21, E22, E23]
+  - id: F13
+    statement: >-
+      The handoff status enum includes claimed, but the inspected source only
+      queries pending/claimed and transitions those rows to resolved; no source
+      function assigns claimed or exposes a handoff claim/list/detail route.
+    evidence_refs: [E02, E06, E24, E30]
+  - id: F14
+    statement: >-
+      The Sales Agent runtime invokes the typed handoff wrapper only for a
+      GraphRecursionError bounded-loop fallback. Provider timeout, turn timeout,
+      gateway, unavailable-runtime, invalid-response, and other runtime failures
+      are converted to exceptions/diagnostics and handled by the API boundary;
+      that boundary does not call request_handoff.
+    evidence_refs: [E19, E20, E27]
+  - id: F15
+    statement: >-
+      Existing failure diagnostics are content-free and allowlist stage/category,
+      safe status/request identifiers, elapsed time, and partial_business_effects;
+      raw exception/provider content, credentials, and patient messages are not
+      serialized by the documented diagnostic contract.
+    evidence_refs: [E19, E20, E27]
+  - id: F16
+    statement: >-
+      SalesAgentTurnRequest contains only conversation_id and
+      latest_inbound_message_id; the /sales-agent/turn route has no command
+      receipt or request idempotency key in this contract. The existing handoff
+      command itself is idempotent, but the turn boundary is not an idempotent
+      command surface.
+    evidence_refs: [E20, E21, E25]
+  - id: F17
+    statement: >-
+      resume_automation changes canonical conversation/handoff rows and writes
+      an audit event; its implementation has no Sales Agent runtime import or
+      call. Runtime thread identity is separately derived from conversation_id
+      in SalesAgentRuntime.invoke_config.
+    evidence_refs: [E06, E19]
+  - id: F18
+    statement: >-
+      The existing planning contract explicitly records sanitized diagnostics as
+      present while a durable pending handoff after post-auth failure remains
+      open; AGENT-02 is scoped to that remaining gap, not to provider fallback.
+    evidence_refs: [E27, E29]
+
+reuse_assessment:
+  verdict: partial_reuse_existing_mechanism
+  can_reuse_existing_handoff_domain: true
+  reusable_parts:
+    - statement: >-
+        ReceptionHandoff persistence, controlled reason/status values, tenant
+        composite keys, and one-open-handoff uniqueness already exist.
+      evidence_refs: [E02, E03]
+    - statement: >-
+        request_handoff already provides an atomic idempotent command with the
+        existing permission and audit conventions.
+      evidence_refs: [E05, E10, E11]
+    - statement: >-
+        The existing operator resume route and conversations.resume permission
+        already resolve active handoffs and reopen automation.
+      evidence_refs: [E06, E12, E16, E22]
+  reuse_limitations:
+    - statement: >-
+        The post-auth Sales Agent failure handlers do not call the existing
+        request_handoff command, so the current mechanism is not currently
+        reached for provider/runtime/API failure classes.
+      evidence_refs: [E19, E20, E27, E29]
+    - statement: >-
+        The handoff row has no failure-diagnostic fields or claim ownership, and
+        resume has no source-level connection to restarting or re-entering the
+        Sales Agent runtime.
+      evidence_refs: [E02, E06, E17, E19, E24]
+  boundary: >-
+    This is a reuse assessment from source evidence only. It does not select a
+    new recovery architecture, add a route, define new states, or authorize
+    implementation.
+
+gaps:
+  - id: G01
+    statement: >-
+      No durable human handoff is created when an authenticated /sales-agent/turn
+      fails in provider/runtime/gateway/response handling; the API records only
+      the sanitized diagnostic and returns the existing public error envelope.
+    evidence_refs: [E19, E20, E27, E29]
+  - id: G02
+    statement: >-
+      The existing handoff model cannot identify the failure boundary or partial
+      business-effect evidence because it stores only controlled reason code and
+      reason summary; the sanitized diagnostic remains outside canonical
+      handoff persistence.
+    evidence_refs: [E02, E05, E15, E27]
+  - id: G03
+    statement: >-
+      claimed is a declared state but there is no source-level claim transition,
+      claimant/ownership field, or claim/list/detail route for human operators.
+    evidence_refs: [E02, E06, E24, E30]
+  - id: G04
+    statement: >-
+      On recursion exhaustion, _request_handoff swallows handoff-tool failures
+      into telemetry and SalesAgentRuntime.turn still returns handoff=true; the
+      response therefore does not itself prove that a durable row was committed.
+    evidence_refs: [E19, E25]
+  - id: G05
+    statement: >-
+      Operator resume changes canonical state only; there is no source-level
+      trigger that resumes the failed turn or coordinates with the separate
+      agent-memory checkpointer.
+    evidence_refs: [E06, E19, E26]
+  - id: G06
+    statement: >-
+      The /sales-agent/turn request has no idempotency contract, so repeated
+      authenticated turn requests are not deduped by the existing command
+      receipt mechanism. The explicit handoff command has its own idempotency
+      protections when invoked.
+    evidence_refs: [E10, E20, E21, E25]
+
+unknowns:
+  - id: U01
+    statement: >-
+      The live database schema, migration application state, and live handoff
+      rows were not inspected; this report covers declared models/migrations and
+      source behavior only.
+    reason: task boundary prohibits live database/schema inspection
+    evidence_refs: [E02, E03]
+  - id: U02
+    statement: >-
+      No backend source identifies a human operator UI or external worker that
+      lists/claims ReceptionHandoff rows; whether an external caller polls the
+      conversation list and then invokes resume is outside this repository.
+    reason: no such caller was present in the inspected backend source; no external systems were inspected
+    evidence_refs: [E16, E24, E30]
+  - id: U03
+    statement: >-
+      The post-failure behavior of any separately provisioned agent-memory
+      database after a provider/runtime exception is not established by the
+      canonical backend source; only the conversation_id thread configuration
+      and canonical resume mutation are visible here.
+    reason: agent-memory/live runtime inspection is outside this read-only scout
+    evidence_refs: [E06, E19, E25]
+  - id: U04
+    statement: >-
+      Real-provider failure categories and partial business effects at the
+      current HEAD are not independently established by this scout; existing
+      handoffs document sanitized classification and bounded synthetic evidence,
+      not a live provider run in this task.
+    reason: no live provider, production system, credential, or test execution was used
+    evidence_refs: [E27, E28]
+
+method:
+  mode: targeted_read_only_source_and_contract_inspection
+  commands_and_actions:
+    - "Read planning AGENTS.md and the planning foreman-handoff protocol."
+    - "Read planning STATUS.md, PLAN.md, CAVELOG.md, HANDOFFS.md, and current-activity.yaml for control-plane scope."
+    - "Read odontoflow-backend/AGENTS.md and verified backend HEAD, origin/main, merge-base, and worktree status with git."
+    - "Searched backend app, sales_agent, alembic, tests, reviews, and relevant handoffs for human_handoff, ReceptionHandoff, resume, recovery, and failure paths."
+    - "Read exact source ranges with line numbers for models, migrations, services, routers, guards, IAM, idempotency, audit, Sales Agent runtime/API, tests, and handoffs."
+    - "Wrote this YAML artifact only in the planning repository."
+  tests_run: false
+  backend_files_modified: false
+  planning_files_modified:
+    - docs/superpowers/evidence/agent-02-human-handoff-domain-scout.yaml
+  prohibited_surfaces_inspected: false
+  patient_or_provider_content_persisted: false
+  secret_or_credential_content_persisted: false

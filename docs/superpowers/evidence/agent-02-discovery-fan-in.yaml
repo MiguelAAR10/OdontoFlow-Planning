@@ -1,0 +1,229 @@
+schema_version: 1
+artifact:
+  kind: coordinator_evidence_fan_in
+  activity_id: AGENT-02
+  run_id: run_a8f8429f181f
+  backend_head: 02fb031c6949c1c5ea69278a9e9a33a4cbb17f72
+  backend_origin_main: 02fb031c6949c1c5ea69278a9e9a33a4cbb17f72
+  evidence_only: true
+
+worker_provenance:
+  - role: W1_failure_path
+    task_id: task_53828561d1db
+    dispatch_id: ctx_adbe8c05af02
+    agent: codex
+    model: gpt-5.6-luna
+    status: completed
+    result_message_id: msg_144cfcb4faff
+    packet: docs/superpowers/evidence/agent-02-failure-path-scout.yaml
+  - role: W2_human_handoff_domain
+    task_id: task_d1aa69764c9d
+    dispatch_id: ctx_6b4025a67893
+    agent: codex
+    model: gpt-5.6-luna
+    status: completed
+    result_message_id: msg_ebf794064694
+    packet: docs/superpowers/evidence/agent-02-human-handoff-domain-scout.yaml
+    routing_note: >-
+      Two OpenCode dispatches stalled before receiving task input; Codex Luna
+      completed the replacement Task. The initial failed Task was task_d1e86f1effc8.
+  - role: W3_contract_test
+    task_id: task_6515a6a7e3af
+    dispatch_id: ctx_7e20b480824d
+    agent: codex
+    model: gpt-5.6-luna
+    status: completed
+    result_message_id: msg_c08baa20b326
+    packet: docs/superpowers/evidence/agent-02-contract-test-scout.yaml
+    routing_note: >-
+      The first dispatch ctx_6005cab475ab stopped at an unreviewed Hooks dialog;
+      no dialog action was taken. The completed retry used a settled Codex Luna
+      terminal and produced this packet.
+
+FACTS:
+  - id: F1
+    statement: >-
+      The approved Reception/Scheduling closeout seed classifies AGENT-02 as
+      MUST_CLOSE_V1 with no dependencies. Its card requires one pending
+      tenant-bound recovery handoff after authenticated provider/runtime failure.
+    evidence: [W3.E1, W1.F011, seed:docs/handoffs/plans/2026-09-17-reception-core-closeout-01.yaml#AGENT-02]
+  - id: F2
+    statement: >-
+      POST /sales-agent/turn authenticates and resolves tenant/principal and
+      conversations.read permission before invoking the runtime. Generic
+      provider/runtime exceptions map to AGENT_EXECUTION_FAILED HTTP 503;
+      invalid structured responses map to HTTP 502 and typed gateway errors
+      retain their mapped status/code.
+    evidence: [W1.F001, W1.F002, W1.F004, W3.F1, W3.E2]
+  - id: F3
+    statement: >-
+      Failure diagnostics are bounded and sanitized but currently go through
+      application logging; the inspected runtime failure boundary does not
+      persist a canonical diagnostic or invoke the durable handoff command.
+    evidence: [W1.F005, W1.F006, W1.F010, W1.E011, W2.overall, W2.E20, W3.F2]
+  - id: F4
+    statement: >-
+      Authentication commits credential last-use metadata before runtime.
+      Typed tool operations use separate transactions, so a successful prior
+      tool mutation can remain committed when a later provider/runtime call fails.
+    evidence: [W1.F007, W1.F008, W1.E004, W1.E016, W2.F05, W3.F5]
+  - id: F5
+    statement: >-
+      Source and existing tests show no provider retry, alternate-provider
+      fallback, or whole-turn retry in this path. A separate recursion-limit
+      branch invokes explicit handoff; that is distinct from generic provider failure.
+    evidence: [W1.F009, W1.F010, W1.E009, W1.E022, W2.F14, W3.F3, W3.F6]
+
+CURRENT_FAILURE_FLOW:
+  - step: authenticated_entry
+    observation: >-
+      Credential-derived tenant and principal plus conversations.read are
+      checked before the Sales Agent runtime executes.
+    evidence: [W1.F001, W1.F002, W1.E003, W1.E004, W3.E2]
+  - step: runtime_execution
+    observation: >-
+      Runtime stages include inbound-context loading, agent construction,
+      model execution, response validation, and deadline checks; typed tool
+      calls can commit independently during execution.
+    evidence: [W1.F003, W1.F007, W1.F008, W1.E006, W1.E016, W1.E018]
+  - step: failure_translation
+    observation: >-
+      Generic provider/runtime failure is logged through the sanitized
+      diagnostic path and returned as the existing 503 envelope with trace
+      identifiers only; no generic failure branch creates a handoff.
+    evidence: [W1.F004, W1.F005, W1.F006, W1.F010, W1.E010, W1.E011, W2.E20, W3.E2, W3.E5]
+  - step: retry_behavior
+    observation: >-
+      Provider retry is disabled, typed gateway calls have no retry loop, and
+      the workflow caller uses one turn attempt; transport-only retries are
+      separately bounded in the workflow evidence.
+    evidence: [W1.F009, W1.E007, W1.E009, W1.E022, W3.E6, W3.E9]
+
+CURRENT_HANDOFF_FLOW:
+  persistence_and_states:
+    observation: >-
+      PostgreSQL ReceptionHandoff rows are linked to tenant-scoped Conversation
+      and ContactIdentity records. Handoff states are pending, claimed, and
+      resolved; the conversation automation gate includes human_handoff.
+    evidence: [W2.F01, W2.F02, W2.F03, W2.E02, W2.E03]
+  creation_and_deduplication:
+    observation: >-
+      request_handoff / run_handoff_tool requires conversations.manage, loads
+      within the authenticated tenant, reuses an open handoff or inserts one,
+      changes conversation status, records audit and idempotency state in the
+      transaction. A partial unique index permits one pending/claimed handoff
+      per tenant and conversation.
+    evidence: [W2.F03, W2.F04, W2.F08, W2.F09, W2.F10, W2.E05, W2.E10, W2.E11]
+  callers_and_resume:
+    observation: >-
+      Explicit tool requests and the recursion-limit branch call the handoff
+      command. Operator resume resolves pending/claimed rows, reopens the
+      conversation, and audits the change; it does not invoke the Sales Agent
+      runtime, replay the failed turn, or coordinate the separate memory
+      checkpointer.
+    evidence: [W2.F07, W2.F11, W2.F12, W2.E06, W2.E16, W2.E19, W2.E26, W3.E7, W3.E8]
+  current_failure_boundary:
+    observation: >-
+      Provider/runtime failure handling does not call request_handoff or
+      resume_automation. The existing handoff mechanism is therefore present
+      but not connected to this failure boundary.
+    evidence: [W2.overall, W2.provider_runtime_failure_boundary, W2.E20, W2.E27, W3.F2]
+
+REUSABLE_CONTRACTS:
+  - id: R1
+    statement: >-
+      Existing tenant-bound handoff persistence, one-open-row uniqueness,
+      explicit command idempotency, automation blocking, permission checks,
+      and audit behavior are established source contracts.
+    evidence: [W2.reuse_assessment, W2.F03, W2.F04, W2.F05, W2.F08, W2.F09, W2.F10]
+  - id: R2
+    statement: >-
+      Existing operator resume is permission-gated and idempotent, but only
+      resolves the human-handoff state; it does not resume or replay AI work.
+    evidence: [W2.F11, W2.F12, W2.F17, W2.E06, W2.E16]
+  - id: R3
+    statement: >-
+      Existing tests cover the public trace-only 503 contract, explicit
+      handoff persistence/replay, provider retry controls, and related tenant
+      and audit behavior. They do not establish generic failure-to-handoff behavior.
+    evidence: [W3.A3, W3.E5, W3.E6, W3.E8, W3.E11]
+
+GAPS:
+  - id: G1
+    acceptance: A1_one_handoff_after_authenticated_failure
+    status: absent
+    evidence: [W3.G1, W3.E1, W3.E2, W3.E4]
+  - id: G2
+    acceptance: A2_repeat_failure_no_second_open_handoff
+    status: partially_covered
+    note: Existing explicit-command replay/index coverage does not test repeated provider/runtime failure.
+    evidence: [W3.G2, W3.E8, W2.F09]
+  - id: G3
+    acceptance: A3_public_503_unchanged
+    status: covered
+    evidence: [W3.A3, W3.E5]
+  - id: G4
+    acceptance: A4_no_hidden_retry_fallback_or_duplicate_business_mutation
+    status: partially_covered
+    note: Retry controls exist; no failure-after-successful-mutation duplicate-count assertion was found.
+    evidence: [W3.G3, W3.E6, W3.E9, W1.F007, W1.F008]
+  - id: G5
+    acceptance: A5_no_sensitive_content_in_recovery_metadata
+    status: partially_covered
+    note: Existing diagnostic contract is sanitized; no future failure-row metadata assertion exists and explicit handoff reason_summary is caller-provided.
+    evidence: [W3.G4, W3.U2, W2.F02, W1.F006]
+  - id: G6
+    acceptance: A6_tenant_isolation
+    status: partially_covered
+    note: General tenant scoping exists; no cross-tenant failure-created handoff test was found.
+    evidence: [W3.G5, W3.U3, W2.F03, W2.F04]
+  - id: G7
+    statement: The seed-named tests/test_sales_agent_failure_handoff.py file is absent at the inspected backend HEAD.
+    evidence: [W3.F7, W3.E1]
+
+RISKS:
+  - id: RISK1
+    statement: >-
+      A later runtime failure does not roll back an earlier separately
+      committed typed-tool mutation; the inspected failure contract does not
+      yet establish how duplicate business effects are prevented on a repeated turn.
+    evidence: [W1.F007, W1.F008, W1.E016, W3.G3, W3.U1]
+  - id: RISK2
+    statement: >-
+      ReceptionHandoff.reason_summary is persisted caller-provided text, so
+      the existing explicit-handoff contract alone does not prove the
+      failure-created recovery metadata would exclude all prohibited content.
+    evidence: [W2.F02, W2.E08, W3.G4, W3.U2]
+  - id: RISK3
+    statement: >-
+      The existing resume operation changes canonical handoff/conversation
+      state but has no source-level runtime replay or separate-memory recovery behavior.
+    evidence: [W2.F11, W2.G05, W2.U03]
+  - id: RISK4
+    statement: >-
+      The turn endpoint has no idempotency contract in inspected source;
+      explicit handoff command idempotency does not dedupe repeated turn requests.
+    evidence: [W2.F08, W2.F09, W2.G06, W2.E21]
+
+MATERIAL_UNKNOWNS:
+  - id: U1
+    statement: The exact cause of the prior or future external provider/runtime failure is not established by source evidence.
+    evidence: [W1.U001, W2.U04, W3.U4]
+  - id: U2
+    statement: Logger sink durability, retention, and searchability are outside the inspected repository source.
+    evidence: [W1.U002, W1.E011, W1.E013]
+  - id: U3
+    statement: Exact PostgresSaver write timing and outcome during provider failure are not established by the inspected backend source.
+    evidence: [W1.U003, W2.U03]
+  - id: U4
+    statement: Provider-side external effects and any effect not represented by observed successful mutating tools are not established.
+    evidence: [W1.U004, W2.U04]
+  - id: U5
+    statement: Lazy runtime-construction exceptions outside the explicitly mapped AgentUnavailableError path may have framework-level behavior not established by this evidence.
+    evidence: [W1.U005, W1.E002, W1.E010]
+  - id: U6
+    statement: >-
+      No inspected backend source identifies an external operator UI/worker
+      that lists or claims handoffs; live database migration state and live
+      rows were not inspected.
+    evidence: [W2.U01, W2.U02, W2.F13, W2.E24, W2.E30]

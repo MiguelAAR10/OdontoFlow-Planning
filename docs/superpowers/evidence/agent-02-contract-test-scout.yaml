@@ -1,0 +1,319 @@
+schema_version: 1
+scope:
+  task: "W3 read-only contract/test scout for AGENT-02"
+  purpose: "Map the deterministic acceptance contract and existing backend test/fixture evidence for authenticated Sales Agent provider/runtime failure recovery."
+  inspected:
+    - "Approved AGENT-02 seed Card"
+    - "Sales Agent API, runtime, typed handoff service, and handoff model"
+    - "Relevant backend tests, fixtures, and existing handoff records"
+  excluded:
+    - "Backend implementation changes"
+    - "Test execution"
+    - "Environment files, credentials, live databases, provider accounts, production systems, and patient/provider message contents"
+  read_only: true
+  tests_run: false
+  backend_files_modified: false
+
+seed_reference:
+  path: "docs/handoffs/plans/2026-09-17-reception-core-closeout-01.yaml"
+  card_id: "AGENT-02"
+  classification: "MUST_CLOSE_V1"
+  lines: "268-277"
+  business_outcome: "A provider/runtime failure queues a human recovery state instead of going silent."
+  declared_write_surface:
+    - "sales_agent/api.py"
+    - "app/agent_tools/reception.py"
+    - "tests/test_sales_agent_failure_handoff.py"
+  declared_tests:
+    - "one pending handoff per failed conversation"
+    - "repeat failure creates no second open handoff"
+    - "public 503 unchanged"
+    - "no retry or duplicate tool effect"
+    - "no credentials/provider body/exception/patient text stored"
+  definition_of_done: "Every post-auth failure leaves one open tenant-bound handoff plus the existing sanitized diagnostic."
+
+backend:
+  path: "/home/miguel/projects/portfolio/AI-EdgeRunners/odontoflow/odontoflow-backend"
+  head: "02fb031c6949c1c5ea69278a9e9a33a4cbb17f72"
+  origin_main: "02fb031c6949c1c5ea69278a9e9a33a4cbb17f72"
+  source_tree_observation: "The backend tests directory has no tests/test_sales_agent_failure_handoff.py at this HEAD."
+
+acceptance_map:
+  - id: "A1"
+    statement: "One pending, tenant-bound handoff exists after one authenticated provider/runtime failure."
+    status: "absent"
+    evidence_refs: ["E1", "E2", "E3", "E4", "E5", "E6"]
+    evidence_summary: "The seed names this as the required contract, but sales_agent_turn maps generic RuntimeError failures to the existing error response and sanitized diagnostic; the runtime only invokes its typed handoff wrapper in the explicit GraphRecursionError branch. The existing authenticated failure test asserts 503 and diagnostics, not a ReceptionHandoff row, and the seed-named failure-handoff test file is absent."
+    boundary_note: "An explicit recursion-bound handoff is separately covered by E7; that is not evidence that provider/runtime failures generally create a handoff."
+
+  - id: "A2"
+    statement: "A repeat failure does not create a second open handoff for the conversation."
+    status: "partially_covered"
+    evidence_refs: ["E4", "E8", "E9"]
+    evidence_summary: "The explicit request_handoff tool reuses an existing pending/claimed handoff under a transaction, and its test calls the same tool twice with one idempotency key and observes one row. The model also has a partial unique index for open handoffs per organization and conversation. No existing test drives two provider/runtime failures through the authenticated turn, and no test establishes the independent-repeat-failure behavior required by A2."
+
+  - id: "A3"
+    statement: "The existing public provider/runtime failure response remains HTTP 503 with the established content-free envelope."
+    status: "covered"
+    evidence_refs: ["E5", "E12"]
+    evidence_summary: "The authenticated Sales Agent failure contract test asserts status 503, code AGENT_EXECUTION_FAILED, and details limited to request_id and correlation_id while checking one runtime call and sanitized diagnostic logging. The prior handoff records the same public 503 boundary and describes the envelope as content-free."
+    coverage_limit: "The focused API test uses a synthetic runtime failure; provider-specific classification is tested at the runtime boundary in E6 rather than through a provider-backed HTTP request."
+
+  - id: "A4"
+    statement: "There is no hidden retry/fallback and no duplicate business mutation around the failure."
+    status: "partially_covered"
+    evidence_refs: ["E6", "E7", "E9", "E10", "E12", "E13"]
+    evidence_summary: "Runtime model controls set max_retries to zero; the unknown-failure test asserts that no tool call is retried; the workflow calls the Sales Agent turn once while keeping transport retry only for inbound/outbound persistence; and the sandbox timeout test observes one Sales Agent call with no fabricated outbound. Existing idempotency and explicit handoff tests cover other command paths, but no test combines a provider/runtime failure with a preceding successful mutating tool effect and checks all business rows for duplication."
+
+  - id: "A5"
+    statement: "Recovery metadata persists no credential, provider body, exception text, or patient message text."
+    status: "partially_covered"
+    evidence_refs: ["E4", "E6", "E11", "E12"]
+    evidence_summary: "Runtime diagnostics and the API response/log test cover content-free provider diagnostics, and the agent-tool audit test excludes prompt content. The current failure path has no durable recovery metadata write to inspect; the explicit handoff service persists its caller-provided reason_summary, so the inspected evidence does not prove that a failure-created recovery row would be sanitized."
+    material_source_fact: "ReceptionHandoff.reason_summary is a persisted 5-500 character field populated from HumanHandoffArguments; current generic provider/runtime failure handling does not populate it."
+
+  - id: "A6"
+    statement: "Tenant isolation remains intact for the failure handoff and its recovery metadata."
+    status: "partially_covered"
+    evidence_refs: ["E4", "E10", "E11", "E13"]
+    evidence_summary: "Authentication tests reject a valid Sales Agent from another tenant; general messaging, tenant-integrity, and idempotency tests prove tenant-scoped resources and same-key isolation; request_handoff queries and creates by ctx.organization_id and the handoff table uses composite tenant foreign keys. No test invokes the provider/runtime failure path with two tenants and checks that only the authenticated tenant receives an open handoff."
+
+fixtures:
+  - name: "PostgreSQL test lifecycle"
+    references:
+      - "tests/conftest.py::migrated_engine (66-78)"
+      - "tests/conftest.py::clean_tables (81-146)"
+      - "tests/conftest.py::session (292-296)"
+    reuse: "Use the migrated engine and clean per-test database state; clean_tables includes reception_handoffs, conversations, command_receipts, audit_events, and related tenant rows."
+    likely_for: ["A1", "A2", "A4", "A5", "A6"]
+
+  - name: "Authenticated Sales Agent API fixtures"
+    references:
+      - "tests/test_sales_agent_auth.py::RecordingRuntime (22-33)"
+      - "tests/test_sales_agent_auth.py::_token_for_principal (36-66)"
+      - "tests/test_sales_agent_auth.py::_second_organization (69-76)"
+      - "tests/test_sales_agent_auth.py::_settings (79-90)"
+      - "tests/test_sales_agent_auth.py::_sales_client (93-99)"
+      - "tests/test_sales_agent_auth.py::test_sales_agent_failure_returns_only_trace_details_and_logs_safe_diagnostic (227-299)"
+    reuse: "Provides an authenticated agent token, a tenant variant, app/client wiring, and a local failing-runtime pattern without provider access."
+    likely_for: ["A1", "A2", "A3", "A5", "A6"]
+
+  - name: "Provider/runtime boundary fixtures"
+    references:
+      - "tests/test_sales_agent_provider.py::_settings (32-43)"
+      - "tests/test_sales_agent_provider.py::test_runtime_passes_explicit_bounded_provider_controls (127-156)"
+      - "tests/test_sales_agent_provider.py::test_provider_timeout_is_classified_at_the_runtime_boundary (239-266)"
+      - "tests/test_sales_agent_provider.py::test_provider_status_failure_is_classified_without_serializing_provider_body (269-303)"
+      - "tests/test_sales_agent_provider.py::test_runtime_wraps_unknown_failure_with_safe_diagnostic_and_no_tool_retry (319-353)"
+    reuse: "Uses bounded settings and synthetic gateway/agent seams to exercise provider/runtime classification and no-tool-retry assertions without a live provider."
+    likely_for: ["A3", "A4", "A5"]
+
+  - name: "Reception handoff domain fixtures"
+    references:
+      - "tests/test_reception_agent_phase5.py::client (69-83)"
+      - "tests/test_reception_agent_phase5.py::_seed_reception (86-182)"
+      - "tests/test_reception_agent_phase5.py::_authorized_agent_context (211-245)"
+      - "tests/test_reception_agent_phase5.py::_call (498-531)"
+      - "tests/test_reception_agent_phase5.py::test_handoff_pauses_automation_and_persists_one_actionable_request (1063-1108)"
+    reuse: "Seeds a tenant-bound conversation and calls the typed tool endpoint; the existing test proves one explicit pending handoff, idempotent replay, and automation blocking."
+    likely_for: ["A1", "A2", "A5", "A6"]
+
+  - name: "No-retry integration fixtures"
+    references:
+      - "tests/test_sales_agent_w3.py::gateway_transport (132-151)"
+      - "tests/test_sales_agent_w3.py::agent_database_url (326-348)"
+      - "tests/test_sales_agent_w3.py::fake_gateway (349-391)"
+      - "tests/test_sales_agent_w3.py::test_recursion_bound_calls_typed_handoff_and_emits_content_free_telemetry (466-509)"
+      - "tests/test_sales_agent_w4.py::_synthetic_event (63-73)"
+      - "tests/test_sales_agent_w4.py::_scenario_model (75-85)"
+      - "tests/test_sales_agent_w4.py::test_wf01_export_keeps_http_order_and_retries_transport_only (393-443)"
+      - "tests/test_sandbox_inbound.py::test_sandbox_sender_does_not_retry_timed_out_turn_or_fabricate_outbound (325-369)"
+    reuse: "Covers typed gateway seams, explicit recursion handoff, workflow retry placement, and sender timeout behavior."
+    likely_for: ["A2", "A4"]
+
+  - name: "Tenant and idempotency fixtures"
+    references:
+      - "tests/test_tenant_integrity.py::two_orgs (153-158)"
+      - "tests/test_idempotency.py::seed_booking (111-167)"
+      - "tests/test_idempotency.py::seed_actor (169-197)"
+      - "tests/test_idempotency.py::ctx_for (206-218)"
+      - "tests/test_idempotency.py::receipt_rows (226-233)"
+      - "tests/test_idempotency.py::audit_rows (235-242)"
+    reuse: "Provides two-tenant state and row-count helpers for isolation and duplicate-mutation assertions."
+    likely_for: ["A2", "A4", "A6"]
+
+likely_test_files:
+  - path: "tests/test_sales_agent_failure_handoff.py"
+    status: "absent"
+    basis: "Seed-declared write/test surface; no file at backend HEAD."
+    likely_contracts: ["A1", "A2", "A3", "A5", "A6"]
+  - path: "tests/test_sales_agent_auth.py"
+    status: "existing"
+    basis: "Authenticated entrypoint and current public 503/sanitized diagnostic contract."
+    likely_contracts: ["A1", "A3", "A5", "A6"]
+  - path: "tests/test_sales_agent_provider.py"
+    status: "existing"
+    basis: "Provider/runtime classification, bounded controls, provider-body exclusion, and no tool retry."
+    likely_contracts: ["A3", "A4", "A5"]
+  - path: "tests/test_reception_agent_phase5.py"
+    status: "existing"
+    basis: "Typed handoff persistence, open-handoff reuse, and automation pause behavior."
+    likely_contracts: ["A1", "A2", "A5", "A6"]
+  - path: "tests/test_sales_agent_w3.py"
+    status: "existing"
+    basis: "Explicit recursion-bound typed handoff and content-free telemetry."
+    likely_contracts: ["A2", "A4", "A5"]
+  - path: "tests/test_sales_agent_w4.py"
+    status: "existing"
+    basis: "Workflow transport retry boundary and turn non-retry contract."
+    likely_contracts: ["A4"]
+  - path: "tests/test_sandbox_inbound.py"
+    status: "existing"
+    basis: "Sender timeout has one Sales Agent call and no fabricated outbound; credential/tenant rejection."
+    likely_contracts: ["A4", "A6"]
+  - path: "tests/test_tenant_integrity.py"
+    status: "existing"
+    basis: "Cross-tenant relational and HTTP isolation proofs."
+    likely_contracts: ["A6"]
+  - path: "tests/test_idempotency.py"
+    status: "existing"
+    basis: "Exactly-once/replay row-count helpers, rollback behavior, and same-key cross-organization independence."
+    likely_contracts: ["A2", "A4", "A6"]
+
+evidence_refs:
+  - id: "E1"
+    path: "docs/handoffs/plans/2026-09-17-reception-core-closeout-01.yaml"
+    lines: "268-277"
+    symbol: "AGENT-02 seed Card"
+    evidence: "Defines the one-pending-handoff, repeat-failure, unchanged-503, no-retry/no-duplicate, and sanitized-metadata test contract."
+  - id: "E2"
+    path: "sales_agent/api.py"
+    lines: "121-151,178-243"
+    symbol: "_record_failure, _error_response, create_app.sales_agent_turn"
+    evidence: "Authenticated POST /sales-agent/turn dependencies are installed at lines 188-196; runtime failures are logged through sanitized diagnostics and RuntimeError is translated to AGENT_EXECUTION_FAILED."
+  - id: "E3"
+    path: "sales_agent/runtime.py"
+    lines: "569-594,595-706"
+    symbol: "SalesAgentRuntime._request_handoff, SalesAgentRuntime.turn"
+    evidence: "Typed handoff is attempted by the explicit recursion-bound branch; provider timeout and generic exception branches classify/wrap failures without a generic handoff call."
+  - id: "E4"
+    path: "app/agent_tools/reception.py"
+    lines: "1214-1293"
+    symbol: "request_handoff, run_handoff_tool"
+    evidence: "The explicit handoff command begins a transaction, claims idempotency, loads the conversation under the authenticated organization, reuses an open handoff or inserts pending, sets conversation status, records an audit event, and settles the receipt."
+  - id: "E5"
+    path: "tests/test_sales_agent_auth.py"
+    lines: "227-299"
+    symbol: "test_sales_agent_failure_returns_only_trace_details_and_logs_safe_diagnostic"
+    evidence: "Authenticated synthetic runtime failure asserts HTTP 503, AGENT_EXECUTION_FAILED, trace-only public details, one runtime call, and safe diagnostic fields."
+  - id: "E6"
+    path: "tests/test_sales_agent_provider.py"
+    lines: "127-156,213-353"
+    symbol: "provider controls/classification/no-tool-retry tests"
+    evidence: "Provider controls set max_retries to zero; timeout/status/unknown failures are classified; unknown failure asserts no tool call retry and provider-body serialization is excluded."
+  - id: "E7"
+    path: "tests/test_sales_agent_w3.py"
+    lines: "466-509,531-610"
+    symbol: "test_recursion_bound_calls_typed_handoff_and_emits_content_free_telemetry; test_tool_gateway_failure_is_counted_without_exposing_tool_details"
+    evidence: "Explicit recursion bound invokes request_human_handoff; gateway failure telemetry is tested without exposing tool details."
+  - id: "E8"
+    path: "tests/test_reception_agent_phase5.py"
+    lines: "1063-1108"
+    symbol: "test_handoff_pauses_automation_and_persists_one_actionable_request"
+    evidence: "Two same-key explicit handoff tool calls yield one pending handoff, replay=true on the second, human_handoff conversation status, and inactive automation afterward."
+  - id: "E9"
+    path: "tests/test_sales_agent_w4.py"
+    lines: "393-470,1021-1117"
+    symbol: "test_wf01_export_keeps_http_order_and_retries_transport_only; test_wf01_handoff_blocks_agent_tool_automation"
+    evidence: "Workflow turn retry is disabled while transport persistence retries are bounded; the workflow has explicit handoff blocking coverage."
+  - id: "E10"
+    path: "tests/test_sandbox_inbound.py"
+    lines: "325-369,384-413"
+    symbol: "timeout and credential/tenant ingress tests"
+    evidence: "Timed-out Sales Agent turn is called once and no fabricated outbound is asserted; missing/invalid/cross-tenant credentials receive the existing rejection statuses."
+  - id: "E11"
+    path: "tests/test_agent_tools_phase3.py; tests/test_security_boundary.py; tests/test_messaging_phase2.py; tests/test_tenant_integrity.py; tests/test_idempotency.py"
+    lines: "agent_tools_phase3.py:374-411; security_boundary.py:224-250; messaging_phase2.py:407-433; tenant_integrity.py:764-817; idempotency.py:839-870"
+    symbol: "audit, redacted security, tenant isolation, and same-key organization tests"
+    evidence: "Existing tests cover content-free tool audit, redacted authentication evidence, tenant-scoped messaging/HTTP state, and independent same-key execution by organization."
+  - id: "E12"
+    path: "docs/superpowers/handoffs/2026-09-16-real-model-diagnostics-01.md; docs/superpowers/handoffs/2026-09-16-sandbox-real-model-03.md; docs/superpowers/handoffs/2026-09-05-sales-agent-v0-w4.md"
+    lines: "real-model-diagnostics-01.md:19-29,53-76,119-128; sandbox-real-model-03.md:7-20,54-72,118-129; sales-agent-v0-w4.md:108-122"
+    symbol: "existing handoff records"
+    evidence: "Recorded evidence describes the existing generic 503 and sanitized diagnostics, no retry/fallback/outbound on failed turns, transport-only retries, and an unresolved prior real-model failure cause."
+  - id: "E13"
+    path: "app/messaging/models.py; app/agent_tools/schemas.py; app/context.py"
+    lines: "messaging/models.py:398-450; agent_tools/schemas.py:105-117; context.py:121-214"
+    symbol: "ReceptionHandoff model, HumanHandoffArguments, require_authenticated_context"
+    evidence: "Open handoffs are uniquely constrained by tenant and conversation; reason_summary is persisted from explicit handoff arguments; authentication resolves tenant context and commits credential last_used_at before runtime."
+
+facts:
+  - id: "F1"
+    statement: "The authenticated entrypoint is POST /sales-agent/turn with require_authenticated_context and _authorize_sales_agent_turn dependencies."
+    evidence_refs: ["E2"]
+  - id: "F2"
+    statement: "The generic provider/runtime failure path returns the existing typed 503 response and records only sanitized diagnostics; it does not visibly call request_handoff."
+    evidence_refs: ["E2", "E3", "E5"]
+  - id: "F3"
+    statement: "A separate GraphRecursionError branch does call the typed handoff wrapper and returns an in-band handoff response."
+    evidence_refs: ["E3", "E7"]
+  - id: "F4"
+    statement: "The explicit handoff service is transaction-scoped, tenant-filtered, open-handoff-reusing, audited, and protected by a partial unique index for pending/claimed rows."
+    evidence_refs: ["E4", "E13"]
+  - id: "F5"
+    statement: "Authentication commits credential last_used_at before the runtime turn; this is an observed pre-failure persistence mutation, not a business appointment/proposal mutation."
+    evidence_refs: ["E13"]
+  - id: "F6"
+    statement: "The model boundary uses max_retries=0, workflow Sales Agent turn transport uses one attempt, and sandbox timeout handling observes one turn call without fabricated outbound."
+    evidence_refs: ["E6", "E9", "E10"]
+  - id: "F7"
+    statement: "No target test file named by the AGENT-02 Card exists in the backend tests directory at the inspected HEAD."
+    evidence_refs: ["E1"]
+
+unknowns:
+  - id: "U1"
+    statement: "There is no inspected acceptance evidence for a provider/runtime failure occurring after a successful mutating typed tool call and proving that no duplicate business mutation remains."
+    evidence_refs: ["E3", "E6", "E7"]
+  - id: "U2"
+    statement: "The inspected source does not establish what sanitized reason_summary, if any, a future failure-created recovery row would contain; explicit handoff persists the caller-provided summary."
+    evidence_refs: ["E4", "E13"]
+  - id: "U3"
+    statement: "No cross-tenant authenticated provider/runtime failure test proves that recovery metadata is created only in the requesting tenant."
+    evidence_refs: ["E10", "E11", "E13"]
+  - id: "U4"
+    statement: "The prior real-model 503's exact provider/model cause remains unknown in the existing handoff record."
+    evidence_refs: ["E12"]
+
+gaps:
+  - id: "G1"
+    statement: "No test currently drives one authenticated generic provider/runtime failure and asserts exactly one pending ReceptionHandoff for that conversation."
+    maps_to: ["A1"]
+  - id: "G2"
+    statement: "No test drives two provider/runtime failures and asserts no second pending/claimed handoff, independent of explicit tool idempotency replay."
+    maps_to: ["A2"]
+  - id: "G3"
+    statement: "No failure-path test couples a runtime failure with prior successful business mutation and checks proposal, appointment, audit, receipt, handoff, and outbound counts for duplication."
+    maps_to: ["A4"]
+  - id: "G4"
+    statement: "No recovery-metadata assertion covers all four prohibited data classes: credential, provider body, exception text, and patient message text."
+    maps_to: ["A5"]
+  - id: "G5"
+    statement: "No failure-handoff test exercises two authenticated tenants and verifies tenant-bound handoff and metadata visibility."
+    maps_to: ["A6"]
+
+method:
+  repository_state: "Read-only inspection at backend HEAD 02fb031c6949c1c5ea69278a9e9a33a4cbb17f72 and planning seed reference above."
+  actions:
+    - "Read the approved AGENT-02 Card and existing handoff records."
+    - "Searched backend source for authenticated entrypoint, runtime exception branches, handoff persistence, idempotency, tenant scoping, retry controls, and diagnostic serialization."
+    - "Searched backend tests and fixtures for matching assertions, helper names, row-count checks, public response checks, retry checks, and tenant isolation checks."
+    - "Verified the seed-named failure-handoff test file is absent from tests at this HEAD."
+  evidence_policy:
+    - "Recorded exact paths, line ranges, and symbols/functions for material facts."
+    - "Did not record credentials, provider bodies, exception text, or patient/provider message contents."
+    - "Did not run tests or inspect live/runtime systems."
+  status_vocabulary:
+    covered: "Direct existing evidence establishes the acceptance item at the inspected contract boundary."
+    partially_covered: "Related lower-level or adjacent-path evidence exists, but the requested failure-path assertion is missing or incomplete."
+    absent: "No inspected implementation/test evidence establishes the requested behavior for the specified failure path."
+    unknown: "The inspected evidence cannot determine the behavior."

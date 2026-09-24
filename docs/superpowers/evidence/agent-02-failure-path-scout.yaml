@@ -1,0 +1,456 @@
+schema_version: "agent-02-failure-path-scout/v1"
+artifact:
+  id: "AGENT-02-W1"
+  title: "READ-ONLY FAILURE-PATH SCOUT for AGENT-02"
+  generated_at: "2026-09-23"
+  classification: "repository-source-and-contract-evidence"
+
+scope:
+  activity_id: "AGENT-02"
+  task_id: "task_53828561d1db"
+  mode: "read_only_failure_path_mapping"
+  repository:
+    planning: "odontoflow-planning"
+    backend: "odontoflow-backend"
+  inspected_surfaces:
+    - "sales_agent/api.py"
+    - "sales_agent/runtime.py"
+    - "sales_agent/gateway.py"
+    - "sales_agent/tools.py"
+    - "sales_agent/schemas.py"
+    - "sales_agent/config.py"
+    - "sales_agent/memory.py"
+    - "app/__init__.py"
+    - "app/context.py"
+    - "app/agent_tools/router.py"
+    - "app/agent_tools/service.py"
+    - "app/agent_tools/booking.py"
+    - "app/agent_tools/reception.py"
+    - "app/agent_tools/guards.py"
+    - "app/idempotency/service.py"
+    - "app/messaging/router.py"
+    - "app/messaging/service.py"
+    - "app/messaging/models.py"
+    - "app/audit/service.py"
+    - "app/audit/models.py"
+    - "app/db.py"
+    - "integrations/n8n/wf_01_sales_agent_v0.py"
+  relevant_contracts_and_handoffs:
+    - "docs/handoffs/plans/2026-09-17-reception-core-closeout-01.yaml"
+    - "docs/superpowers/handoffs/2026-09-16-real-model-diagnostics-01.md"
+    - "docs/superpowers/handoffs/2026-09-16-sandbox-real-model-03.md"
+    - "docs/superpowers/handoffs/2026-09-05-sales-agent-v0-w3.md"
+    - "docs/superpowers/handoffs/2026-09-05-sales-agent-v0-w4.md"
+  exclusions:
+    - "No backend files were modified."
+    - "No tests were run."
+    - "No .env files, credentials, live databases, provider accounts, production systems, or message contents were inspected."
+    - "No provider request, application server, or external runtime was started."
+
+backend:
+  path: "/home/miguel/projects/portfolio/AI-EdgeRunners/odontoflow/odontoflow-backend"
+  head: "02fb031c6949c1c5ea69278a9e9a33a4cbb17f72"
+  origin_main: "02fb031c6949c1c5ea69278a9e9a33a4cbb17f72"
+  branch: "main"
+  head_verification:
+    command: "git rev-parse HEAD; git rev-parse origin/main"
+    result: "Both values were 02fb031c6949c1c5ea69278a9e9a33a4cbb17f72."
+  worktree_note: "Backend worktree had pre-existing tracked and untracked changes; none were changed by this scout."
+
+findings:
+  authenticated_entrypoint:
+    status: "established"
+    route:
+      method: "POST"
+      path: "/sales-agent/turn"
+      request_contract: "SalesAgentTurnRequest carries conversation_id and latest_inbound_message_id."
+      response_contract: "SalesAgentTurnResponse."
+    dependency_order:
+      - "SecurityBoundaryMiddleware decorates/validates trace headers and body transport before FastAPI route execution."
+      - "require_authenticated_context resolves the bearer credential, tenant, principal, rate limit, request trace, and commits credential last-use metadata in a short-lived authentication session."
+      - "_authorize_sales_agent_turn requires the configured service credential, an agent principal, and conversations.read permission before runtime invocation."
+      - "sales_agent_turn builds or obtains the runtime and then calls active_runtime.turn(payload)."
+    evidence_refs: [E002, E003, E004]
+
+  canonical_tool_entrypoint:
+    status: "established"
+    route: "POST /agent-tools/call"
+    path: "app.agent_tools.router.call_tool_route"
+    behavior: "The backend route resolves the authenticated ExecutionContext and delegates to call_agent_tool with a request-scoped SQLAlchemy Session."
+    authentication: "The canonical app includes the agent-tools router with require_authenticated_context as a router dependency."
+    evidence_refs: [E005, E014]
+
+  runtime_failure_boundary:
+    status: "established"
+    turn_stages:
+      - name: "turn_deadline_precheck"
+        operation: "SalesAgentRuntime._ensure_turn_deadline"
+        evidence_refs: [E006]
+      - name: "inbound_context"
+        operation: "BackendGateway.load_latest_inbound_message through get_reception_context over POST /agent-tools/call"
+        failure_types: ["GatewayError", "GatewayContractError", "SalesAgentTurnTimeout"]
+        evidence_refs: [E006, E007]
+      - name: "agent_build"
+        operation: "SalesAgentRuntime._build_agent and _resolve_model"
+        failure_types: ["AgentUnavailableError", "configuration/import errors"]
+        evidence_refs: [E006, E009]
+      - name: "model_execution"
+        operation: "LangChain agent.invoke with ModelTelemetryMiddleware"
+        failure_types: ["SalesAgentProviderTimeout", "provider SDK errors wrapped as SalesAgentExecutionError", "SalesAgentTurnTimeout"]
+        evidence_refs: [E006, E008]
+      - name: "response_validation"
+        operation: "SalesAgentResponse validation and response assembly"
+        failure_types: ["ValueError for invalid structured response"]
+        evidence_refs: [E006, E010]
+    exact_boundary_observation: "The runtime records the current stage, classifies the exception without retaining its text, and re-raises a typed or generic runtime exception; the API boundary performs the public translation."
+    evidence_refs: [E006, E010, E024]
+
+  exception_translation:
+    status: "established"
+    runtime_translation:
+      - source: "SalesAgentTurnTimeout or SalesAgentProviderTimeout"
+        behavior: "Attach SalesAgentDiagnostic and re-raise; both are RuntimeError subclasses at the API boundary."
+        evidence_refs: [E006, E010]
+      - source: "GatewayError, AgentUnavailableError, or ValueError raised by turn"
+        behavior: "Attach a diagnostic and re-raise the original typed exception."
+        evidence_refs: [E006, E010]
+      - source: "Other exception from turn"
+        behavior: "Classify it and wrap it as SalesAgentExecutionError with a generic safe message; no original exception text is serialized."
+        evidence_refs: [E006, E010, E024]
+      - source: "GraphRecursionError"
+        behavior: "The runtime attempts the typed request_human_handoff tool and returns a handoff response; handoff-tool exceptions are counted and swallowed by _request_handoff."
+        evidence_refs: [E006]
+    api_translation:
+      - source: "GatewayError"
+        public_status: "exc.status_code or 502"
+        public_code: "exc.code"
+        public_details: "Only validated request_id and correlation_id are included; gateway details are not copied into the response."
+        evidence_refs: [E010]
+      - source: "AgentUnavailableError"
+        public_status: 503
+        public_code: "AGENT_UNAVAILABLE"
+        public_details: "Only validated trace IDs."
+        evidence_refs: [E002, E010]
+      - source: "ValueError"
+        public_status: 502
+        public_code: "INVALID_AGENT_RESPONSE"
+        public_details: "Only validated trace IDs."
+        evidence_refs: [E010]
+      - source: "RuntimeError, including SalesAgentExecutionError and provider/turn timeout subclasses"
+        public_status: 503
+        public_code: "AGENT_EXECUTION_FAILED"
+        public_details: "Only validated trace IDs."
+        evidence_refs: [E010, E024]
+    pre_runtime_translation:
+      - "Authentication failure is an AppError response before route body execution; the authentication gate records a redacted SecurityEvent and commits it."
+      - "Permission failure is an AppError response before runtime execution."
+      - "Rate limit and disabled-integration failures are transport AppError responses before runtime execution."
+      - "Request trace/body transport failures are rejected by SecurityBoundaryMiddleware before the route."
+      - "The route catches only AgentUnavailableError from _build_runtime; other runtime-construction exceptions are not explicitly translated in this source."
+    evidence_refs: [E003, E004, E010, E013]
+
+  public_http_behavior:
+    status: "established"
+    success: "A successful turn returns the typed response containing the conversation and inbound identifiers, reply, outcome, and handoff flag."
+    provider_or_runtime_failure: "A provider/runtime failure reaches the existing generic AGENT_EXECUTION_FAILED 503 envelope unless it remains a GatewayError, AgentUnavailableError, or ValueError at the listed translation branch."
+    diagnostic_visibility: "The public failure response includes trace IDs only; diagnostic stage, category, upstream status, and upstream request ID are not public response fields."
+    no_provider_body: "The public response does not include provider response bodies or raw exception text."
+    historical_confirmation: "The real-model diagnostics handoff records the prior path as runtime exception to generic 503, while the bounded-smoke handoff records a 503 after the canonical context load."
+    evidence_refs: [E010, E024, E025]
+
+  sanitized_diagnostic_persistence:
+    status: "established_source_behavior"
+    diagnostic_shape:
+      fields: ["stage", "category", "upstream_status", "upstream_request_id", "elapsed_ms", "partial_business_effects"]
+      allowlisting: "stage and category are restricted to enumerated values; status is limited to HTTP status range; request ID is restricted by a bounded safe pattern; elapsed time is non-negative."
+      content_policy: "The diagnostic classifier and handoff contract exclude raw exception text, provider bodies, headers, credentials, stack traces, and patient message text."
+      evidence_refs: [E011, E012, E024]
+    current_recording:
+      api_boundary: "_record_failure chooses an attached diagnostic or classifies at request_boundary, adds validated trace IDs, and emits one sales_agent_failure warning through Python logging."
+      runtime_telemetry: "SalesAgentRuntime finally emits the existing aggregate telemetry event through its telemetry_sink; this event does not persist the diagnostic object to PostgreSQL."
+      evidence_refs: [E006, E011]
+    durable_storage:
+      canonical_database_diagnostic_row: "not present in the inspected source"
+      post_auth_failure_database_write_from_sales_agent_api: "none"
+      security_event_scope: "SecurityEvent is staged only by authentication failure and rate-limit branches in app.context, not by sales_agent.api runtime failure handling."
+      tool_audit_scope: "AuditEvent rows record typed tool calls and domain commands; no sales_agent_failure AuditEvent write exists in the runtime/API path."
+      logger_sink_durability: "unknown_outside_repository_source"
+      evidence_refs: [E011, E013, E014, E024]
+
+  mutations_before_failure:
+    status: "established_possible_effects"
+    authentication_metadata:
+      effect: "A successful authenticated turn updates IntegrationCredential.last_used_at and commits before the route body invokes the runtime."
+      business_effect: false
+      evidence_refs: [E004]
+    inbound_precondition:
+      effect: "The canonical inbound message and conversation identity are persisted by a separate authenticated inbound command before the turn; the turn request itself carries only canonical identifiers and the runtime reads context through a typed tool."
+      transaction: "ingest_inbound_message uses its own session.begin transaction."
+      evidence_refs: [E006, E021, E026]
+    read_tool_effects:
+      effect: "Every successful typed tool call commits an agent_tool.called AuditEvent; an AppError tool outcome is also audited and committed before the stable tool error is returned."
+      business_effect: false
+      evidence_refs: [E014, E015]
+    sales_agent_mutation_tools:
+      tool_set: ["propose_appointment", "confirm_appointment", "request_human_handoff"]
+      evidence_refs: [E013]
+      propose_appointment:
+        function: "app.agent_tools.booking.create_contact_booking_proposal"
+        possible_committed_effects:
+          - "Create or bind a Patient and Lead through ensure_contact_profile when the contact lacks them."
+          - "Update the lead service need."
+          - "Expire earlier pending proposals for the conversation."
+          - "Create one pending AppointmentProposal and set the conversation to awaiting_confirmation."
+          - "Persist the command receipt and appointment_proposal.created audit event."
+        transaction: "One session.begin block contains the receipt claim, permission/read checks, profile changes, proposal changes, audit staging, and receipt settlement."
+        evidence_refs: [E016, E017, E020]
+      confirm_appointment:
+        function: "app.agent_tools.booking.confirm_contact_booking_proposal"
+        possible_committed_effects:
+          - "Create the Appointment after the command's human-confirmation guard and later-inbound check."
+          - "Mark the proposal confirmed and bind its appointment."
+          - "Set the conversation open."
+          - "Persist the command receipt and appointment_proposal.confirmed audit event."
+        transaction: "One session.begin block contains the receipt claim, proposal lock, confirmation checks, appointment creation, state changes, audit staging, and receipt settlement."
+        evidence_refs: [E018, E020]
+      request_human_handoff:
+        function: "app.agent_tools.reception.request_handoff"
+        possible_committed_effects:
+          - "Create or reuse one pending/claimed ReceptionHandoff for the tenant and conversation."
+          - "Set the conversation to human_handoff."
+          - "Persist the command receipt and conversation.human_handoff_requested audit event."
+        transaction: "One session.begin block contains the receipt claim, conversation lock, handoff write/reuse, conversation status change, audit staging, and receipt settlement."
+        duplicate_guard: "The ReceptionHandoff table has a tenant/conversation partial unique index for pending or claimed handoffs."
+        evidence_refs: [E019, E020]
+    cross_turn_effect: "The Sales Agent turn has no encompassing canonical transaction. A provider failure after a successful tool call cannot roll back the earlier tool request's committed transaction."
+    agent_memory_effect: "The runtime passes a separate PostgresSaver checkpointer for the conversation thread; its storage is outside canonical business state. Exact checkpoint write timing around a provider failure is not established by this repository source."
+    evidence_refs: [E006, E023]
+
+  retry_and_fallback:
+    status: "established"
+    provider_runtime:
+      - "Model construction passes max_retries=0, a bounded model timeout, and a bounded output-token limit."
+      - "BackendGateway.call_tool performs one HTTP POST per typed tool call and has no retry loop."
+      - "SalesAgentRuntime has no alternate-provider or alternate-model fallback branch."
+      - "The only bounded automatic handoff branch is GraphRecursionError; it is not provider fallback and is not reached by the generic provider-exception path."
+    evidence_refs: [E007, E009, E010]
+    caller_workflow:
+      - "WF01Runner uses max_attempts=1 for POST /sales-agent/turn."
+      - "The same runner permits bounded transport retries for inbound and outbound commands, but those are separate requests and do not retry the turn."
+      - "After a failed turn, the runner does not reach the outbound enqueue call."
+    evidence_refs: [E022, E026]
+    command_idempotency:
+      - "Mutation tool envelopes receive a fresh UUIDv4 idempotency key per BackendGateway.call_tool invocation."
+      - "run_idempotent_command replays only a matching prior key/fingerprint/principal and does not itself retry."
+      - "No whole-turn idempotency key or whole-turn replay exists in the current turn contract."
+    evidence_refs: [E007, E020, E025]
+    current_failure_recovery: "A generic post-auth provider/runtime failure is not automatically converted into request_human_handoff, retried, or routed to another provider."
+    evidence_refs: [E006, E010, E024, E025]
+
+  transaction_boundaries_for_human_recovery:
+    status: "established"
+    boundaries:
+      - boundary: "authenticated_turn_gate"
+        transaction: "Short-lived auth session resolves credential/context, rate limit, and last-use metadata; it commits and closes before turn execution."
+        evidence_refs: [E004]
+      - boundary: "sales_agent_turn"
+        transaction: "No canonical SQLAlchemy transaction is opened by sales_agent_turn or SalesAgentRuntime.turn; runtime calls canonical tools over HTTP."
+        evidence_refs: [E006, E007, E023]
+      - boundary: "typed_tool_request"
+        transaction: "Backend get_db supplies a request session; call_agent_tool commits its tool audit on success or AppError, while mutation services own separate session.begin transactions."
+        evidence_refs: [E014, E015, E020]
+      - boundary: "human_handoff_command"
+        transaction: "request_handoff atomically writes/reuses the handoff, changes conversation status, stages audit, and settles the idempotency receipt."
+        evidence_refs: [E019, E020]
+      - boundary: "outbound_transcript"
+        transaction: "Outbound message and queue row are persisted by a separate enqueue_outbound_message session.begin transaction only after a successful turn response."
+        evidence_refs: [E021, E022]
+      - boundary: "diagnostic_record"
+        transaction: "The failure diagnostic is emitted through logging; no transaction connects it to a ReceptionHandoff or canonical conversation mutation."
+        evidence_refs: [E011, E013, E024]
+    recovery_state_observation: "The existing durable human state is the ReceptionHandoff row created by an explicit handoff tool call, not a provider/runtime failure record."
+    evidence_refs: [E019, E024, E025]
+
+  source_vs_contract:
+    status: "established_discrepancy"
+    existing_contract: "The reception closeout contract says provider/runtime/transport/ingress failure should leave sanitized evidence and one recoverable human state; its AGENT-02 card names one tenant-bound pending handoff after every post-auth failure."
+    current_source: "The source has sanitized logger diagnostics and a durable explicit request_human_handoff command, but the sales_agent.api failure branches do not call that command or otherwise persist a pending handoff."
+    scope_boundary: "This scout records the discrepancy only; it does not infer the intended recovery implementation or propose an architecture."
+    evidence_refs: [E019, E024, E025]
+
+evidence_refs:
+  E002:
+    source: "odontoflow-backend/sales_agent/api.py"
+    location: "lines 178-215, create_app and sales_agent_turn"
+    evidence: "Separate Sales Agent FastAPI app registers POST /sales-agent/turn with authentication and authorization dependencies, then invokes the active runtime."
+  E003:
+    source: "odontoflow-backend/sales_agent/api.py"
+    location: "lines 40-95, _configured_service_credential and _authorize_sales_agent_turn"
+    evidence: "Configured credential binding, agent principal check, and conversations.read permission precede runtime invocation."
+  E004:
+    source: "odontoflow-backend/app/context.py"
+    location: "lines 121-214, require_authenticated_context"
+    evidence: "Credential authentication, rate-limit claim, tenant/principal context construction, last_used_at update, commit, and auth-session close occur before request.state context is returned."
+  E005:
+    source: "odontoflow-backend/app/__init__.py and app/agent_tools/router.py"
+    location: "app/__init__.py:19-91; app/agent_tools/router.py:12-22"
+    evidence: "Canonical app includes agent-tools router with authenticated dependency; route delegates to call_agent_tool with resolved context and request DB session."
+  E006:
+    source: "odontoflow-backend/sales_agent/runtime.py"
+    location: "lines 595-711, SalesAgentRuntime.turn"
+    evidence: "Turn stages are deadline, inbound context, agent build, model execution, response validation; exception branches classify/re-raise or return recursion handoff, and finally emits telemetry."
+  E007:
+    source: "odontoflow-backend/sales_agent/gateway.py"
+    location: "lines 27-128, BackendGateway.call_tool and _http_error"
+    evidence: "Typed gateway sends one authenticated POST /agent-tools/call, maps transport/HTTP/contract failures to GatewayError subclasses, and has no retry loop."
+  E008:
+    source: "odontoflow-backend/sales_agent/runtime.py"
+    location: "lines 373-436, _build_middleware"
+    evidence: "Tool middleware converts unexpected non-timeout tool exceptions to a safe ToolMessage; model middleware converts timeout exceptions to SalesAgentProviderTimeout and rethrows other provider errors."
+  E009:
+    source: "odontoflow-backend/sales_agent/runtime.py"
+    location: "lines 493-535, SalesAgentRuntime._resolve_model"
+    evidence: "Selected provider is configured at process startup; model client receives timeout, max_retries=0, and max_tokens."
+  E010:
+    source: "odontoflow-backend/sales_agent/api.py"
+    location: "lines 140-247, _error_response and sales_agent_turn exception branches"
+    evidence: "GatewayError, AgentUnavailableError, ValueError, and RuntimeError map to their current public codes/statuses; response details are trace IDs only."
+  E011:
+    source: "odontoflow-backend/sales_agent/api.py"
+    location: "lines 121-137, _record_failure"
+    evidence: "Failure diagnostics are converted to a bounded dictionary and emitted via diagnostic_logger.warning; this function has no database/session call."
+  E012:
+    source: "odontoflow-backend/sales_agent/runtime.py"
+    location: "lines 130-181 and 197-299, SalesAgentDiagnostic and diagnostic_for_exception"
+    evidence: "Diagnostic fields are allowlisted/bounded and known provider SDK classes/statuses map to safe categories without retaining exception text."
+  E013:
+    source: "odontoflow-backend/app/context.py and app/audit/service.py"
+    location: "app/context.py:151-209; app/audit/service.py:76-98"
+    evidence: "SecurityEvent staging is called for authentication and rate-limit failures; no Sales Agent runtime failure caller writes SecurityEvent."
+  E014:
+    source: "odontoflow-backend/sales_agent/schemas.py and sales_agent/tools.py"
+    location: "schemas.py:21-37; tools.py:18-214"
+    evidence: "Sales Agent V0 exposes exactly seven wrappers; only propose_appointment, confirm_appointment, and request_human_handoff are V0 mutation tools."
+  E015:
+    source: "odontoflow-backend/app/agent_tools/service.py and app/db.py"
+    location: "service.py:273-431; db.py:18-22"
+    evidence: "Request sessions close in get_db; call_agent_tool audits AppError/success and commits, while mutation dispatch enters service handlers."
+  E016:
+    source: "odontoflow-backend/app/agent_tools/booking.py"
+    location: "lines 140-280, create_contact_booking_proposal"
+    evidence: "Proposal command claims receipt first, validates/locks, changes profile/proposal/conversation state, stages audit, settles receipt, and exits one session.begin block."
+  E017:
+    source: "odontoflow-backend/app/agent_tools/reception.py"
+    location: "lines 372-472, ensure_contact_profile"
+    evidence: "Proposal preparation can create Patient and Lead rows, bind ContactIdentity, and update profile fields within the caller transaction."
+  E018:
+    source: "odontoflow-backend/app/agent_tools/booking.py"
+    location: "lines 283-382, confirm_contact_booking_proposal"
+    evidence: "Confirmation command runs in one session.begin block and can create the appointment, confirm proposal, reopen conversation, stage audit, and settle receipt."
+  E019:
+    source: "odontoflow-backend/app/agent_tools/reception.py and app/messaging/models.py"
+    location: "reception.py:1214-1293; messaging/models.py:398-450"
+    evidence: "request_handoff creates/reuses a tenant-bound ReceptionHandoff, sets human_handoff status, audits/settles it atomically, and the table limits pending/claimed rows per conversation."
+  E020:
+    source: "odontoflow-backend/app/idempotency/service.py"
+    location: "lines 103-148 and 237-288"
+    evidence: "Receipt claim is first statement of a mutation transaction; receipt, mutation, audit, and outcome settle together; duplicate matching keys replay from a separate read transaction; handler does not retry."
+  E021:
+    source: "odontoflow-backend/app/messaging/router.py and app/messaging/service.py"
+    location: "router.py:94-134; service.py:196-318 and 321-443"
+    evidence: "Inbound persistence and outbound enqueue are separate authenticated commands, each with its own session.begin transaction; outbound enqueue is separate from turn execution."
+  E022:
+    source: "odontoflow-backend/integrations/n8n/wf_01_sales_agent_v0.py"
+    location: "lines 245-277 and 356-426, _post_json and WF01Runner.execute"
+    evidence: "Generic transport helper can retry, but the Sales Agent turn explicitly uses max_attempts=1; outbound enqueue runs only after a valid turn response."
+  E023:
+    source: "odontoflow-backend/sales_agent/memory.py and sales_agent/runtime.py"
+    location: "memory.py:10-42; runtime.py:537-560"
+    evidence: "PostgresAgentMemory opens a separate PostgresSaver checkpointer and runtime passes it into create_agent; canonical business state is not accessed by the Sales Agent package."
+  E024:
+    source: "odontoflow-backend/docs/superpowers/handoffs/2026-09-16-real-model-diagnostics-01.md"
+    location: "lines 17-76 and 115-128"
+    evidence: "Existing handoff documents the generic 503 flattening path, logger-only content-free diagnostic contract, no retry/fallback/mutation from diagnostics, and unresolved prior root cause."
+  E025:
+    source: "odontoflow-planning/docs/handoffs/plans/2026-09-17-reception-core-closeout-01.yaml"
+    location: "lines 57-59, 159-164, 268-307"
+    evidence: "Closeout contract requires sanitized evidence plus one recoverable human state; current status says sanitized diagnostics exist while durable post-auth handoff remains open; fallback is removed from scope."
+  E026:
+    source: "odontoflow-backend/docs/superpowers/handoffs/2026-09-05-sales-agent-v0-w3.md and w4.md"
+    location: "w3:22-52, 96-121; w4:108-122"
+    evidence: "Runtime uses separate checkpointer/typed gateway; W4 documents one-attempt turn behavior and outbound persistence only after a valid turn response."
+  E027:
+    source: "odontoflow-backend/app/agent_tools/guards.py"
+    location: "lines 8-27, require_automation_active and require_human_confirmation"
+    evidence: "Human handoff status blocks automation and agent appointment confirmation is refused at the command boundary."
+
+facts:
+  - id: "F001"
+    statement: "The authenticated Sales Agent entrypoint is POST /sales-agent/turn in the separate sales_agent.api FastAPI app."
+    evidence_refs: [E002, E003]
+  - id: "F002"
+    statement: "Authentication, tenant binding, agent-principal validation, and conversations.read authorization complete before runtime invocation."
+    evidence_refs: [E003, E004]
+  - id: "F003"
+    statement: "The runtime's explicit failure stages are inbound context, agent build, model execution, and response validation, with deadline checks around them."
+    evidence_refs: [E006, E007, E009]
+  - id: "F004"
+    statement: "Generic provider/runtime exceptions become AGENT_EXECUTION_FAILED with HTTP 503; invalid structured output becomes INVALID_AGENT_RESPONSE with HTTP 502; typed gateway errors preserve their typed code/status branch."
+    evidence_refs: [E006, E010, E024]
+  - id: "F005"
+    statement: "The public failure response carries only validated trace IDs in details; the sanitized diagnostic is not returned as stage/category data."
+    evidence_refs: [E010, E011, E012]
+  - id: "F006"
+    statement: "Current sanitized diagnostic handling is application logging, not durable canonical persistence."
+    evidence_refs: [E011, E013, E024]
+  - id: "F007"
+    statement: "A successful turn may leave committed authentication metadata, tool audit rows, and any successful typed-tool business mutations before a later provider/runtime failure."
+    evidence_refs: [E004, E014, E015, E016, E018, E019]
+  - id: "F008"
+    statement: "Proposal, confirmation, and explicit human-handoff commands own separate transactions; no transaction spans the entire Sales Agent turn."
+    evidence_refs: [E006, E016, E018, E019, E020]
+  - id: "F009"
+    statement: "The current provider/runtime path has no provider retry, alternate-provider fallback, or whole-turn retry; the integration caller makes one turn attempt."
+    evidence_refs: [E007, E009, E022, E024, E025]
+  - id: "F010"
+    statement: "An explicit request_human_handoff tool call can create one tenant-bound pending handoff and block later automation, but the Sales Agent API failure branches do not invoke it."
+    evidence_refs: [E019, E027]
+  - id: "F011"
+    statement: "The existing closeout/AGENT-02 contract records durable post-auth human recovery as unfinished; this is a source-versus-contract discrepancy, not an inferred recovery design."
+    evidence_refs: [E024, E025]
+
+unknowns:
+  - id: "U001"
+    statement: "The exact external provider/runtime cause of a future or prior generic 503 is not established by current source; the prior handoff explicitly leaves it unknown."
+    evidence_refs: [E024]
+  - id: "U002"
+    statement: "Whether the Python logging sink is durable, searchable, or retained beyond process lifetime is outside the inspected repository source."
+    evidence_refs: [E011, E013]
+  - id: "U003"
+    statement: "Exact LangGraph PostgresSaver write timing and transaction outcome when provider execution fails are not visible in this repository source."
+    evidence_refs: [E023]
+  - id: "U004"
+    statement: "Provider-side effects from a request that later fails are not represented by partial_business_effects; that field reflects observed successful mutating tool calls only."
+    evidence_refs: [E012, E024]
+  - id: "U005"
+    statement: "Exceptions during lazy runtime construction other than AgentUnavailableError are not explicitly mapped by sales_agent_turn; their framework-level public response is not established here."
+    evidence_refs: [E002, E010]
+  - id: "U006"
+    statement: "The source does not establish a durable diagnostic-to-human-handoff correlation because no such canonical diagnostic persistence/write path exists."
+    evidence_refs: [E011, E019, E025]
+
+method:
+  source_reads:
+    - "Read planning AGENTS.md, the Sales Agent engineering skill, backend AGENTS.md, current activity, domain vocabulary, and handoff protocol before source inspection."
+    - "Verified backend HEAD and origin/main with git; used targeted rg and nl -ba reads for the entrypoint, runtime, gateway, tools, transaction services, messaging, audit, and relevant handoffs/contracts."
+    - "Compared current source behavior with the documented diagnostics and reception closeout contracts; recorded discrepancies as facts rather than implementation proposals."
+  verification_commands:
+    - "git rev-parse HEAD; git rev-parse origin/main"
+    - "rg -n targeted failure/provider/runtime/retry/diagnostic/audit symbols"
+    - "nl -ba targeted source and handoff ranges"
+  safety:
+    backend_files_modified: false
+    tests_run: false
+    provider_or_live_system_contacted: false
+    secrets_or_sensitive_message_content_persisted: false
+  output_artifact: "docs/superpowers/evidence/agent-02-failure-path-scout.yaml"
